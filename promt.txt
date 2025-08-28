@@ -1,0 +1,97 @@
+# Prompt para continuar desarrollo de APIs SUNAT
+
+Hola, estoy desarrollando una API en Go con Gin para integrar con los servicios web de SUNAT (sistema tributario de Perú). Ya tengo implementados algunos endpoints y necesito que me ayudes a crear más siguiendo el mismo patrón.
+
+## Contexto del proyecto
+
+**Stack tecnológico:**
+- Go con framework Gin
+- Biblioteca Resty para peticiones HTTP
+- Variables de entorno para tokens
+- Hot reload con Air
+
+**Estructura del proyecto:**
+```
+- main.go
+- routes/ (rutas)
+- controllers/ (controladores) 
+- services/ (servicios que llaman a SUNAT)
+```
+
+**Patrón implementado:**
+
+1. **Route** (registro de rutas):
+```go
+sunat.POST("/endpoint/:perTributario", controllers.ControllerName)
+```
+
+2. **Controller** (validaciones y respuestas):
+```go
+func ControllerName(c *gin.Context) {
+    perTributario := c.Param("perTributario")
+    // validaciones básicas
+    // llamada al service
+    // respuesta JSON
+}
+```
+
+3. **Service** (petición HTTP a SUNAT):
+```go
+func ServiceSUNAT(params...) error {
+    client := resty.New()
+    token := os.Getenv("TOKEN")
+    // configurar headers
+    // hacer petición POST/GET
+    // manejar errores
+}
+```
+
+## APIs ya implementadas exitosamente:
+
+1. **Registrar Preliminar** - POST sin body
+2. **Exclusión Definitiva** - POST con query parameters  
+3. **Tipo de Cambio Masivo** - POST con JSON array en body
+
+## Headers estándar para SUNAT:
+- Content-Type: application/x-www-form-urlencoded (mayoría)
+- Content-Type: application/json (cuando hay body JSON)
+- Accept: application/json
+- Authorization: Bearer {token}
+
+## Patrones de URL de SUNAT:
+- Base: https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/
+- Siempre incluyen perTributario (formato YYYYMM)
+- Algunos usan query parameters adicionales
+
+## Lo que necesito:
+
+Cuando te pase la documentación de una nueva API de SUNAT, necesito que:
+
+1. **Analices la documentación** (URL, parámetros, headers, body, método HTTP)
+2. **Crees el código completo** siguiendo el patrón establecido:
+   - Route registration
+   - Controller con validaciones
+   - Service con petición HTTP
+3. **Incluyas ejemplo para Postman** con URL, headers y body si aplica
+4. **Mantengas simplicidad** - código funcional sin sobre-ingeniería
+
+## Ejemplo de documentación que recibirás:
+
+```
+5.X Servicio Web Api [nombre]
+Descripción: [descripción]
+Url: https://apisire.sunat.gob.pe/[endpoint]
+Parámetros[URL]: perTributario, otros...
+Parámetros[body]: JSON structure si aplica
+Headers: Content-Type, Accept, Authorization
+Método: POST/GET
+```
+
+## Notas importantes:
+- Los errores 422 de SUNAT son normales al probar (datos no reales)
+- El error 401 indica token expirado/inválido
+- perTributario formato: YYYYMM (ej: 202402)
+- Siempre validar parámetros obligatorios
+- Usar fmt.Errorf para errores descriptivos
+
+**¿Puedes ayudarme a implementar las siguientes APIs de SUNAT siguiendo este patrón?**
