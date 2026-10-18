@@ -213,9 +213,12 @@ func (w *Worker) processJob(id int64) {
 		if perTributario == "" {
 			perTributario = descarga.Periodo
 		}
-		codProceso := status.CodProceso
+		codProceso := strings.TrimSpace(status.CodProceso)
 		if codProceso == "" {
-			codProceso = "1"
+			errMsg := fmt.Sprintf("SUNAT no devolvió el campo obligatorio 'codProceso' en la respuesta del ticket %s", descarga.Ticket)
+			log.Printf("[SIRE-WORKER] Error: %s", errMsg)
+			_ = w.repo.UpdateStatus(descarga.ID, string(EstadoError), errMsg)
+			return
 		}
 
 		// Descargar archivo binario con los 6 parámetros exigidos por Ventas v31 5.17 y Compras v28 5.32

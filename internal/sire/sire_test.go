@@ -930,4 +930,74 @@ func TestWorker_FileExtensionPreservation(t *testing.T) {
 	}
 }
 
+func TestWorker_MissingCodProcesoFailsWithError(t *testing.T) {
+	db, tempDir := setupTestDB(t)
+	defer db.Close()
+	defer os.RemoveAll(tempDir)
+
+	storageDir := filepath.Join(tempDir, "descargas")
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if strings.Contains(r.URL.Path, "consultaestadotickets") {
+			// SUNAT responde 06 Terminado pero con codProceso vacío
+			resp := map[string]interface{}{
+				"registros": []map[string]interface{}{
+					{
+						"numTicket":        "20240299990003",
+						"codEstadoProceso": "06",
+						"desEstadoProceso": "Terminado",
+						"perTributario":    "202410",
+						"codProceso":       "", // VACÍO
+						"archivoReporte": []map[string]string{
+							{
+								"nomArchivoReporte":     "LE20000000001-202410-140000.zip",
+								"codTipoArchivoReporte": "00",
+							},
+						},
+					},
+				},
+			}
+			_ = json.NewEncoder(w).Encode(resp)
+			return
+		}
+	}))
+	defer server.Close()
+
+	mockToken := &mockTokenProvider{}
+	sunatClient := sunat.NewClient(mockToken)
+	sunatClient.SetBaseURL(server.URL)
+
+	sireClient := NewSunatSireClient(sunatClient)
+	repo := NewRepository(db)
+
+	ticketSinProceso := &DescargaSire{
+		EmpresaRUC: "20000000001",
+		CodLibro:   "140000",
+		Libro:      "VENTAS",
+		Periodo:    "202410",
+		Ticket:     "20240299990003",
+		Estado:     string(EstadoEnProceso),
+	}
+	if err := repo.Create(ticketSinProceso); err != nil {
+		t.Fatalf("Error al crear ticket: %v", err)
+	}
+
+	worker := NewWorker(repo, sireClient, mockToken, storageDir)
+	worker.processJob(ticketSinProceso.ID)
+
+	updated, err := repo.GetByID(ticketSinProceso.ID)
+	if err != nil {
+		t.Fatalf("Error al obtener ticket: %v", err)
+	}
+
+	if updated.Estado != string(EstadoError) {
+		t.Fatalf("El ticket debía quedar en ERROR al faltar codProceso, obtenido: %s", updated.Estado)
+	}
+	if !strings.Contains(updated.MensajeSUNAT, "codProceso") {
+		t.Fatalf("Mensaje debe señalar que falta codProceso: %s", updated.MensajeSUNAT)
+	}
+}
+
+
 

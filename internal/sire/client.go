@@ -219,7 +219,7 @@ func (s *SunatSireClient) DescargarArchivoReporte(ruc, nomArchivoReporte, codTip
 		codTipoArchivoReporte = "null"
 	}
 	if codProceso == "" {
-		codProceso = "1"
+		return nil, fmt.Errorf("parámetro 'codProceso' es obligatorio para archivoreporte y no fue provisto")
 	}
 
 	req.SetHeader("Content-Type", "application/json").
