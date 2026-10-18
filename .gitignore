@@ -3,12 +3,20 @@
 .env.local
 .env.*.local
 
-# Binarios
+# Base de datos y almacenamiento local
+data/
+descargas/
+*.db
+*.db-wal
+*.db-shm
+
+# Binarios y temporales
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+*.bak
 
 # Air - hot reload
 tmp/

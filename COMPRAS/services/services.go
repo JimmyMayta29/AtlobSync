@@ -7,27 +7,39 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
-	"os"
 	"strings"
 
-	"github.com/go-resty/resty/v2"
+	"github.com/SwodLore/sire-api/internal/sunat"
 )
 
-// 2 Servicio Web Api aceptar propuesta
-func AceptarPropuestaService(perTributario string) (map[string]interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+// Package services contiene las implementaciones de servicios del diseño original.
+//
+// Deprecated: Este paquete y sus servicios pertenecen a la versión monolítica anterior.
+// Para exportaciones, descargas, consultas de tickets y procesamiento de propuestas conforme
+// a los manuales vigentes de SUNAT (Ventas v31 y Compras v28), utilice el cliente unificado
+// y asíncrono en internal/sire (SunatSireClient y Worker). No utilizar estos servicios para nuevas funciones.
+type Service struct {
+	client *sunat.Client
+	ruc    string
+}
 
-	if token == "" {
-		return nil, fmt.Errorf("token no configurado")
+func New(client *sunat.Client, ruc string) *Service {
+	return &Service{
+		client: client,
+		ruc:    ruc,
 	}
+}
+
+
+// 2 Servicio Web Api aceptar propuesta
+func (srv *Service) AceptarPropuestaService(perTributario string) (map[string]interface{}, error) {
+
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/propuesta/web/registroslibros/%s/aceptarpropuesta", perTributario)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		Post(url)
 
 	if err != nil {
@@ -47,20 +59,14 @@ func AceptarPropuestaService(perTributario string) (map[string]interface{}, erro
 }
 
 // 3 Servicio Web Api importar reemplazo de la propuesta
-func ReemplazoPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ReemplazoPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no encontrado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/receptorpropuesta/web/propuesta/upload"
 
-	_, err := client.R().
+	_, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetFormData(map[string]string{
 			"filename":              filename,
 			"filetype":              filetype,
@@ -82,20 +88,14 @@ func ReemplazoPropuestaService(perTributario, filename, filetype, numRuc, codOri
 }
 
 // 4 Servicio Web Api registrar preliminar
-func RegistrarPreliminarService(perTributario string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) RegistrarPreliminarService(perTributario string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no encontrado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/preliminar/web/registroslibros/%s/registrapreliminares", perTributario)
 
-	_, err := client.R().
+	_, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		Post(url)
 
 	if err != nil {
@@ -106,20 +106,14 @@ func RegistrarPreliminarService(perTributario string) error {
 }
 
 // 5 Servicio Web Api cargar registro de compra no domiciliados
-func CargarNoDomiciliadosService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) CargarNoDomiciliadosService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no encontrado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/receptorpreliminar/web/preliminar/upload"
 
-	_, err := client.R().
+	_, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetFormData(map[string]string{
 			"filename":              filename,
 			"filetype":              filetype,
@@ -141,20 +135,14 @@ func CargarNoDomiciliadosService(perTributario, filename, filetype, numRuc, codO
 }
 
 // 6 Servicio Web Api importar datos complementarios de los CP de la propuesta
-func ImportarComplementoPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ImportarComplementoPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no encontrado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/receptorpropuesta/web/propuesta/upload"
 
-	_, err := client.R().
+	_, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetFormData(map[string]string{
 			"filename":              filename,
 			"filetype":              filetype,
@@ -176,20 +164,14 @@ func ImportarComplementoPropuestaService(perTributario, filename, filetype, numR
 }
 
 // 7 Servicio Web Api importar nuevos comprobantes preliminar
-func ImportarComprobantesPreliminarService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ImportarComprobantesPreliminarService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no encontrado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/receptorpreliminar/web/preliminar/upload"
 
-	_, err := client.R().
+	_, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetFormData(map[string]string{
 			"filename":              filename,
 			"filetype":              filetype,
@@ -211,20 +193,14 @@ func ImportarComprobantesPreliminarService(perTributario, filename, filetype, nu
 }
 
 // 8 Servicio Web Api incluir-excluir comprobantes de la propuesta
-func IncluirExcluirPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) IncluirExcluirPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no encontrado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/receptorpropuesta/web/propuesta/upload"
 
-	_, err := client.R().
+	_, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetFormData(map[string]string{
 			"filename":              filename,
 			"filetype":              filetype,
@@ -246,20 +222,14 @@ func IncluirExcluirPropuestaService(perTributario, filename, filetype, numRuc, c
 }
 
 // 9 Servicio Web Api importar nuevos comprobantes de pago
-func ImportarComprobantesPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ImportarComprobantesPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no encontrado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/receptorpropuesta/web/propuesta/upload"
 
-	_, err := client.R().
+	_, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetFormData(map[string]string{
 			"filename":              filename,
 			"filetype":              filetype,
@@ -281,13 +251,8 @@ func ImportarComprobantesPropuestaService(perTributario, filename, filetype, num
 }
 
 // 10 Servicio Web Api importar tipo de cambio masivo
-func ImportarTipoCambioMasivoService(perTributario, codLibro string, file multipart.File, header *multipart.FileHeader) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ImportarTipoCambioMasivoService(perTributario, codLibro string, file multipart.File, header *multipart.FileHeader) error {
 
-	if token == "" {
-		return fmt.Errorf("token no encontrado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/propuesta/web/%s/%s/resumenfechatipocambio", perTributario, codLibro)
 
@@ -296,9 +261,8 @@ func ImportarTipoCambioMasivoService(perTributario, codLibro string, file multip
 		return fmt.Errorf("error al leer archivo: %v", err)
 	}
 
-	_, err = client.R().
+	_, err = srv.client.NewRequest(srv.ruc).
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetFileReader("archivo", header.Filename, bytes.NewReader(fileContent)).
 		Post(url)
 
@@ -310,13 +274,8 @@ func ImportarTipoCambioMasivoService(perTributario, codLibro string, file multip
 }
 
 // 11 Servicio Web Api actualizar reintegro del crédito fiscal
-func ActualizarReintegroCreditoService(perTributario string, valorRCF, valorCFE, factProrrata float64) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ActualizarReintegroCreditoService(perTributario string, valorRCF, valorCFE, factProrrata float64) error {
 
-	if token == "" {
-		return fmt.Errorf("token no encontrado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/propuesta/web/%s/grabacreditofiscal", perTributario)
 
@@ -328,10 +287,9 @@ func ActualizarReintegroCreditoService(perTributario string, valorRCF, valorCFE,
 		},
 	}
 
-	_, err := client.R().
+	_, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetBody(requestBody).
 		Put(url)
 
@@ -343,13 +301,8 @@ func ActualizarReintegroCreditoService(perTributario string, valorRCF, valorCFE,
 }
 
 // 12 Servicio Web Api actualizar crédito fiscal especial
-func ActualizarCreditoFiscalEspecialService(perTributario string, valorCFE float64) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ActualizarCreditoFiscalEspecialService(perTributario string, valorCFE float64) error {
 
-	if token == "" {
-		return fmt.Errorf("token no encontrado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/propuesta/web/%s/grabacreditofiscalespecial", perTributario)
 
@@ -359,10 +312,9 @@ func ActualizarCreditoFiscalEspecialService(perTributario string, valorCFE float
 		},
 	}
 
-	_, err := client.R().
+	_, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetBody(requestBody).
 		Put(url)
 
@@ -374,13 +326,8 @@ func ActualizarCreditoFiscalEspecialService(perTributario string, valorCFE float
 }
 
 // 13 Servicio Web Api actualizar coeficiente de prorrata
-func ActualizarCoeficienteProrrataService(perTributario string, factProrrata, valorRCF, valorCFE float64) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ActualizarCoeficienteProrrataService(perTributario string, factProrrata, valorRCF, valorCFE float64) error {
 
-	if token == "" {
-		return fmt.Errorf("token no encontrado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/propuesta/web/%s/grabacreditofiscal", perTributario)
 
@@ -392,10 +339,9 @@ func ActualizarCoeficienteProrrataService(perTributario string, factProrrata, va
 		},
 	}
 
-	_, err := client.R().
+	_, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetBody(requestBody).
 		Put(url)
 
@@ -407,13 +353,8 @@ func ActualizarCoeficienteProrrataService(perTributario string, factProrrata, va
 }
 
 // 14 Servicio Web Api consultar FV0621
-func ConsultarFV0621Service(periodoSeleccionado, tipoInfo string) (interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ConsultarFV0621Service(periodoSeleccionado, tipoInfo string) (interface{}, error) {
 
-	if token == "" {
-		return nil, fmt.Errorf("token no encontrado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/propuesta/web"
 
@@ -425,10 +366,9 @@ func ConsultarFV0621Service(periodoSeleccionado, tipoInfo string) (interface{}, 
 		params["tipoInfo"] = tipoInfo
 	}
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetQueryParams(params).
 		Get(url)
 
@@ -454,20 +394,14 @@ func ConsultarFV0621Service(periodoSeleccionado, tipoInfo string) (interface{}, 
 }
 
 // 15 Servicio Web Api eliminar comprobante de la propuesta
-func EliminarComprobantePropuestaService(perTributario string, comprobantes interface{}) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) EliminarComprobantePropuestaService(perTributario string, comprobantes interface{}) error {
 
-	if token == "" {
-		return fmt.Errorf("token no encontrado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/propuesta/web/propuestarce/%s", perTributario)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetBody(comprobantes).
 		Delete(url)
 
@@ -483,20 +417,14 @@ func EliminarComprobantePropuestaService(perTributario string, comprobantes inte
 }
 
 // 16 Servicio Web Api eliminar comprobante del preliminar
-func EliminarComprobantePreliminarService(perTributario string, comprobantes interface{}) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) EliminarComprobantePreliminarService(perTributario string, comprobantes interface{}) error {
 
-	if token == "" {
-		return fmt.Errorf("token no encontrado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/preliminar/web/comprobanteslibroscompras/%s/eliminacomprobante", perTributario)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetBody(comprobantes).
 		Post(url)
 
@@ -512,20 +440,14 @@ func EliminarComprobantePreliminarService(perTributario string, comprobantes int
 }
 
 // 17 Servicio Web Api eliminar preliminar
-func EliminarPreliminarSUNAT(perTributario, indEliminar string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) EliminarPreliminarSUNAT(perTributario, indEliminar string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/preliminar/web/registroslibros/%s/%s/eliminapreliminar", perTributario, indEliminar)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		Put(url)
 
 	if err != nil {
@@ -540,13 +462,8 @@ func EliminarPreliminarSUNAT(perTributario, indEliminar string) error {
 }
 
 // 18 Servicio Web Api cargar ajustes posteriores
-func CargarAjustesPosterioresSUNAT(filename, filetype, numRuc, perTributario, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) CargarAjustesPosterioresSUNAT(filename, filetype, numRuc, perTributario, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no configurado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/receptorajustesposteriores/web/ajustesposteriores/upload"
 
@@ -562,8 +479,7 @@ func CargarAjustesPosterioresSUNAT(filename, filetype, numRuc, perTributario, co
 	codLibroB64 := base64.StdEncoding.EncodeToString([]byte(codLibro))
 
 	// Headers TUS específicos
-	resp, err := client.R().
-		SetHeader("Authorization", "Bearer "+token).
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Tus-Resumable", "1.0.0").
 		SetHeader("Upload-Length", "0").
 		SetHeader("Upload-Metadata", fmt.Sprintf("filename %s,filetype %s,numRuc %s,perTributario %s,codOrigenEnvio %s,codProceso %s,codTipoCorrelativo %s,nomArchivoImportacion %s,codLibro %s",
@@ -582,22 +498,16 @@ func CargarAjustesPosterioresSUNAT(filename, filetype, numRuc, perTributario, co
 }
 
 // 19 Servicio Web Api enviar ajustes posteriores
-func EnviarAjustesPosterioresSUNAT(perTributario, codOrigenEnvio, numAjustePosterior, codLibro, numTicket string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) EnviarAjustesPosterioresSUNAT(perTributario, codOrigenEnvio, numAjustePosterior, codLibro, numTicket string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/comprobantesajuspost/%s/%s/registrarajustesposterioresrc", perTributario, codOrigenEnvio)
 
 	data := fmt.Sprintf("numAjustePosterior=%s&codLibro=%s&numTicket=%s", numAjustePosterior, codLibro, numTicket)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetBody(data).
 		Post(url)
 
@@ -613,22 +523,16 @@ func EnviarAjustesPosterioresSUNAT(perTributario, codOrigenEnvio, numAjustePoste
 }
 
 // 20 Servicio Web Api eliminar comprobante de ajustes posteriores
-func EliminarComprobanteAjustesSUNAT(perTributario, indTipoAjustePosterior string, request interface{}) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) EliminarComprobanteAjustesSUNAT(perTributario, indTipoAjustePosterior string, request interface{}) error {
 
-	if token == "" {
-		return fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/comprobantesajuspost/%s/%s/eliminarcomprobanteaprc", perTributario, indTipoAjustePosterior)
 
 	requestBody, _ := json.Marshal(request)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetBody(string(requestBody)).
 		Delete(url)
 
@@ -644,13 +548,8 @@ func EliminarComprobanteAjustesSUNAT(perTributario, indTipoAjustePosterior strin
 }
 
 // 21 Servicio Web Api cargar ajustes posteriores no domiciliados
-func CargarAjustesNoDomiciliadosSUNAT(filename, filetype, numRuc, perTributario, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) (string, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) CargarAjustesNoDomiciliadosSUNAT(filename, filetype, numRuc, perTributario, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) (string, error) {
 
-	if token == "" {
-		return "", fmt.Errorf("token no configurado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/receptorajustesposteriores/web/ajustesposteriores/upload"
 
@@ -669,8 +568,7 @@ func CargarAjustesNoDomiciliadosSUNAT(filename, filetype, numRuc, perTributario,
 	metadata := fmt.Sprintf("filename %s,filetype %s,numRuc %s,perTributario %s,codOrigenEnvio %s,codProceso %s,codTipoCorrelativo %s,nomArchivoImportacion %s,codLibro %s",
 		filenameB64, filetypeB64, numRucB64, perTributarioB64, codOrigenEnvioB64, codProcesoB64, codTipoCorrelativoB64, nomArchivoImportacionB64, codLibroB64)
 
-	resp, err := client.R().
-		SetHeader("Authorization", "Bearer "+token).
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Tus-Resumable", "1.0.0").
 		SetHeader("Upload-Length", "0").
 		SetHeader("Upload-Metadata", metadata).
@@ -696,13 +594,8 @@ func CargarAjustesNoDomiciliadosSUNAT(filename, filetype, numRuc, perTributario,
 }
 
 // 22 Servicio Web Api enviar ajustes posteriores no domiciliados
-func EnviarAjustesNoDomiciliadosSUNAT(perTributario, numAjustePosterior, codLibro, numTicket string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) EnviarAjustesNoDomiciliadosSUNAT(perTributario, numAjustePosterior, codLibro, numTicket string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/comprobantesajuspost/%s/%s/%s/%s/registrarajustesposterioresrcnd",
 		perTributario, numAjustePosterior, codLibro, numTicket)
@@ -710,10 +603,9 @@ func EnviarAjustesNoDomiciliadosSUNAT(perTributario, numAjustePosterior, codLibr
 	// Enviar body vacío pero válido
 	emptyBody := "{}"
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetBody(emptyBody).
 		Post(url)
 
@@ -729,19 +621,14 @@ func EnviarAjustesNoDomiciliadosSUNAT(perTributario, numAjustePosterior, codLibr
 }
 
 // 23 Servicio Web Api eliminar comprobante de ajustes posteriores no domiciliados
-func EliminarComprobanteAjustesPosteriorNoDOM(perTributario string, indTipoAjustePosterior int, codAjustePosterior string, detalleAjustes []struct {
+func (srv *Service) EliminarComprobanteAjustesPosteriorNoDOM(perTributario string, indTipoAjustePosterior int, codAjustePosterior string, detalleAjustes []struct {
 	CodTipoCDP  string `json:"codTipoCDP"`
 	NumSerieCDP string `json:"numSerieCDP"`
 	NumCDP      string `json:"numCDP"`
 	CodCar      string `json:"codCar"`
 	ID          string `json:"id"`
 }) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
 
-	if token == "" {
-		return fmt.Errorf("TOKEN no configurado")
-	}
 
 	if len(codAjustePosterior) != 24 {
 		return fmt.Errorf("codAjustePosterior debe ser un ObjectId válido de 24 caracteres hexadecimales")
@@ -754,10 +641,9 @@ func EliminarComprobanteAjustesPosteriorNoDOM(perTributario string, indTipoAjust
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/comprobantesajuspost/%s/%d/eliminarcomprobanteaprcnd", perTributario, indTipoAjustePosterior)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetBody(requestBody).
 		Delete(url)
 
@@ -773,19 +659,13 @@ func EliminarComprobanteAjustesPosteriorNoDOM(perTributario string, indTipoAjust
 }
 
 // 24 Servicio Web Api cargar ajustes posteriores de periodos anteriores
-func CargarAjustesPosterioresPeriodosAnteriores(filename, filetype, numRuc, perTributario, codOrigenEnvio,
+func (srv *Service) CargarAjustesPosterioresPeriodosAnteriores(filename, filetype, numRuc, perTributario, codOrigenEnvio,
 	codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) (map[string]interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
 
-	if token == "" {
-		return nil, fmt.Errorf("TOKEN no configurado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/receptorajustesposteriores/web/ajustesposteriores/upload"
 
-	_, err := client.R().
-		SetHeader("Authorization", "Bearer "+token).
+	_, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Tus-Resumable", "1.0.0").
 		Options(url)
 
@@ -807,8 +687,7 @@ func CargarAjustesPosterioresPeriodosAnteriores(filename, filetype, numRuc, perT
 		filenameEncoded, filetypeEncoded, numRucEncoded, perTributarioEncoded, codOrigenEnvioEncoded,
 		codProcesoEncoded, codTipoCorrelativoEncoded, nomArchivoImportacionEncoded, codLibroEncoded)
 
-	resp, err := client.R().
-		SetHeader("Authorization", "Bearer "+token).
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Tus-Resumable", "1.0.0").
 		SetHeader("Upload-Length", "1024").
 		SetHeader("Upload-Metadata", metadata).
@@ -831,19 +710,14 @@ func CargarAjustesPosterioresPeriodosAnteriores(filename, filetype, numRuc, perT
 }
 
 // 25 Servicio Web Api enviar ajustes posteriores de periodos anteriores
-func EnviarAjustesPosterioresPeriodosAnteriores(perTributario, numAjustePosterior, codLibro, numTicket,
+func (srv *Service) EnviarAjustesPosterioresPeriodosAnteriores(perTributario, numAjustePosterior, codLibro, numTicket,
 	codAjustePosterior string, detalleAjustes []struct {
 	CodTipoCDP  string `json:"codTipoCDP"`
 	NumSerieCDP string `json:"numSerieCDP"`
 	NumCDP      string `json:"numCDP"`
 	NumTicket   string `json:"numTicket"`
 }) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
 
-	if token == "" {
-		return fmt.Errorf("TOKEN no configurado")
-	}
 
 	requestBody := map[string]interface{}{
 		"codAjustePosterior": codAjustePosterior,
@@ -853,10 +727,9 @@ func EnviarAjustesPosterioresPeriodosAnteriores(perTributario, numAjustePosterio
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/comprobantesajuspost/%s/%s/%s/%s/registrarajustesposterioresparc",
 		perTributario, numAjustePosterior, codLibro, numTicket)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetBody(requestBody).
 		Post(url)
 
@@ -872,18 +745,13 @@ func EnviarAjustesPosterioresPeriodosAnteriores(perTributario, numAjustePosterio
 }
 
 // 26 Servicio Web Api eliminar comprobante de ajustes posteriores de periodos anteriores
-func EliminarComprobanteAjustesPosterioresPeriodosAnteriores(indTipoAjustePosterior int, perTributario,
+func (srv *Service) EliminarComprobanteAjustesPosterioresPeriodosAnteriores(indTipoAjustePosterior int, perTributario,
 	codAjustePosterior string, detalleAjustes []struct {
 	CodTipoCDP  string `json:"codTipoCDP"`
 	NumSerieCDP string `json:"numSerieCDP"`
 	NumCDP      string `json:"numCDP"`
 }) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
 
-	if token == "" {
-		return fmt.Errorf("TOKEN no configurado")
-	}
 
 	requestBody := map[string]interface{}{
 		"codAjustePosterior": codAjustePosterior,
@@ -893,10 +761,9 @@ func EliminarComprobanteAjustesPosterioresPeriodosAnteriores(indTipoAjustePoster
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/ajustesposteriores/%d/%s/eliminarcomprobanteapparc",
 		indTipoAjustePosterior, perTributario)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetBody(requestBody).
 		Delete(url)
 
@@ -912,19 +779,13 @@ func EliminarComprobanteAjustesPosterioresPeriodosAnteriores(indTipoAjustePoster
 }
 
 // 27 Servicio Web Api cargar ajustes posteriores de periodos anteriores no domiciliados
-func CargarAjustesPosterioresPeriodosAnterioresNoDOM(filename, filetype, numRuc, perTributario, codOrigenEnvio,
+func (srv *Service) CargarAjustesPosterioresPeriodosAnterioresNoDOM(filename, filetype, numRuc, perTributario, codOrigenEnvio,
 	codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro string) (map[string]interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
 
-	if token == "" {
-		return nil, fmt.Errorf("TOKEN no configurado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/receptorajustesposteriores/web/ajustesposteriores/upload"
 
-	_, err := client.R().
-		SetHeader("Authorization", "Bearer "+token).
+	_, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Tus-Resumable", "1.0.0").
 		Options(url)
 
@@ -946,8 +807,7 @@ func CargarAjustesPosterioresPeriodosAnterioresNoDOM(filename, filetype, numRuc,
 		filenameEncoded, filetypeEncoded, numRucEncoded, perTributarioEncoded, codOrigenEnvioEncoded,
 		codProcesoEncoded, codTipoCorrelativoEncoded, nomArchivoImportacionEncoded, codLibroEncoded)
 
-	resp, err := client.R().
-		SetHeader("Authorization", "Bearer "+token).
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Tus-Resumable", "1.0.0").
 		SetHeader("Upload-Length", "1024").
 		SetHeader("Upload-Metadata", metadata).
@@ -970,20 +830,14 @@ func CargarAjustesPosterioresPeriodosAnterioresNoDOM(filename, filetype, numRuc,
 }
 
 // 28 Servicio Web Api enviar ajustes posteriores de periodos anteriores no domiciliados
-func EnviarAjustesPosterioresService(perTributario, numAjustePosterior, codLibro, numTicket string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) EnviarAjustesPosterioresService(perTributario, numAjustePosterior, codLibro, numTicket string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/comprobantesajuspost/%s/%s/%s/%s/registrarajustesposterioresparend", perTributario, numAjustePosterior, codLibro, numTicket)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/x-www-form-urlencoded").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		Post(url)
 
 	if err != nil {
@@ -998,20 +852,14 @@ func EnviarAjustesPosterioresService(perTributario, numAjustePosterior, codLibro
 }
 
 // 29 Servicio Web Api eliminar comprobante de ajustes posteriores de periodos anteriores no domiciliados
-func EliminarComprobanteAjustesRCESUNAT(numAjustePosterior, perTributario string, body map[string]interface{}) (interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) EliminarComprobanteAjustesRCESUNAT(numAjustePosterior, perTributario string, body map[string]interface{}) (interface{}, error) {
 
-	if token == "" {
-		return nil, fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/%s/%s/eliminarcomprobanteapparcnd", numAjustePosterior, perTributario)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetBody(body).
 		Delete(url)
 
@@ -1032,20 +880,14 @@ func EliminarComprobanteAjustesRCESUNAT(numAjustePosterior, perTributario string
 }
 
 // 31 Servicio Web Api consultar estado ticket
-func ConsultarEstadoTicketsSUNAT(perIni, perFin, page, perPage, numTicket string) (interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ConsultarEstadoTicketsSUNAT(perIni, perFin, page, perPage, numTicket string) (interface{}, error) {
 
-	if token == "" {
-		return nil, fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/gestionprocesosmasivos/web/masivo/consultaestadotickets?perIni=%s&perFin=%s&page=%s&perPage=%s&numTicket=%s", perIni, perFin, page, perPage, numTicket)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		Get(url)
 
 	if err != nil {
@@ -1065,20 +907,14 @@ func ConsultarEstadoTicketsSUNAT(perIni, perFin, page, perPage, numTicket string
 }
 
 // 32 Servicio Web Api descargar archivo
-func DescargarArchivoReporteSUNAT(nomArchivoReporte, codTipoArchivoReporte string) (interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarArchivoReporteSUNAT(nomArchivoReporte, codTipoArchivoReporte string) (interface{}, error) {
 
-	if token == "" {
-		return nil, fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/gestionprocesosmasivos/web/masivo/archivoreporte?nomArchivoReporte=%s&codTipoArchivoReporte=%s", nomArchivoReporte, codTipoArchivoReporte)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		Get(url)
 
 	if err != nil {
@@ -1098,20 +934,14 @@ func DescargarArchivoReporteSUNAT(nomArchivoReporte, codTipoArchivoReporte strin
 }
 
 // 33 Servicio Web Api consultar año y mes del RCE
-func ConsultarPeriodosRCESUNAT(codLibro string) (interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ConsultarPeriodosRCESUNAT(codLibro string) (interface{}, error) {
 
-	if token == "" {
-		return nil, fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/padron/web/omisos/%s/periodos", codLibro)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		Get(url)
 
 	if err != nil {
@@ -1131,13 +961,8 @@ func ConsultarPeriodosRCESUNAT(codLibro string) (interface{}, error) {
 }
 
 // 34 Servicio Web Api descargar propuesta
-func DescargarPropuestaRCESUNAT(perTributario string, params map[string]string) (interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarPropuestaRCESUNAT(perTributario string, params map[string]string) (interface{}, error) {
 
-	if token == "" {
-		return nil, fmt.Errorf("token no configurado")
-	}
 
 	baseURL := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/propuesta/web/propuesta/%s/exportacioncomprobantepropuesta", perTributario)
 
@@ -1153,10 +978,9 @@ func DescargarPropuestaRCESUNAT(perTributario string, params map[string]string) 
 
 	url := baseURL + "?" + queryParams
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		Get(url)
 
 	if err != nil {
@@ -1176,20 +1000,14 @@ func DescargarPropuestaRCESUNAT(perTributario string, params map[string]string) 
 }
 
 // 35 Servicio Web Api descargar resumen
-func DescargarResumenRCESUNAT(perTributario, codTipoResumen, codTipoArchivo, codLibro string) (interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarResumenRCESUNAT(perTributario, codTipoResumen, codTipoArchivo, codLibro string) (interface{}, error) {
 
-	if token == "" {
-		return nil, fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/resumen/web/resumencomprobantes/%s/%s/%s/exporta?codLibro=%s", perTributario, codTipoResumen, codTipoArchivo, codLibro)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		Get(url)
 
 	if err != nil {
@@ -1211,13 +1029,8 @@ func DescargarResumenRCESUNAT(perTributario, codTipoResumen, codTipoArchivo, cod
 // 36 Servicio Web Api descargar resumen inconsistencias RCE
 
 // 37 Servicio Web Api descargar excluidos
-func DescargarExcluidosRCESUNAT(perTributario string, params map[string]string) (interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarExcluidosRCESUNAT(perTributario string, params map[string]string) (interface{}, error) {
 
-	if token == "" {
-		return nil, fmt.Errorf("token no configurado")
-	}
 
 	baseURL := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/propuesta/web/excluidos/%s/exportaexcluidos", perTributario)
 
@@ -1233,10 +1046,9 @@ func DescargarExcluidosRCESUNAT(perTributario string, params map[string]string) 
 
 	url := baseURL + "?" + queryParams
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		Get(url)
 
 	if err != nil {
@@ -1256,20 +1068,14 @@ func DescargarExcluidosRCESUNAT(perTributario string, params map[string]string) 
 }
 
 // 38 Servicio Web Api eliminar comprobante no domiciliado
-func EliminarComprobanteNoDomiciliadoSUNAT(perTributario string, requestBody interface{}) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) EliminarComprobanteNoDomiciliadoSUNAT(perTributario string, requestBody interface{}) error {
 
-	if token == "" {
-		return fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/libronodomiciliado/web/nodomiciliados/%s/eliminarcomprobantepreliminarnd", perTributario)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetBody(requestBody).
 		Put(url)
 
@@ -1293,20 +1099,14 @@ func EliminarComprobanteNoDomiciliadoSUNAT(perTributario string, requestBody int
 }
 
 // 39 Servicio Web Api exportar preliminar de registro de compras no domiciliados
-func ExportarPreliminarNoDomiciliadosSUNAT(perTributario string, queryParams map[string]string) (interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ExportarPreliminarNoDomiciliadosSUNAT(perTributario string, queryParams map[string]string) (interface{}, error) {
 
-	if token == "" {
-		return nil, fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/preliminar/web/nodomiciliados/%s/exportapreliminarnd", perTributario)
 
-	request := client.R().
+	request := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
-		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token)
+		SetHeader("Accept", "application/json")
 
 	for key, value := range queryParams {
 		if value != "" {
@@ -1341,20 +1141,14 @@ func ExportarPreliminarNoDomiciliadosSUNAT(perTributario string, queryParams map
 }
 
 // 40 Servicio Web Api exportar preliminar de registro de compras
-func ExportarPreliminarRegistroComprasSUNAT(perTributario string, queryParams map[string]string) (interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ExportarPreliminarRegistroComprasSUNAT(perTributario string, queryParams map[string]string) (interface{}, error) {
 
-	if token == "" {
-		return nil, fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/preliminar/web/registroslibros/%s/exportareportepreliminar", perTributario)
 
-	request := client.R().
+	request := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
-		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token)
+		SetHeader("Accept", "application/json")
 
 	for key, value := range queryParams {
 		if value != "" {
@@ -1389,20 +1183,14 @@ func ExportarPreliminarRegistroComprasSUNAT(perTributario string, queryParams ma
 }
 
 // 41 Servicio Web Api descargar reporte de casillas
-func DescargarReporteCasillasSUNAT(perTributario, tipoReporte, tipoDescarga string) ([]byte, string, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarReporteCasillasSUNAT(perTributario, tipoReporte, tipoDescarga string) ([]byte, string, error) {
 
-	if token == "" {
-		return nil, "", fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/casillas/e/casillaspropuestas/%s/reporte/%s/%s", perTributario, tipoReporte, tipoDescarga)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		Get(url)
 
 	if err != nil {
@@ -1434,20 +1222,14 @@ func DescargarReporteCasillasSUNAT(perTributario, tipoReporte, tipoDescarga stri
 }
 
 // 42 Servicio Web Api descargar inconsistencias en registros preliminar registrado
-func DescargarInconsistenciasPreliminarSUNAT(perTributario, codTipoArchivo, cntlimite string) ([]byte, string, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarInconsistenciasPreliminarSUNAT(perTributario, codTipoArchivo, cntlimite string) ([]byte, string, error) {
 
-	if token == "" {
-		return nil, "", fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/casillas/inconsistenciaslibros/%s/reporteinconsistencia/%s", perTributario, codTipoArchivo)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetQueryParam("cntlimite", cntlimite).
 		Get(url)
 
@@ -1480,20 +1262,14 @@ func DescargarInconsistenciasPreliminarSUNAT(perTributario, codTipoArchivo, cntl
 }
 
 // 43 Servicio Web Api descargar inconsistencias por montos totales
-func DescargarInconsistenciasMontosTotalesSUNAT(perTributario string, queryParams map[string]string) (interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarInconsistenciasMontosTotalesSUNAT(perTributario string, queryParams map[string]string) (interface{}, error) {
 
-	if token == "" {
-		return nil, fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/inconsistencias/web/periodoinconsistencias/%s/exportarinconsistenciasportotales", perTributario)
 
-	request := client.R().
+	request := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
-		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token)
+		SetHeader("Accept", "application/json")
 
 	for key, value := range queryParams {
 		if value != "" {
@@ -1528,20 +1304,14 @@ func DescargarInconsistenciasMontosTotalesSUNAT(perTributario string, queryParam
 }
 
 // 44 Servicio Web Api descargar inconsistencias por comprobante pago
-func DescargarInconsistenciasComprobantesSUNAT(perTributario, codLibro string, queryParams map[string]string) (interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarInconsistenciasComprobantesSUNAT(perTributario, codLibro string, queryParams map[string]string) (interface{}, error) {
 
-	if token == "" {
-		return nil, fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/inconsistencias/web/periodoinconsistencias/%s/%s/exportarinconsistenciasporcomprobantes", perTributario, codLibro)
 
-	request := client.R().
+	request := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
-		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token)
+		SetHeader("Accept", "application/json")
 
 	for key, value := range queryParams {
 		if value != "" {
@@ -1576,20 +1346,14 @@ func DescargarInconsistenciasComprobantesSUNAT(perTributario, codLibro string, q
 }
 
 // 45 Servicio Web Api descargar ajustes posteriores
-func DescargarAjustesPosterioresSUNAT(perTributario string, queryParams map[string]string) (interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarAjustesPosterioresSUNAT(perTributario string, queryParams map[string]string) (interface{}, error) {
 
-	if token == "" {
-		return nil, fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/comprobantesajuspost/%s/exportaajustesposterioresrc", perTributario)
 
-	request := client.R().
+	request := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
-		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token)
+		SetHeader("Accept", "application/json")
 
 	for key, value := range queryParams {
 		if value != "" {
@@ -1624,20 +1388,14 @@ func DescargarAjustesPosterioresSUNAT(perTributario string, queryParams map[stri
 }
 
 // 46 Servicio Web Api descargar ajustes posteriores no domiciliados
-func DescargarAjustesPosterioresNoDomiciliadosSUNAT(perTributario, codTipoArchivo string) (interface{}, error) {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarAjustesPosterioresNoDomiciliadosSUNAT(perTributario, codTipoArchivo string) (interface{}, error) {
 
-	if token == "" {
-		return nil, fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/comprobantesajuspost/%s/exportarajustesposterioresrcnd", perTributario)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetQueryParam("codTipoArchivo", codTipoArchivo).
 		Post(url)
 
@@ -1666,19 +1424,13 @@ func DescargarAjustesPosterioresNoDomiciliadosSUNAT(perTributario, codTipoArchiv
 }
 
 // 47 Servicio Web Api descargar ajustes posteriores de periodos anteriores
-func ExportarAjustesPosterioresSUNAT(perTributario, codTipoArchivo, indAjustePosteriorPle, codOrigenEnvio string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ExportarAjustesPosterioresSUNAT(perTributario, codTipoArchivo, indAjustePosteriorPle, codOrigenEnvio string) error {
 
-	if token == "" {
-		return fmt.Errorf("TOKEN no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/comprobantesajuspost/%s/exportaajustesposterioresparc", perTributario)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetQueryParams(map[string]string{
 			"codTipoArchivo":        codTipoArchivo,
 			"indAjustePosteriorPle": indAjustePosteriorPle,
@@ -1698,19 +1450,13 @@ func ExportarAjustesPosterioresSUNAT(perTributario, codTipoArchivo, indAjustePos
 }
 
 // 48 Servicio Web Api descargar ajustes posteriores de periodos anteriores no domiciliados
-func ExportarAjustesPosterioresNDSUNAT(perTributario, codTipoArchivo, codOrigenEnvio string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ExportarAjustesPosterioresNDSUNAT(perTributario, codTipoArchivo, codOrigenEnvio string) error {
 
-	if token == "" {
-		return fmt.Errorf("TOKEN no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/comprobantesajuspost/%s/exportaajustesposterioresparcnd", perTributario)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetQueryParams(map[string]string{
 			"codTipoArchivo": codTipoArchivo,
 			"codOrigenEnvio": codOrigenEnvio,
@@ -1729,19 +1475,13 @@ func ExportarAjustesPosterioresNDSUNAT(perTributario, codTipoArchivo, codOrigenE
 }
 
 // 49 Servicio Web Api descargar constancia de recepción
-func DescargarConstanciaRecepcionSUNAT(nomConstanciaRecepcion string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarConstanciaRecepcionSUNAT(nomConstanciaRecepcion string) error {
 
-	if token == "" {
-		return fmt.Errorf("TOKEN no configurado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/gestionlibro/web/registroslibros/constancia/constanciarecepcion"
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetQueryParams(map[string]string{
 			"nomConstanciaRecepcion": nomConstanciaRecepcion,
 		}).
@@ -1759,19 +1499,13 @@ func DescargarConstanciaRecepcionSUNAT(nomConstanciaRecepcion string) error {
 }
 
 // 50 Servicio Web Api descargar reporte consolidado registro por periodo
-func DescargarReporteConsolidadoSUNAT(perTributario, codTipoArchivo, codMoneda, codProceso, codOrigenEnvio, lisPeriodos string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarReporteConsolidadoSUNAT(perTributario, codTipoArchivo, codMoneda, codProceso, codOrigenEnvio, lisPeriodos string) error {
 
-	if token == "" {
-		return fmt.Errorf("TOKEN no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/ajustesposteriores/%s/solicitardescarga", perTributario)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetQueryParams(map[string]string{
 			"codTipoArchivo": codTipoArchivo,
 			"codMoneda":      codMoneda,
@@ -1793,19 +1527,13 @@ func DescargarReporteConsolidadoSUNAT(perTributario, codTipoArchivo, codMoneda, 
 }
 
 // 51 Servicio Web Api descargar RCE por periodo
-func DescargarRCEPorPeriodoSUNAT(perTributario, codTipoArchivo, codMoneda, codProceso, codOrigen, lisPeriodos string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarRCEPorPeriodoSUNAT(perTributario, codTipoArchivo, codMoneda, codProceso, codOrigen, lisPeriodos string) error {
 
-	if token == "" {
-		return fmt.Errorf("TOKEN no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/ajustesposteriores/%s/solicitardescarga", perTributario)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetQueryParams(map[string]string{
 			"codTipoArchivo": codTipoArchivo,
 			"codMoneda":      codMoneda,
@@ -1827,19 +1555,13 @@ func DescargarRCEPorPeriodoSUNAT(perTributario, codTipoArchivo, codMoneda, codPr
 }
 
 // 52 Servicio Web Api descargar reporte inconsistencias por periodo
-func DescargarInconsistenciasPeriodoSUNAT(nomArchivo, codTipoArchivoReporte, codOrigen string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarInconsistenciasPeriodoSUNAT(nomArchivo, codTipoArchivoReporte, codOrigen string) error {
 
-	if token == "" {
-		return fmt.Errorf("TOKEN no configurado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/gestionconsultas/web/registrolibro/archivoreporte"
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetQueryParams(map[string]string{
 			"nomArchivo":            nomArchivo,
 			"codTipoArchivoReporte": codTipoArchivoReporte,
@@ -1859,19 +1581,13 @@ func DescargarInconsistenciasPeriodoSUNAT(nomArchivo, codTipoArchivoReporte, cod
 }
 
 // 53 Servicio Web Api descargar reporte CAR por periodo y fase
-func DescargarReporteCARPorPeriodoSUNAT(perTributario, codOrigenEnvio, codLibro, codFase string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarReporteCARPorPeriodoSUNAT(perTributario, codOrigenEnvio, codLibro, codFase string) error {
 
-	if token == "" {
-		return fmt.Errorf("TOKEN no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/gestionlibro/web/comprobanteslibros/%s/reportecar", perTributario)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetQueryParams(map[string]string{
 			"codOrigenEnvio": codOrigenEnvio,
 			"codLibro":       codLibro,
@@ -1891,13 +1607,8 @@ func DescargarReporteCARPorPeriodoSUNAT(perTributario, codOrigenEnvio, codLibro,
 }
 
 // 54 Servicio Web Api descargar reporte estadístico compras por proveedor por periodo
-func DescargarReporteEstadisticoComprasSUNAT(numRuc, perTributario, fechaini, fechafin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarReporteEstadisticoComprasSUNAT(numRuc, perTributario, fechaini, fechafin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro string) error {
 
-	if token == "" {
-		return fmt.Errorf("TOKEN no configurado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/estadistica/web/resumenestadistico/exporta"
 
@@ -1924,9 +1635,8 @@ func DescargarReporteEstadisticoComprasSUNAT(numRuc, perTributario, fechaini, fe
 		queryParams["codTipoCDP"] = codTipoCDP
 	}
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetQueryParams(queryParams).
 		Get(url)
 
@@ -1942,13 +1652,8 @@ func DescargarReporteEstadisticoComprasSUNAT(numRuc, perTributario, fechaini, fe
 }
 
 // 55 Servicio Web Api descargar reporte estadístico NC-ND por proveedor y periodo
-func DescargarReporteEstadisticoNCNDSUNAT(numRuc, perTributario, fechaini, fechafin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarReporteEstadisticoNCNDSUNAT(numRuc, perTributario, fechaini, fechafin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro string) error {
 
-	if token == "" {
-		return fmt.Errorf("TOKEN no configurado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/estadistica/web/resumenestadistico/exporta"
 
@@ -1973,9 +1678,8 @@ func DescargarReporteEstadisticoNCNDSUNAT(numRuc, perTributario, fechaini, fecha
 		queryParams["codTipoCDP"] = codTipoCDP
 	}
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetQueryParams(queryParams).
 		Get(url)
 
@@ -1991,13 +1695,8 @@ func DescargarReporteEstadisticoNCNDSUNAT(numRuc, perTributario, fechaini, fecha
 }
 
 // 56 Servicio Web Api descargar reporte estadístico Compras por día y periodo
-func DescargarReporteEstadisticoComprasDiaSUNAT(numRuc, perTributario, fechaIni, fechaFin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarReporteEstadisticoComprasDiaSUNAT(numRuc, perTributario, fechaIni, fechaFin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro string) error {
 
-	if token == "" {
-		return fmt.Errorf("TOKEN no configurado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/estadistica/web/resumenestadistico/exporta"
 
@@ -2022,9 +1721,8 @@ func DescargarReporteEstadisticoComprasDiaSUNAT(numRuc, perTributario, fechaIni,
 		queryParams["codTipoCDP"] = codTipoCDP
 	}
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetQueryParams(queryParams).
 		Get(url)
 
@@ -2040,13 +1738,8 @@ func DescargarReporteEstadisticoComprasDiaSUNAT(numRuc, perTributario, fechaIni,
 }
 
 // 57 Servicio Web Api descargar reporte estadístico Compras por CIIU
-func DescargarReporteEstadisticoComprasCIIUSUNAT(numRuc, perTributario, fechaIni, fechaFin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarReporteEstadisticoComprasCIIUSUNAT(numRuc, perTributario, fechaIni, fechaFin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro string) error {
 
-	if token == "" {
-		return fmt.Errorf("TOKEN no configurado")
-	}
 
 	url := "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/estadistica/web/resumenestadistico/exporta"
 
@@ -2071,9 +1764,8 @@ func DescargarReporteEstadisticoComprasCIIUSUNAT(numRuc, perTributario, fechaIni
 		queryParams["codTipoCDP"] = codTipoCDP
 	}
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		SetQueryParams(queryParams).
 		Get(url)
 
@@ -2089,20 +1781,14 @@ func DescargarReporteEstadisticoComprasCIIUSUNAT(numRuc, perTributario, fechaIni
 }
 
 // 58 Servicio Web Api descargar reporte de cumplimiento
-func DescargarReporteCumplimientoService(perTributario, codLibro string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) DescargarReporteCumplimientoService(perTributario, codLibro string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/cumplimiento/web/omisos/%s/%s/consultaReporteCumplimiento/exportardocumento", perTributario, codLibro)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		Get(url)
 
 	if err != nil {
@@ -2117,20 +1803,14 @@ func DescargarReporteCumplimientoService(perTributario, codLibro string) error {
 }
 
 // 59 Servicio Web Api consultar ajustes posteriores RCE
-func ConsultarAjustesPosterioresRCEService(periodoSeleccionado, tipoInfo string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ConsultarAjustesPosterioresRCEService(periodoSeleccionado, tipoInfo string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/propuesta/web?periodoSeleccionado=%s&tipoInfo=%s", periodoSeleccionado, tipoInfo)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		Put(url)
 
 	if err != nil {
@@ -2144,20 +1824,14 @@ func ConsultarAjustesPosterioresRCEService(periodoSeleccionado, tipoInfo string)
 	return nil
 }
 
-func ListarComprobantesAjustesPostService(periodoSeleccionado, page, perPage string) error {
-	client := resty.New()
-	token := os.Getenv("TOKEN")
+func (srv *Service) ListarComprobantesAjustesPostService(periodoSeleccionado, page, perPage string) error {
 
-	if token == "" {
-		return fmt.Errorf("token no configurado")
-	}
 
 	url := fmt.Sprintf("https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rce/ajustesposteriores/web/comprobantesajuspost/%s/listarcap?page=%s&perPage=%s", periodoSeleccionado, page, perPage)
 
-	resp, err := client.R().
+	resp, err := srv.client.NewRequest(srv.ruc).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept", "application/json").
-		SetHeader("Authorization", "Bearer "+token).
 		Get(url)
 
 	if err != nil {

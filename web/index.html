@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIRE - SUNAT Multiempresa</title>
+  <meta name="session-token" content="{{LOCAL_SESSION_TOKEN}}">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --border-focus: #3b82f6;
+      --success: #10b981;
+      --success-bg: #ecfdf5;
+      --warning: #f59e0b;
+      --warning-bg: #fffbeb;
+      --danger: #ef4444;
+      --danger-bg: #fef2f2;
+      --navy: #0f172a;
+      --radius: 8px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER & NAVBAR */
+    header {
+      background-color: var(--navy);
+      color: #ffffff;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-md);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .app-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .badge-version {
+      background: rgba(255, 255, 255, 0.15);
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      font-weight: 500;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .company-selector-box {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .company-selector-box label {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .company-select {
+      background: transparent;
+      color: #ffffff;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+    .company-select option {
+      color: #0f172a;
+      background: #ffffff;
+    }
+
+    /* TRAFFIC LIGHT BADGE */
+    .traffic-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+    }
+    .traffic-badge.valido { background: var(--success-bg); color: var(--success); border: 1px solid #a7f3d0; }
+    .traffic-badge.pendiente { background: var(--warning-bg); color: var(--warning); border: 1px solid #fde68a; }
+    .traffic-badge.invalidas { background: var(--danger-bg); color: var(--danger); border: 1px solid #fecaca; }
+    .traffic-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .traffic-badge.valido .traffic-dot { background: var(--success); }
+    .traffic-badge.pendiente .traffic-dot { background: var(--warning); }
+    .traffic-badge.invalidas .traffic-dot { background: var(--danger); }
+
+    /* NAVIGATION TABS */
+    nav.nav-tabs {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      padding: 0 1.5rem;
+      gap: 0.25rem;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 0.85rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s ease-in-out;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text-main); }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+    .tab-btn.disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    .pill-soon {
+      background: #e2e8f0;
+      color: #475569;
+      font-size: 0.7rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* MAIN CONTAINER */
+    main {
+      flex: 1;
+      padding: 1.5rem;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.2s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* CARD COMPONENTS */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fdfdfd;
+    }
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card-body { padding: 1.25rem; }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border-radius: var(--radius);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      text-decoration: none;
+    }
+    .btn-primary { background: var(--primary); color: #ffffff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: #f1f5f9; color: #334155; border-color: #cbd5e1; }
+    .btn-secondary:hover { background: #e2e8f0; }
+    .btn-success { background: var(--success); color: #ffffff; }
+    .btn-success:hover { background: #059669; }
+    .btn-danger { background: var(--danger); color: #ffffff; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-sm { padding: 0.35rem 0.65rem; font-size: 0.8rem; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* TABLES */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.875rem;
+    }
+    th {
+      background: #f8fafc;
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background-color: #f8fafc; }
+
+    /* FORMS & INPUTS */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 0.35rem;
+    }
+    .form-control {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      font-size: 0.9rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-control:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    .form-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    /* MODAL */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(2px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-content {
+      background: #ffffff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      animation: modalPop 0.2s ease-out;
+    }
+    @keyframes modalPop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+    .modal-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-title { font-size: 1.1rem; font-weight: 600; }
+    .modal-close {
+      background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);
+    }
+    .modal-body { padding: 1.25rem; overflow-y: auto; }
+    .modal-footer {
+      padding: 0.75rem 1.25rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      background: #fdfdfd;
+    }
+
+    /* BANNERS & NOTIFICATIONS */
+    .banner {
+      padding: 0.85rem 1.25rem;
+      border-radius: var(--radius);
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+    }
+    .banner-warning {
+      background: var(--warning-bg);
+      border: 1px solid #fde68a;
+      color: #92400e;
+    }
+    .banner-info {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+    }
+    .banner-danger {
+      background: var(--danger-bg);
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    /* PROGRESS BAR */
+    .progress-box {
+      margin: 1rem 0;
+      display: none;
+    }
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .progress-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* DETAILS PRE */
+    details.tech-details {
+      margin-top: 0.75rem;
+      background: #f1f5f9;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+    details.tech-details summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: #475569;
+    }
+    details.tech-details pre {
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      background: #1e293b;
+      color: #f8fafc;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 0.75rem;
+    }
+
+    /* TOAST */
+    #toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .toast {
+      background: #1e293b;
+      color: #ffffff;
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      animation: toastIn 0.2s ease-out;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-left">
+      <div class="app-title">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        SIRE - SUNAT
+        <span class="badge-version">v2.0 Multiempresa</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="company-selector-box">
+        <label for="global-company-select">Empresa Activa:</label>
+        <select id="global-company-select" class="company-select" onchange="onCompanyChange(this.value)">
+          <option value="">Cargando empresas...</option>
+        </select>
+      </div>
+      <div id="credentials-traffic-badge" class="traffic-badge pendiente" title="Estado de credenciales de la empresa">
+        <span class="traffic-dot"></span>
+        <span id="credentials-status-text">PENDIENTE</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('tab-empresas')">🏢 Empresas</button>
+    <button class="tab-btn" onclick="switchTab('tab-ventas')">📈 SIRE Ventas</button>
+    <button class="tab-btn" onclick="switchTab('tab-compras')">🛒 SIRE Compras</button>
+    <button class="tab-btn" onclick="switchTab('tab-descargas')">📦 Historial Descargas</button>
+    <button class="tab-btn" onclick="switchTab('tab-diagnostico')">🩺 Diagnóstico</button>
+    <button class="tab-btn" onclick="switchTab('tab-ajustes')">⚙️ Ajustes</button>
+    <button class="tab-btn disabled" title="Módulo disponible en Fase 4">📄 Comprobantes <span class="pill-soon">Fase 4</span></button>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <main>
+
+    <!-- TAB: EMPRESAS -->
+    <div id="tab-empresas" class="tab-content active">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Empresas Registradas</div>
+          <button class="btn btn-primary" onclick="openNewCompanyModal()">➕ Nueva Empresa</button>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table id="table-empresas">
+              <thead>
+                <tr>
+                  <th>RUC</th>
+                  <th>Razón Social</th>
+                  <th>Usuario SOL</th>
+                  <th>Clave SOL</th>
+                  <th>Client ID</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Cargando empresas...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: SIRE VENTAS -->
+    <div id="tab-ventas" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">RVIE - Registro de Ventas e Ingresos Electrónicos</div>
+          <span id="ventas-active-ruc" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;"></span>
+        </div>
+        <div class="card-body">
+          <div class="banner banner-info">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <div>Por directiva de seguridad, las consultas hacia SUNAT solo se ejecutan cuando usted presiona los botones. No se realizan llamadas automáticas.</div>
+          </div>
+          <div class="form-row" style="align-items: flex-end; margin-bottom: 1.25rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Periodo Tributario (YYYYMM):</label>
+              <input type="text" id="ventas-periodo" class="form-control" placeholder="Ej. 202410" value="202410" maxlength="6">
+            </div>
+            <div class="form-group" style="margin-bottom: 0; min-width: 170px;">
+              <label class="form-label">Formato (Manual Ventas v31, 5.18):</label>
+              <select id="ventas-formato" class="form-control">
+                <option value="0" selected>0 = TXT (Texto plano)</option>
+                <option value="1">1 = XLS (Libro Excel)</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn btn-secondary" onclick="consultarPeriodosVentas()">📅 Periodos Disponibles</button>
+              <button class="btn btn-secondary" onclick="consultarPropuestaVentas(1)">📋 Consultar Propuesta <small style="opacity: 0.75; font-size: 0.72rem;">(no documentado por SUNAT / experimental)</small></button>
+              <button class="btn btn-primary" onclick="descargarPropuestaVentas()">⬇️ Descargar Propuesta (ZIP)</button>
+            </div>
+          </div>
+
+          <!-- Progress Box -->
+          <div id="ventas-progress" class="progress-box">
+            <div class="progress-bar-bg"><div id="ventas-progress-bar" class="progress-bar-fill"></div></div>
+            <div class="progress-text"><span id="ventas-progress-msg">Iniciando...</span><span id="ventas-progress-pct">0%</span></div>
+          </div>
+
+          <!-- Result Details -->
+          <div id="ventas-resultado-box" style="margin-top: 1rem;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: SIRE COMPRAS -->
+    <div id="tab-compras" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">RCE - Registro de Compras Electrónico</div>
+          <span id="compras-active-ruc" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;"></span>
+        </div>
+        <div class="card-body">
+          <div class="banner banner-info">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <div>Por directiva de seguridad, las consultas hacia SUNAT solo se ejecutan cuando usted presiona los botones. No se realizan llamadas automáticas.</div>
+          </div>
+          <div class="form-row" style="align-items: flex-end; margin-bottom: 1.25rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Periodo Tributario (YYYYMM):</label>
+              <input type="text" id="compras-periodo" class="form-control" placeholder="Ej. 202410" value="202410" maxlength="6">
+            </div>
+            <div class="form-group" style="margin-bottom: 0; min-width: 170px;">
+              <label class="form-label">Formato (Manual Compras v28, 5.34):</label>
+              <select id="compras-formato" class="form-control">
+                <option value="0" selected>0 = TXT (Texto plano)</option>
+                <option value="1">1 = CSV (Valores delimitados)</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn btn-secondary" onclick="consultarPeriodosCompras()">📅 Periodos Disponibles</button>
+              <button class="btn btn-secondary" onclick="consultarPropuestaCompras(1)">📋 Consultar Propuesta <small style="opacity: 0.75; font-size: 0.72rem;">(no documentado por SUNAT / experimental)</small></button>
+              <button class="btn btn-primary" onclick="descargarPropuestaCompras()">⬇️ Descargar Propuesta (ZIP)</button>
+            </div>
+          </div>
+
+          <!-- Progress Box -->
+          <div id="compras-progress" class="progress-box">
+            <div class="progress-bar-bg"><div id="compras-progress-bar" class="progress-bar-fill"></div></div>
+            <div class="progress-text"><span id="compras-progress-msg">Iniciando...</span><span id="compras-progress-pct">0%</span></div>
+          </div>
+
+          <!-- Result Details -->
+          <div id="compras-resultado-box" style="margin-top: 1rem;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: HISTORIAL DESCARGAS -->
+    <div id="tab-descargas" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Historial de Descargas y Tickets SIRE</div>
+          <button class="btn btn-secondary btn-sm" onclick="cargarHistorialDescargas()">🔄 Actualizar Historial</button>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table id="table-descargas">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>RUC</th>
+                  <th>Libro</th>
+                  <th>Periodo</th>
+                  <th>Ticket</th>
+                  <th>Estado</th>
+                  <th>Archivo</th>
+                  <th>Tamaño</th>
+                  <th>Fecha</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="10" style="text-align: center; color: var(--text-muted);">Sin descargas registradas</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: DIAGNÓSTICO -->
+    <div id="tab-diagnostico" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Diagnóstico de Conectividad con SUNAT</div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-secondary" onclick="mostrarPeticionManualModal()">📘 Ver petición según manual</button>
+            <button class="btn btn-primary" onclick="ejecutarDiagnostico()">🧪 Ejecutar Diagnóstico (GET periodos/140000)</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Ejecuta una sola petición directa hacia el endpoint de períodos de SIRE utilizando el token en caché o autenticando según corresponda. Muestra los códigos y encabezados para contrastar con Postman.
+          </p>
+
+          <div id="diag-status-cards" class="form-row" style="margin-bottom: 1.25rem;">
+            <div class="card" style="margin-bottom: 0;">
+              <div class="card-header" style="padding: 0.5rem 1rem;"><div class="card-title" style="font-size: 0.9rem;">Worker Asíncrono</div></div>
+              <div class="card-body" style="padding: 0.75rem 1rem;" id="diag-worker-info">Consultando estado...</div>
+            </div>
+            <div class="card" style="margin-bottom: 0;">
+              <div class="card-header" style="padding: 0.5rem 1rem;"><div class="card-title" style="font-size: 0.9rem;">Enfriamiento de Seguridad</div></div>
+              <div class="card-body" style="padding: 0.75rem 1rem;" id="diag-cooldown-info">Inactivo</div>
+            </div>
+          </div>
+
+          <div id="diag-resultado-box"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: AJUSTES -->
+    <div id="tab-ajustes" class="tab-content">
+      <div class="banner banner-warning">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+          <strong>AVISO IMPORTANTE DE SEGURIDAD CRIPTOGRÁFICA</strong><br>
+          Haga copia de la llave maestra; sin ella no se pueden descifrar las credenciales de las empresas. El archivo de clave se encuentra resguardado en la carpeta de datos.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">Ubicaciones del Sistema y Almacenamiento</div></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">📂 Carpeta de Datos (Base de Datos y Llave):</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="info-data-dir" class="form-control" readonly>
+              <button class="btn btn-secondary" onclick="abrirCarpeta('data')">Abrir Carpeta</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">📜 Carpeta de Logs del Servidor:</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="info-logs-dir" class="form-control" readonly>
+              <button class="btn btn-secondary" onclick="abrirCarpeta('logs')">Abrir Carpeta de Logs</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">📥 Carpeta de Descargas de Reportes SIRE:</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="info-storage-dir" class="form-control" readonly>
+              <button class="btn btn-secondary" onclick="abrirCarpeta('descargas')">Abrir Carpeta</button>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Puerto Activo:</label>
+              <input type="text" id="info-puerto" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Origen de Llave Maestra:</label>
+              <input type="text" id="info-key-source" class="form-control" readonly>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL: REGISTRAR / EDITAR EMPRESA -->
+  <div id="modal-empresa" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-empresa-title">Registrar Empresa</div>
+        <button class="modal-close" onclick="closeModal('modal-empresa')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-empresa" onsubmit="saveEmpresa(event)">
+          <div class="form-group">
+            <label class="form-label">RUC (11 dígitos):</label>
+            <input type="text" id="emp-ruc" class="form-control" maxlength="11" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Razón Social:</label>
+            <input type="text" id="emp-razon" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Usuario SOL:</label>
+            <input type="text" id="emp-usuario" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Clave SOL:</label>
+            <input type="password" id="emp-clave" class="form-control" placeholder="••••••• (guardada)">
+            <div class="form-hint">En modo edición, déjelo vacío si desea conservar la clave actual.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Client ID (API SUNAT):</label>
+            <input type="text" id="emp-client-id" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Client Secret (API SUNAT):</label>
+            <input type="password" id="emp-client-secret" class="form-control" placeholder="••••••• (guardada)">
+            <div class="form-hint">En modo edición, déjelo vacío si desea conservar el secret actual.</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-empresa')">Cancelar</button>
+        <button class="btn btn-primary" onclick="document.getElementById('form-empresa').requestSubmit()">Guardar Empresa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRMACIÓN PROBAR CONEXIÓN -->
+  <div id="modal-confirm-conexion" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <div class="modal-title">Confirmar Prueba de Conexión</div>
+        <button class="modal-close" onclick="closeModal('modal-confirm-conexion')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 1rem;">
+          Esta acción realizará un <strong>intento de autenticación real en SUNAT</strong> para la empresa seleccionada:
+        </p>
+        <div class="banner banner-warning" style="margin-bottom: 0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div><strong>Atención:</strong> Varios intentos fallidos consecutivos pueden provocar el bloqueo de seguridad del usuario SOL.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-confirm-conexion')">Cancelar</button>
+        <button class="btn btn-primary" id="btn-confirm-test" onclick="ejecutarPruebaConexionConfirmada()">Proceder con la Prueba</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PETICIÓN SEGÚN MANUAL V22 (Task 4) -->
+  <div id="modal-peticion-manual" class="modal-backdrop">
+    <div class="modal-content" style="max-width: 680px;">
+      <div class="modal-header">
+        <div class="modal-title">📘 Petición Exacta según Manual SUNAT SIRE (v22)</div>
+        <button class="modal-close" onclick="closeModal('modal-peticion-manual')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Documentación oficial según el <em>Manual de servicios Web API SIRE Ventas y Compras (v22)</em> publicado en <code>cpe.sunat.gob.pe</code>.
+        </p>
+        <div style="margin-bottom: 0.75rem;">
+          <strong>Método HTTP:</strong> <code>GET</code>
+        </div>
+        <div style="margin-bottom: 0.75rem;">
+          <strong>URL Oficial:</strong><br>
+          <code id="manual-url" style="word-break: break-all; background: #f1f5f9; padding: 0.25rem 0.5rem; border-radius: 4px; display: block; margin-top: 0.25rem; font-family: monospace;">https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/padron/web/omisos/140000/periodos</code>
+        </div>
+        <div style="margin-bottom: 0.75rem;">
+          <strong>Cabeceras Requeridas:</strong>
+          <ul style="margin-left: 1.5rem; font-size: 0.85rem; margin-top: 0.25rem;">
+            <li><code>Accept: application/json</code></li>
+            <li><code>Authorization: Bearer &lt;TOKEN_ENMASCARADO&gt;</code></li>
+          </ul>
+        </div>
+        <div style="margin-bottom: 0.5rem;">
+          <strong>Comando cURL para Terminal o Postman:</strong>
+        </div>
+        <pre id="manual-curl-code" style="background: #1e293b; color: #f8fafc; padding: 0.85rem; border-radius: 6px; overflow-x: auto; font-size: 0.8rem; white-space: pre-wrap; font-family: monospace;">curl -X GET "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/padron/web/omisos/140000/periodos" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer &lt;TU_TOKEN_AQUI&gt;"</pre>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-peticion-manual')">Cerrar</button>
+        <button class="btn btn-primary" onclick="copiarCurlManual()">📋 Copiar Comando cURL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toast-container"></div>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    // Recuperar token de sesión local inyectado
+    const SESSION_TOKEN = document.querySelector('meta[name="session-token"]')?.getAttribute('content') || '';
+    let currentEmpresas = [];
+    let activeRUC = '';
+    let empresaEnEdicion = null;
+    let rucParaProbar = '';
+
+    // Helper para escapar HTML en mensajes de error
+    function escapeHtml(str) {
+      if (typeof str !== 'string') return String(str || '');
+      return str.replace(/[&<>"']/g, function(m) {
+        switch (m) {
+          case '&': return '&amp;';
+          case '<': return '&lt;';
+          case '>': return '&gt;';
+          case '"': return '&quot;';
+          case "'": return '&#039;';
+          default: return m;
+        }
+      });
+    }
+
+    // Wrapper global de fetch seguro:
+    // 1. Inyecta X-Local-Token
+    // 2. Lee el cuerpo de la respuesta como texto
+    // 3. Intenta JSON.parse de forma segura sin propagar SyntaxError
+    // 4. Si el servidor respondió texto plano o HTML (ej. 404/502), genera un error estructurado
+    //    con método, ruta, código HTTP y snippet del texto (máx 300 caracteres)
+    async function apiFetch(url, options = {}) {
+      options.headers = options.headers || {};
+      options.headers['X-Local-Token'] = SESSION_TOKEN;
+      const method = (options.method || 'GET').toUpperCase();
+
+      if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
+        options.headers['Content-Type'] = 'application/json';
+        options.body = JSON.stringify(options.body);
+      }
+
+      let rawRes;
+      try {
+        rawRes = await fetch(url, options);
+      } catch (networkErr) {
+        const errorMsg = `Error de conexión (${networkErr.message}) al contactar ${method} ${url}`;
+        return {
+          ok: false,
+          status: 0,
+          statusText: 'Network Error',
+          headers: new Headers(),
+          text: async () => errorMsg,
+          json: async () => ({
+            success: false,
+            error: errorMsg,
+            detalle: networkErr.message,
+            codigo_http: 0,
+            metodo: method,
+            ruta: url
+          }),
+          rawText: errorMsg,
+          isJson: false
+        };
+      }
+
+      const rawText = await rawRes.text();
+      let parsed = null;
+      let isJson = false;
+
+      try {
+        parsed = JSON.parse(rawText);
+        isJson = true;
+      } catch (e) {
+        isJson = false;
+      }
+
+      // Si el servidor devolvió texto plano o HTML (404 page not found, 502 Bad Gateway, etc.)
+      if (!isJson) {
+        let snippet = (rawText || '').trim();
+        if (snippet.length > 300) {
+          snippet = snippet.substring(0, 300) + '...';
+        }
+        const cleanError = `El servidor respondió ${rawRes.status} (${rawRes.statusText || 'Error'}) en ${method} ${url}`;
+        return {
+          ok: false,
+          status: rawRes.status,
+          statusText: rawRes.statusText,
+          headers: rawRes.headers,
+          text: async () => rawText,
+          json: async () => ({
+            success: false,
+            error: cleanError,
+            detalle: snippet || 'Respuesta no válida del servidor (no contiene formato JSON)',
+            codigo_http: rawRes.status,
+            metodo: method,
+            ruta: url
+          }),
+          rawText: rawText,
+          isJson: false
+        };
+      }
+
+      // Si fue JSON pero el status HTTP indica error (4xx o 5xx)
+      if (!rawRes.ok) {
+        if (!parsed.error) {
+          parsed.error = `El servidor respondió ${rawRes.status} en ${method} ${url}`;
+        }
+        if (!parsed.detalle) {
+          parsed.detalle = `Código HTTP ${rawRes.status}`;
+        }
+        parsed.codigo_http = rawRes.status;
+      }
+
+      return {
+        ok: rawRes.ok,
+        status: rawRes.status,
+        statusText: rawRes.statusText,
+        headers: rawRes.headers,
+        text: async () => rawText,
+        json: async () => parsed,
+        rawText: rawText,
+        isJson: true,
+        data: parsed
+      };
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const content = document.getElementById(tabId);
+      if (content) content.classList.add('active');
+
+      if (tabId === 'tab-descargas') cargarHistorialDescargas();
+      if (tabId === 'tab-ajustes') cargarAjustes();
+      if (tabId === 'tab-diagnostico') cargarEstadoDiagnostico();
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    // --- CARGA INICIAL ---
+    document.addEventListener('DOMContentLoaded', () => {
+      cargarEmpresas();
+      cargarAjustes();
+    });
+
+    async function cargarEmpresas() {
+      try {
+        const res = await apiFetch('/api/empresas');
+        if (!res.ok) throw new Error('Error al cargar lista de empresas');
+        const json = await res.json();
+        currentEmpresas = json.data || [];
+
+        renderEmpresasTable();
+        renderCompanySelector();
+      } catch (err) {
+        showToast(err.message, 'danger');
+      }
+    }
+
+    function renderCompanySelector() {
+      const select = document.getElementById('global-company-select');
+      select.innerHTML = '';
+
+      if (currentEmpresas.length === 0) {
+        select.innerHTML = '<option value="">Sin empresas registradas</option>';
+        actualizarBadgeEstado(null);
+        return;
+      }
+
+      currentEmpresas.forEach(emp => {
+        const opt = document.createElement('option');
+        opt.value = emp.ruc;
+        opt.textContent = `${emp.ruc} - ${emp.razon_social}`;
+        select.appendChild(opt);
+      });
+
+      const savedRuc = localStorage.getItem('sire_active_ruc');
+      if (savedRuc && currentEmpresas.some(e => e.ruc === savedRuc)) {
+        activeRUC = savedRuc;
+      } else {
+        activeRUC = currentEmpresas[0].ruc;
+      }
+      select.value = activeRUC;
+      onCompanyChange(activeRUC);
+    }
+
+    function onCompanyChange(ruc) {
+      activeRUC = ruc;
+      localStorage.setItem('sire_active_ruc', ruc);
+
+      const emp = currentEmpresas.find(e => e.ruc === ruc);
+      actualizarBadgeEstado(emp);
+
+      document.getElementById('ventas-active-ruc').textContent = emp ? `${emp.ruc} - ${emp.razon_social}` : '';
+      document.getElementById('compras-active-ruc').textContent = emp ? `${emp.ruc} - ${emp.razon_social}` : '';
+    }
+
+    function actualizarBadgeEstado(emp) {
+      const badge = document.getElementById('credentials-traffic-badge');
+      const text = document.getElementById('credentials-status-text');
+
+      badge.className = 'traffic-badge';
+      if (!emp) {
+        badge.classList.add('pendiente');
+        text.textContent = 'SIN EMPRESA';
+        return;
+      }
+
+      const estado = (emp.estado_credenciales || 'PENDIENTE').toUpperCase();
+      if (estado === 'VALIDO') {
+        badge.classList.add('valido');
+        text.textContent = 'VÁLIDO';
+      } else if (estado === 'INVALIDAS') {
+        badge.classList.add('invalidas');
+        if (emp.bloqueado_hasta) {
+          text.textContent = 'INVÁLIDAS (Bloqueado)';
+        } else {
+          text.textContent = 'INVÁLIDAS';
+        }
+      } else {
+        badge.classList.add('pendiente');
+        text.textContent = 'PENDIENTE';
+      }
+    }
+
+    function renderEmpresasTable() {
+      const tbody = document.querySelector('#table-empresas tbody');
+      tbody.innerHTML = '';
+
+      if (currentEmpresas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No hay empresas registradas. Presione "Nueva Empresa" para comenzar.</td></tr>';
+        return;
+      }
+
+      currentEmpresas.forEach(emp => {
+        const tr = document.createElement('tr');
+        const estadoClass = emp.estado_credenciales === 'VALIDO' ? 'valido' : (emp.estado_credenciales === 'INVALIDAS' ? 'invalidas' : 'pendiente');
+
+        tr.innerHTML = `
+          <td><strong>${emp.ruc}</strong></td>
+          <td>${emp.razon_social}</td>
+          <td><code>${emp.usuario_sol}</code></td>
+          <td><span style="letter-spacing: 2px; color: #94a3b8;">••••••••</span></td>
+          <td><code>${emp.client_id}</code></td>
+          <td>
+            <span class="traffic-badge ${estadoClass}">
+              <span class="traffic-dot"></span>
+              ${emp.estado_credenciales || 'PENDIENTE'}
+            </span>
+          </td>
+          <td>
+            <div style="display: flex; gap: 0.35rem;">
+              <button class="btn btn-secondary btn-sm" onclick="solicitarPruebaConexion('${emp.ruc}')" title="Probar conexión con SUNAT">🔌 Probar</button>
+              <button class="btn btn-secondary btn-sm" onclick="openEditCompanyModal('${emp.ruc}')" title="Editar credenciales">✏️ Editar</button>
+              <button class="btn btn-danger btn-sm" onclick="toggleActivoEmpresa('${emp.ruc}')" title="Desactivar/Eliminar">🗑️</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // --- FORMULARIO EMPRESA ---
+    function openNewCompanyModal() {
+      empresaEnEdicion = null;
+      document.getElementById('modal-empresa-title').textContent = 'Registrar Nueva Empresa';
+      document.getElementById('emp-ruc').value = '';
+      document.getElementById('emp-ruc').readOnly = false;
+      document.getElementById('emp-razon').value = '';
+      document.getElementById('emp-usuario').value = '';
+      document.getElementById('emp-clave').value = '';
+      document.getElementById('emp-clave').placeholder = 'Ingrese clave SOL';
+      document.getElementById('emp-client-id').value = '';
+      document.getElementById('emp-client-secret').value = '';
+      document.getElementById('emp-client-secret').placeholder = 'Ingrese client secret';
+      openModal('modal-empresa');
+    }
+
+    function openEditCompanyModal(ruc) {
+      const emp = currentEmpresas.find(e => e.ruc === ruc);
+      if (!emp) return;
+
+      empresaEnEdicion = emp;
+      document.getElementById('modal-empresa-title').textContent = 'Editar Empresa: ' + emp.ruc;
+      document.getElementById('emp-ruc').value = emp.ruc;
+      document.getElementById('emp-ruc').readOnly = true;
+      document.getElementById('emp-razon').value = emp.razon_social;
+      document.getElementById('emp-usuario').value = emp.usuario_sol;
+      document.getElementById('emp-clave').value = '';
+      document.getElementById('emp-clave').placeholder = '••••••• (guardada)';
+      document.getElementById('emp-client-id').value = emp.client_id;
+      document.getElementById('emp-client-secret').value = '';
+      document.getElementById('emp-client-secret').placeholder = '••••••• (guardada)';
+      openModal('modal-empresa');
+    }
+
+    async function saveEmpresa(e) {
+      e.preventDefault();
+      const ruc = document.getElementById('emp-ruc').value.trim();
+      const razon = document.getElementById('emp-razon').value.trim();
+      const usuario = document.getElementById('emp-usuario').value.trim();
+      const clave = document.getElementById('emp-clave').value;
+      const clientId = document.getElementById('emp-client-id').value.trim();
+      const clientSecret = document.getElementById('emp-client-secret').value;
+
+      try {
+        if (!empresaEnEdicion) {
+          // Crear
+          if (!clave || !clientSecret) {
+            alert('Para registrar una nueva empresa debe ingresar la Clave SOL y el Client Secret');
+            return;
+          }
+          const res = await apiFetch('/api/empresas', {
+            method: 'POST',
+            body: {
+              ruc, razon_social: razon, usuario_sol: usuario,
+              clave_sol: clave, client_id: clientId, client_secret: clientSecret
+            }
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Error al registrar empresa');
+          showToast('Empresa registrada correctamente');
+        } else {
+          // Actualizar (si clave o secret vienen vacíos, el backend conserva los previos)
+          const body = {
+            razon_social: razon, usuario_sol: usuario, client_id: clientId
+          };
+          if (clave) body.clave_sol = clave;
+          if (clientSecret) body.client_secret = clientSecret;
+
+          const res = await apiFetch(`/api/empresas/${ruc}`, {
+            method: 'PUT',
+            body
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Error al actualizar empresa');
+          showToast('Empresa actualizada correctamente');
+        }
+
+        closeModal('modal-empresa');
+        cargarEmpresas();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    async function toggleActivoEmpresa(ruc) {
+      if (!confirm(`¿Está seguro de desactivar o eliminar la empresa con RUC ${ruc}?`)) return;
+      try {
+        const res = await apiFetch(`/api/empresas/${ruc}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Error al eliminar empresa');
+        showToast('Empresa eliminada');
+        cargarEmpresas();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    // --- PROBAR CONEXIÓN ---
+    function solicitarPruebaConexion(ruc) {
+      rucParaProbar = ruc;
+      openModal('modal-confirm-conexion');
+    }
+
+    async function ejecutarPruebaConexionConfirmada() {
+      closeModal('modal-confirm-conexion');
+      showToast('Probando conexión con SUNAT...', 'info');
+
+      try {
+        const res = await apiFetch(`/api/empresas/${rucParaProbar}/probar-conexion`, { method: 'POST' });
+        const data = await res.json();
+
+        if (res.ok) {
+          alert('✅ Conexión Exitosa:\n' + (data.mensaje || 'Credenciales SOL autenticadas correctamente. Sesión activa en SUNAT.'));
+        } else {
+          let motivo = 'Fallo en la prueba de conexión:\n\n';
+          if (res.status === 401) {
+            motivo += '🔴 ' + (data.error || 'Credenciales SOL inválidas o vencidas; actualícelas en Empresas.');
+          } else if (res.status === 502) {
+            motivo += '⚠️ SUNAT no disponible o rechazó la petición: ' + (data.error || '');
+          } else {
+            motivo += '⚠️ ' + (data.error || 'Error desconocido.');
+          }
+          if (data.detalle) {
+            let det = typeof data.detalle === 'string' ? data.detalle : JSON.stringify(data.detalle);
+            if (det.length > 300) det = det.substring(0, 300) + '...';
+            motivo += '\n\nDetalle técnico:\n' + det;
+          }
+          alert(motivo);
+        }
+        cargarEmpresas();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    // --- SIRE VENTAS ---
+    async function consultarPeriodosVentas() {
+      if (!activeRUC) return alert('Seleccione una empresa activa');
+      const box = document.getElementById('ventas-resultado-box');
+      box.innerHTML = '<div style="color: var(--text-muted);">Consultando periodos en SUNAT...</div>';
+
+      try {
+        const res = await apiFetch(`/api/empresas/${activeRUC}/ventas/periodos/140000`);
+        const data = await res.json();
+        if (!res.ok) {
+          box.innerHTML = renderErrorAlert(data, data.detalle);
+          return;
+        }
+        box.innerHTML = `
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card-header"><div class="card-title">Respuesta de Periodos (RVIE 140000)</div></div>
+            <div class="card-body">
+              <pre style="background: #1e293b; color: #f8fafc; padding: 1rem; border-radius: 6px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        box.innerHTML = renderErrorAlert(err.message);
+      }
+    }
+
+    async function consultarPropuestaVentas(page = 1) {
+      if (!activeRUC) return alert('Seleccione una empresa activa');
+      const periodo = document.getElementById('ventas-periodo').value.trim();
+      const box = document.getElementById('ventas-resultado-box');
+      box.innerHTML = '<div style="color: var(--text-muted);">Consultando detalle de propuesta...</div>';
+
+      try {
+        const res = await apiFetch(`/api/sire/propuesta/detalle?ruc=${activeRUC}&codLibro=140000&periodo=${periodo}&page=${page}&limit=10`);
+        const data = await res.json();
+        if (!res.ok) {
+          box.innerHTML = renderErrorAlert(data.error || 'Error al consultar detalle');
+          return;
+        }
+
+        const items = data.registros || [];
+        if (items.length === 0) {
+          box.innerHTML = '<div class="banner banner-info">No se encontraron comprobantes para el periodo indicado en la propuesta de ventas.</div>';
+          return;
+        }
+
+        let tableRows = items.map(it => `
+          <tr>
+            <td>${it.tipo_cp || ''}</td>
+            <td>${it.serie || ''}</td>
+            <td>${it.numero || ''}</td>
+            <td>${it.fecha_emision || ''}</td>
+            <td>${it.num_doc_adquiriente || ''}</td>
+            <td>${it.razon_social_adquiriente || ''}</td>
+            <td><strong>${(it.monto_total || 0).toFixed(2)}</strong></td>
+            <td>${it.moneda || 'PEN'}</td>
+          </tr>
+        `).join('');
+
+        box.innerHTML = `
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tipo CP</th>
+                  <th>Serie</th>
+                  <th>Número</th>
+                  <th>Fecha</th>
+                  <th>RUC Cliente</th>
+                  <th>Razón Social</th>
+                  <th>Monto Total</th>
+                  <th>Moneda</th>
+                </tr>
+              </thead>
+              <tbody>${tableRows}</tbody>
+            </table>
+          </div>
+          <div style="margin-top: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Total registros: ${data.total_registros || items.length}</span>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-secondary btn-sm" onclick="consultarPropuestaVentas(${page - 1})" ${page <= 1 ? 'disabled' : ''}>Anterior</button>
+              <button class="btn btn-secondary btn-sm" onclick="consultarPropuestaVentas(${page + 1})">Siguiente</button>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        box.innerHTML = renderErrorAlert(err.message);
+      }
+    }
+
+    async function descargarPropuestaVentas() {
+      if (!activeRUC) return alert('Seleccione una empresa activa');
+      const periodo = document.getElementById('ventas-periodo').value.trim();
+      const progressBox = document.getElementById('ventas-progress');
+      const progressBar = document.getElementById('ventas-progress-bar');
+      const progressMsg = document.getElementById('ventas-progress-msg');
+      const progressPct = document.getElementById('ventas-progress-pct');
+
+      progressBox.style.display = 'block';
+      progressBar.style.width = '10%';
+      progressPct.textContent = '10%';
+      progressMsg.textContent = 'Solicitando ticket de exportación a SUNAT...';
+
+      try {
+        const formato = document.getElementById('ventas-formato')?.value || '0';
+        const resExport = await apiFetch('/api/sire/propuesta/exportar', {
+          method: 'POST',
+          body: { ruc: activeRUC, cod_libro: '140000', periodo, cod_tipo_archivo: formato }
+        });
+        const dataExport = await resExport.json();
+        if (!resExport.ok) throw new Error(dataExport.error || 'Error al solicitar exportación');
+
+        const ticket = dataExport.ticket;
+        progressBar.style.width = '30%';
+        progressPct.textContent = '30%';
+        progressMsg.textContent = `Ticket generado: ${ticket}. Esperando procesamiento en SUNAT...`;
+
+        // Polling del estado del ticket
+        let intentos = 0;
+        const maxIntentos = 30;
+        const interval = setInterval(async () => {
+          intentos++;
+          const pct = Math.min(30 + intentos * 2, 90);
+          progressBar.style.width = pct + '%';
+          progressPct.textContent = pct + '%';
+          progressMsg.textContent = `Ticket ${ticket}: Consultando estado en SUNAT (intento ${intentos}/${maxIntentos})...`;
+
+          try {
+            const resStatus = await apiFetch(`/api/sire/tickets/${activeRUC}/${ticket}`);
+            const dataStatus = await resStatus.json();
+
+            if (dataStatus.estado === 'COMPLETADO') {
+              clearInterval(interval);
+              progressBar.style.width = '100%';
+              progressPct.textContent = '100%';
+              progressMsg.textContent = '¡Archivo listo! Iniciando descarga...';
+
+              // Disparar descarga segura por ID
+              window.location.href = `/api/descargas/${dataStatus.id}/archivo`;
+              showToast('Descarga completada');
+              setTimeout(() => { progressBox.style.display = 'none'; }, 4000);
+            } else if (dataStatus.estado === 'ERROR') {
+              clearInterval(interval);
+              progressBox.style.display = 'none';
+              alert('Error en procesamiento de ticket SUNAT: ' + (dataStatus.mensaje_sunat || 'Fallo desconocido'));
+            } else if (intentos >= maxIntentos) {
+              clearInterval(interval);
+              progressMsg.textContent = 'El ticket sigue procesándose en SUNAT en segundo plano. Podrá descargarlo en la pestaña Historial.';
+            }
+          } catch (e) {
+            // Continúa polling
+          }
+        }, 3000);
+
+      } catch (err) {
+        progressBox.style.display = 'none';
+        alert('Error: ' + err.message);
+      }
+    }
+
+    // --- SIRE COMPRAS ---
+    async function consultarPeriodosCompras() {
+      if (!activeRUC) return alert('Seleccione una empresa activa');
+      const box = document.getElementById('compras-resultado-box');
+      box.innerHTML = '<div style="color: var(--text-muted);">Consultando periodos en SUNAT...</div>';
+
+      try {
+        const res = await apiFetch(`/api/empresas/${activeRUC}/compras/periodos/080000`);
+        const data = await res.json();
+        if (!res.ok) {
+          box.innerHTML = renderErrorAlert(data, data.detalle);
+          return;
+        }
+        box.innerHTML = `
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card-header"><div class="card-title">Respuesta de Periodos (RCE 080000)</div></div>
+            <div class="card-body">
+              <pre style="background: #1e293b; color: #f8fafc; padding: 1rem; border-radius: 6px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        box.innerHTML = renderErrorAlert(err.message);
+      }
+    }
+
+    async function consultarPropuestaCompras(page = 1) {
+      if (!activeRUC) return alert('Seleccione una empresa activa');
+      const periodo = document.getElementById('compras-periodo').value.trim();
+      const box = document.getElementById('compras-resultado-box');
+      box.innerHTML = '<div style="color: var(--text-muted);">Consultando detalle de propuesta...</div>';
+
+      try {
+        const res = await apiFetch(`/api/sire/propuesta/detalle?ruc=${activeRUC}&codLibro=080000&periodo=${periodo}&page=${page}&limit=10`);
+        const data = await res.json();
+        if (!res.ok) {
+          box.innerHTML = renderErrorAlert(data.error || 'Error al consultar detalle');
+          return;
+        }
+
+        const items = data.registros || [];
+        if (items.length === 0) {
+          box.innerHTML = '<div class="banner banner-info">No se encontraron comprobantes para el periodo indicado en la propuesta de compras.</div>';
+          return;
+        }
+
+        let tableRows = items.map(it => `
+          <tr>
+            <td>${it.tipo_cp || ''}</td>
+            <td>${it.serie || ''}</td>
+            <td>${it.numero || ''}</td>
+            <td>${it.fecha_emision || ''}</td>
+            <td>${it.num_doc_emisor || ''}</td>
+            <td>${it.razon_social_emisor || ''}</td>
+            <td><strong>${(it.monto_total || 0).toFixed(2)}</strong></td>
+            <td>${it.moneda || 'PEN'}</td>
+          </tr>
+        `).join('');
+
+        box.innerHTML = `
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tipo CP</th>
+                  <th>Serie</th>
+                  <th>Número</th>
+                  <th>Fecha</th>
+                  <th>RUC Proveedor</th>
+                  <th>Razón Social</th>
+                  <th>Monto Total</th>
+                  <th>Moneda</th>
+                </tr>
+              </thead>
+              <tbody>${tableRows}</tbody>
+            </table>
+          </div>
+          <div style="margin-top: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Total registros: ${data.total_registros || items.length}</span>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-secondary btn-sm" onclick="consultarPropuestaCompras(${page - 1})" ${page <= 1 ? 'disabled' : ''}>Anterior</button>
+              <button class="btn btn-secondary btn-sm" onclick="consultarPropuestaCompras(${page + 1})">Siguiente</button>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        box.innerHTML = renderErrorAlert(err.message);
+      }
+    }
+
+    async function descargarPropuestaCompras() {
+      if (!activeRUC) return alert('Seleccione una empresa activa');
+      const periodo = document.getElementById('compras-periodo').value.trim();
+      const progressBox = document.getElementById('compras-progress');
+      const progressBar = document.getElementById('compras-progress-bar');
+      const progressMsg = document.getElementById('compras-progress-msg');
+      const progressPct = document.getElementById('compras-progress-pct');
+
+      progressBox.style.display = 'block';
+      progressBar.style.width = '10%';
+      progressPct.textContent = '10%';
+      progressMsg.textContent = 'Solicitando ticket de exportación a SUNAT...';
+
+      try {
+        const formato = document.getElementById('compras-formato')?.value || '0';
+        const resExport = await apiFetch('/api/sire/propuesta/exportar', {
+          method: 'POST',
+          body: { ruc: activeRUC, cod_libro: '080000', periodo, cod_tipo_archivo: formato, cod_origen_envio: '2' }
+        });
+        const dataExport = await resExport.json();
+        if (!resExport.ok) throw new Error(dataExport.error || 'Error al solicitar exportación');
+
+        const ticket = dataExport.ticket;
+        progressBar.style.width = '30%';
+        progressPct.textContent = '30%';
+        progressMsg.textContent = `Ticket generado: ${ticket}. Esperando procesamiento en SUNAT...`;
+
+        let intentos = 0;
+        const maxIntentos = 30;
+        const interval = setInterval(async () => {
+          intentos++;
+          const pct = Math.min(30 + intentos * 2, 90);
+          progressBar.style.width = pct + '%';
+          progressPct.textContent = pct + '%';
+          progressMsg.textContent = `Ticket ${ticket}: Consultando estado en SUNAT (intento ${intentos}/${maxIntentos})...`;
+
+          try {
+            const resStatus = await apiFetch(`/api/sire/tickets/${activeRUC}/${ticket}`);
+            const dataStatus = await resStatus.json();
+
+            if (dataStatus.estado === 'COMPLETADO') {
+              clearInterval(interval);
+              progressBar.style.width = '100%';
+              progressPct.textContent = '100%';
+              progressMsg.textContent = '¡Archivo listo! Descargando...';
+
+              window.location.href = `/api/descargas/${dataStatus.id}/archivo`;
+              showToast('Descarga completada');
+              setTimeout(() => { progressBox.style.display = 'none'; }, 4000);
+            } else if (dataStatus.estado === 'ERROR') {
+              clearInterval(interval);
+              progressBox.style.display = 'none';
+              alert('Error en procesamiento de ticket SUNAT: ' + (dataStatus.mensaje_sunat || 'Fallo'));
+            } else if (intentos >= maxIntentos) {
+              clearInterval(interval);
+              progressMsg.textContent = 'El ticket sigue procesándose en segundo plano. Podrá descargarlo en Historial.';
+            }
+          } catch (e) {
+            // Continúa polling
+          }
+        }, 3000);
+
+      } catch (err) {
+        progressBox.style.display = 'none';
+        alert('Error: ' + err.message);
+      }
+    }
+
+    // --- HISTORIAL DESCARGAS ---
+    async function cargarHistorialDescargas() {
+      const tbody = document.querySelector('#table-descargas tbody');
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-muted);">Cargando historial...</td></tr>';
+
+      try {
+        let url = '/api/descargas';
+        if (activeRUC) url += `?ruc=${activeRUC}`;
+
+        const res = await apiFetch(url);
+        const json = await res.json();
+        if (!res.ok) {
+          tbody.innerHTML = `<tr><td colspan="10" style="padding: 1rem;">${renderErrorAlert(json, json.detalle)}</td></tr>`;
+          return;
+        }
+        const descargas = json.data || [];
+
+        if (descargas.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-muted);">No hay descargas registradas</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = descargas.map(d => `
+          <tr>
+            <td>${d.id}</td>
+            <td><strong>${d.empresa_ruc}</strong></td>
+            <td>${d.cod_libro || d.libro}</td>
+            <td>${d.periodo}</td>
+            <td><code>${d.ticket}</code></td>
+            <td><span class="traffic-badge ${d.estado === 'COMPLETADO' ? 'valido' : (d.estado === 'ERROR' ? 'invalidas' : 'pendiente')}">${d.estado}</span></td>
+            <td>${d.nombre_archivo || '-'}</td>
+            <td>${d.tamano_bytes ? (d.tamano_bytes / 1024).toFixed(1) + ' KB' : '-'}</td>
+            <td>${d.created_at || '-'}</td>
+            <td>
+              ${d.estado === 'COMPLETADO' ? `<a href="/api/descargas/${d.id}/archivo" class="btn btn-secondary btn-sm" download>⬇️ Descargar</a>` : '-'}
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="10" style="color: var(--danger);">Error cargando historial: ${err.message}</td></tr>`;
+      }
+    }
+
+    // --- DIAGNÓSTICO ---
+    async function cargarEstadoDiagnostico() {
+      try {
+        const res = await apiFetch('/api/sistema/estado-worker');
+        const data = await res.json();
+        document.getElementById('diag-worker-info').innerHTML = `
+          <div style="font-weight: 600; color: var(--success);">● Activo y en espera</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">${data.descripcion || ''}</div>
+        `;
+      } catch (e) {
+        document.getElementById('diag-worker-info').textContent = 'No disponible';
+      }
+
+      if (activeRUC) {
+        const emp = currentEmpresas.find(e => e.ruc === activeRUC);
+        if (emp && emp.bloqueado_hasta) {
+          document.getElementById('diag-cooldown-info').innerHTML = `
+            <div style="color: var(--danger); font-weight: 600;">⚠️ Activo hasta ${emp.bloqueado_hasta}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">${emp.mensaje_auth || 'Credenciales SOL inválidas'}</div>
+          `;
+        } else {
+          document.getElementById('diag-cooldown-info').innerHTML = `<div style="color: var(--success); font-weight: 500;">✓ Sin enfriamientos activos</div>`;
+        }
+      }
+    }
+
+    async function ejecutarDiagnostico() {
+      if (!activeRUC) return alert('Seleccione una empresa activa');
+      const box = document.getElementById('diag-resultado-box');
+      box.innerHTML = '<div style="color: var(--text-muted);">Ejecutando llamada única hacia SUNAT...</div>';
+
+      try {
+        const res = await apiFetch(`/api/sistema/diagnostico/${activeRUC}`, { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) {
+          box.innerHTML = renderErrorAlert(data, data.detalle);
+          return;
+        }
+
+        let headersHTML = '';
+        if (data.headers) {
+          headersHTML = Object.entries(data.headers).map(([k, v]) => `
+            <tr><td><strong>${k}</strong></td><td><code>${v}</code></td></tr>
+          `).join('');
+        }
+
+        const isSuccess = data.status_code >= 200 && data.status_code < 300;
+        const statusBadge = isSuccess ? 'valido' : (data.status_code === 401 ? 'pendiente' : 'invalidas');
+
+        box.innerHTML = `
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card-header">
+              <div class="card-title">Resultado del Gateway SUNAT</div>
+              <span class="traffic-badge ${statusBadge}">Código HTTP: ${data.status_code || 0} ${data.status_text || ''}</span>
+            </div>
+            <div class="card-body">
+              <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Headers de Respuesta (sin cookies):</h4>
+              <div class="table-container" style="margin-bottom: 1rem;">
+                <table>
+                  <thead><tr><th>Cabecera</th><th>Valor</th></tr></thead>
+                  <tbody>${headersHTML || '<tr><td colspan="2">Sin headers retornados</td></tr>'}</tbody>
+                </table>
+              </div>
+
+              <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Cuerpo de Respuesta Sanitizado:</h4>
+              <pre style="background: #1e293b; color: #f8fafc; padding: 1rem; border-radius: 6px; overflow-x: auto; font-size: 0.8rem;">${data.es_json ? JSON.stringify(data.json_data, null, 2) : (data.cuerpo_sanitizado || '')}</pre>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        box.innerHTML = renderErrorAlert(err.message);
+      }
+    }
+
+    // --- AJUSTES ---
+    async function cargarAjustes() {
+      try {
+        const res = await apiFetch('/api/sistema/info');
+        const data = await res.json();
+        document.getElementById('info-data-dir').value = data.data_dir || '';
+        document.getElementById('info-logs-dir').value = data.logs_dir || '';
+        document.getElementById('info-storage-dir').value = data.descargas_dir || '';
+        document.getElementById('info-puerto').value = data.puerto || '8080';
+        document.getElementById('info-key-source').value = data.key_source || '';
+      } catch (e) {
+        // Silencioso
+      }
+    }
+
+    async function abrirCarpeta(tipo) {
+      try {
+        const res = await apiFetch('/api/sistema/abrir-carpeta', {
+          method: 'POST',
+          body: { tipo }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Error al abrir carpeta');
+        showToast('Carpeta abierta en el explorador');
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    function renderErrorAlert(msgOrObj, optDetalle = '') {
+      let errorMsg = '';
+      let detalle = optDetalle;
+      let tipo = '';
+      let codigoHttp = 0;
+      let headers = null;
+      let ruta = '';
+      let host = '';
+
+      if (typeof msgOrObj === 'object' && msgOrObj !== null) {
+        errorMsg = msgOrObj.error || msgOrObj.message || 'Error en la operación';
+        tipo = msgOrObj.tipo || '';
+        codigoHttp = msgOrObj.codigo_http || 0;
+        headers = msgOrObj.headers || null;
+        ruta = msgOrObj.ruta || '';
+        host = msgOrObj.host || '';
+        if (!detalle && msgOrObj.detalle) {
+          detalle = typeof msgOrObj.detalle === 'string' ? msgOrObj.detalle : JSON.stringify(msgOrObj.detalle, null, 2);
+        }
+      } else {
+        errorMsg = String(msgOrObj || 'Error desconocido');
+      }
+
+      // Regla de clasificación gateway_sire (Task 1 y Task 2):
+      // Si tipo es gateway_sire o el código es 401
+      const isGatewaySire = (tipo === 'gateway_sire' || codigoHttp === 401 || String(errorMsg).includes('rechazó el token en SIRE') || String(errorMsg).includes('401'));
+
+      if (isGatewaySire) {
+        errorMsg = "SUNAT aceptó el inicio de sesión pero rechazó el token en SIRE. Puede faltar una habilitación de la cuenta o de la aplicación. Contacte a SUNAT con los datos de abajo.";
+      }
+
+      if (!detalle) {
+        detalle = errorMsg;
+      }
+      if (detalle.length > 300) {
+        detalle = detalle.substring(0, 300) + '...';
+      }
+
+      const safeHeadersAttr = escapeHtml(JSON.stringify(headers || {}));
+      const safeRuta = escapeHtml(ruta || 'https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/padron/web/omisos/140000/periodos');
+
+      let actionButtons = '';
+      if (isGatewaySire) {
+        actionButtons = `
+          <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="copiarDatosSoporte('${activeRUC}', '${codigoHttp}', '${safeRuta}', '${safeHeadersAttr}', '${host}')">
+              📋 Copiar datos para soporte
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="mostrarPeticionManualModal('${safeRuta}')">
+              📘 Ver petición según manual
+            </button>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="banner banner-danger" style="flex-direction: column; align-items: stretch;">
+          <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <div style="flex: 1;">
+              <strong>Ocurrió un problema:</strong> ${escapeHtml(errorMsg)}
+              <details class="tech-details" style="margin-top: 0.5rem; font-size: 0.85rem;">
+                <summary style="cursor: pointer; color: var(--danger); font-weight: 600;">Detalle técnico</summary>
+                <pre style="background: rgba(0,0,0,0.06); padding: 0.5rem; border-radius: 4px; margin-top: 0.25rem; white-space: pre-wrap; font-family: monospace;">${escapeHtml(detalle)}</pre>
+              </details>
+              ${actionButtons}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function copiarDatosSoporte(ruc, codigoHttp, ruta, headersJsonStr, host) {
+      const emp = currentEmpresas.find(e => e.ruc === ruc) || {};
+      const clientId = emp.client_id || '(no especificado)';
+      const fechaHora = new Date().toISOString();
+      let headersObj = {};
+      try {
+        headersObj = JSON.parse(headersJsonStr || '{}');
+      } catch (e) {
+        headersObj = {};
+      }
+
+      let cabecerasStr = '';
+      if (headersObj && Object.keys(headersObj).length > 0) {
+        cabecerasStr = Object.entries(headersObj)
+          .map(([k, v]) => `  ${k}: ${v}`)
+          .join('\n');
+      } else {
+        cabecerasStr = '  (Ninguna cabecera devuelta)';
+      }
+
+      const bloque = [
+        '--- DATOS PARA SOPORTE SUNAT SIRE ---',
+        `RUC: ${ruc || activeRUC}`,
+        `Client ID: ${clientId}`,
+        `Fecha/Hora: ${fechaHora}`,
+        `Ruta invocada: ${ruta || 'https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/padron/web/omisos/140000/periodos'}`,
+        `Código HTTP: ${codigoHttp || 401}`,
+        `Host: ${host || 'api-sire.sunat.gob.pe'}`,
+        'Cabeceras de respuesta devueltas por SUNAT (sin cookies):',
+        cabecerasStr,
+        '-------------------------------------'
+      ].join('\n');
+
+      navigator.clipboard.writeText(bloque).then(() => {
+        showToast('📋 Datos para soporte copiados al portapapeles');
+      }).catch(() => {
+        prompt('Copie los datos para soporte:', bloque);
+      });
+    }
+
+    function mostrarPeticionManualModal(customUrl) {
+      const url = customUrl || 'https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/padron/web/omisos/140000/periodos';
+      document.getElementById('manual-url').textContent = url;
+      const curlSnippet = `curl -X GET "${url}" \\\n  -H "Content-Type: application/json" \\\n  -H "Accept: application/json" \\\n  -H "Authorization: Bearer <TU_TOKEN_AQUI>"`;
+      document.getElementById('manual-curl-code').textContent = curlSnippet;
+      openModal('modal-peticion-manual');
+    }
+
+    function copiarCurlManual() {
+      const code = document.getElementById('manual-curl-code').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        showToast('📋 Comando cURL copiado al portapapeles');
+      }).catch(() => {
+        prompt('Copie el comando cURL:', code);
+      });
+    }
+  </script>
+</body>
+</html>

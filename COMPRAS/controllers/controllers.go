@@ -7,11 +7,27 @@ import (
 	"strconv"
 
 	"github.com/SwodLore/sire-api/COMPRAS/services"
+	"github.com/SwodLore/sire-api/internal/sunat"
 	"github.com/gin-gonic/gin"
 )
 
+var SunatClient *sunat.Client
+
+func Init(client *sunat.Client) {
+	SunatClient = client
+}
+
+func getRuc(c *gin.Context) string {
+	if r := c.GetString("ruc"); r != "" {
+		return r
+	}
+	return c.Param("ruc")
+}
+
+
 // 2 Servicio Web Api aceptar propuesta
 func AceptarPropuestaController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -19,7 +35,7 @@ func AceptarPropuestaController(c *gin.Context) {
 		return
 	}
 
-	result, err := services.AceptarPropuestaService(perTributario)
+	result, err := svc.AceptarPropuestaService(perTributario)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -33,6 +49,7 @@ func AceptarPropuestaController(c *gin.Context) {
 
 // 3 Servicio Web Api importar reemplazo de la propuesta
 func ReemplazoPropuestaController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -54,7 +71,7 @@ func ReemplazoPropuestaController(c *gin.Context) {
 		return
 	}
 
-	err := services.ReemplazoPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro)
+	err := svc.ReemplazoPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -65,6 +82,7 @@ func ReemplazoPropuestaController(c *gin.Context) {
 
 // 4 Servicio Web Api registrar preliminar
 func RegistrarPreliminarController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -72,7 +90,7 @@ func RegistrarPreliminarController(c *gin.Context) {
 		return
 	}
 
-	err := services.RegistrarPreliminarService(perTributario)
+	err := svc.RegistrarPreliminarService(perTributario)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -83,6 +101,7 @@ func RegistrarPreliminarController(c *gin.Context) {
 
 // 5 Servicio Web Api cargar registro de compra no domiciliados
 func CargarNoDomiciliadosController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -104,7 +123,7 @@ func CargarNoDomiciliadosController(c *gin.Context) {
 		return
 	}
 
-	err := services.CargarNoDomiciliadosService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro)
+	err := svc.CargarNoDomiciliadosService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -115,6 +134,7 @@ func CargarNoDomiciliadosController(c *gin.Context) {
 
 // 6 Servicio Web Api importar datos complementarios de los CP de la propuesta
 func ImportarComplementoPropuestaController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -136,7 +156,7 @@ func ImportarComplementoPropuestaController(c *gin.Context) {
 		return
 	}
 
-	err := services.ImportarComplementoPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro)
+	err := svc.ImportarComplementoPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -147,6 +167,7 @@ func ImportarComplementoPropuestaController(c *gin.Context) {
 
 // 7 Servicio Web Api importar nuevos comprobantes preliminar
 func ImportarComprobantesPreliminarController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -168,7 +189,7 @@ func ImportarComprobantesPreliminarController(c *gin.Context) {
 		return
 	}
 
-	err := services.ImportarComprobantesPreliminarService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro)
+	err := svc.ImportarComprobantesPreliminarService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -179,6 +200,7 @@ func ImportarComprobantesPreliminarController(c *gin.Context) {
 
 // 8 Servicio Web Api incluir-excluir comprobantes de la propuesta
 func IncluirExcluirPropuestaController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -200,7 +222,7 @@ func IncluirExcluirPropuestaController(c *gin.Context) {
 		return
 	}
 
-	err := services.IncluirExcluirPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro)
+	err := svc.IncluirExcluirPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -211,6 +233,7 @@ func IncluirExcluirPropuestaController(c *gin.Context) {
 
 // 9 Servicio Web Api importar nuevos comprobantes de pago
 func ImportarComprobantesPropuestaController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -232,7 +255,7 @@ func ImportarComprobantesPropuestaController(c *gin.Context) {
 		return
 	}
 
-	err := services.ImportarComprobantesPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro)
+	err := svc.ImportarComprobantesPropuestaService(perTributario, filename, filetype, numRuc, codOrigenEnvio, codProceso, codTipoCorrelativo, nomArchivoImportacion, codLibro)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -243,6 +266,7 @@ func ImportarComprobantesPropuestaController(c *gin.Context) {
 
 // 10 Servicio Web Api importar tipo de cambio masivo
 func ImportarTipoCambioMasivoController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	codLibro := c.Param("codLibro")
 
@@ -263,7 +287,7 @@ func ImportarTipoCambioMasivoController(c *gin.Context) {
 	}
 	defer file.Close()
 
-	err = services.ImportarTipoCambioMasivoService(perTributario, codLibro, file, header)
+	err = svc.ImportarTipoCambioMasivoService(perTributario, codLibro, file, header)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -274,6 +298,7 @@ func ImportarTipoCambioMasivoController(c *gin.Context) {
 
 // 11 Servicio Web Api actualizar reintegro del crédito fiscal
 func ActualizarReintegroCreditoController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -294,7 +319,7 @@ func ActualizarReintegroCreditoController(c *gin.Context) {
 		return
 	}
 
-	err := services.ActualizarReintegroCreditoService(perTributario, requestBody.DatosFV621.ValorRCF, requestBody.DatosFV621.ValorCFE, requestBody.DatosFV621.FactProrrata)
+	err := svc.ActualizarReintegroCreditoService(perTributario, requestBody.DatosFV621.ValorRCF, requestBody.DatosFV621.ValorCFE, requestBody.DatosFV621.FactProrrata)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -305,6 +330,7 @@ func ActualizarReintegroCreditoController(c *gin.Context) {
 
 // 12 Servicio Web Api actualizar crédito fiscal especial
 func ActualizarCreditoFiscalEspecialController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -323,7 +349,7 @@ func ActualizarCreditoFiscalEspecialController(c *gin.Context) {
 		return
 	}
 
-	err := services.ActualizarCreditoFiscalEspecialService(perTributario, requestBody.DatosFV621.ValorCFE)
+	err := svc.ActualizarCreditoFiscalEspecialService(perTributario, requestBody.DatosFV621.ValorCFE)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -334,6 +360,7 @@ func ActualizarCreditoFiscalEspecialController(c *gin.Context) {
 
 // 13 Servicio Web Api actualizar coeficiente de prorrata
 func ActualizarCoeficienteProrrataController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -354,7 +381,7 @@ func ActualizarCoeficienteProrrataController(c *gin.Context) {
 		return
 	}
 
-	err := services.ActualizarCoeficienteProrrataService(perTributario, requestBody.DatosFV621.FactProrrata, requestBody.DatosFV621.ValorRCF, requestBody.DatosFV621.ValorCFE)
+	err := svc.ActualizarCoeficienteProrrataService(perTributario, requestBody.DatosFV621.FactProrrata, requestBody.DatosFV621.ValorRCF, requestBody.DatosFV621.ValorCFE)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -365,6 +392,7 @@ func ActualizarCoeficienteProrrataController(c *gin.Context) {
 
 // 14 Servicio Web Api consultar FV0621
 func ConsultarFV0621Controller(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	periodoSeleccionado := c.Query("periodoSeleccionado")
 	tipoInfo := c.Query("tipoInfo")
 
@@ -373,7 +401,7 @@ func ConsultarFV0621Controller(c *gin.Context) {
 		return
 	}
 
-	result, err := services.ConsultarFV0621Service(periodoSeleccionado, tipoInfo)
+	result, err := svc.ConsultarFV0621Service(periodoSeleccionado, tipoInfo)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -384,6 +412,7 @@ func ConsultarFV0621Controller(c *gin.Context) {
 
 // 15 Servicio Web Api eliminar comprobante de la propuesta
 func EliminarComprobantePropuestaController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -426,7 +455,7 @@ func EliminarComprobantePropuestaController(c *gin.Context) {
 		}
 	}
 
-	err = services.EliminarComprobantePropuestaService(perTributario, requestBody)
+	err = svc.EliminarComprobantePropuestaService(perTributario, requestBody)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -437,6 +466,7 @@ func EliminarComprobantePropuestaController(c *gin.Context) {
 
 // 16 Servicio Web Api eliminar comprobante del preliminar
 func EliminarComprobantePreliminarController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -479,7 +509,7 @@ func EliminarComprobantePreliminarController(c *gin.Context) {
 		}
 	}
 
-	err = services.EliminarComprobantePreliminarService(perTributario, requestBody)
+	err = svc.EliminarComprobantePreliminarService(perTributario, requestBody)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -490,6 +520,7 @@ func EliminarComprobantePreliminarController(c *gin.Context) {
 
 // 17 Servicio Web Api eliminar preliminar
 func EliminarPreliminar(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	indEliminar := c.Param("indEliminar")
 
@@ -508,7 +539,7 @@ func EliminarPreliminar(c *gin.Context) {
 		return
 	}
 
-	err := services.EliminarPreliminarSUNAT(perTributario, indEliminar)
+	err := svc.EliminarPreliminarSUNAT(perTributario, indEliminar)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -519,6 +550,7 @@ func EliminarPreliminar(c *gin.Context) {
 
 // 18 Servicio Web Api cargar ajustes posteriores
 func CargarAjustesPosteriores(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	var request struct {
 		Filename              string `json:"filename"`
 		Filetype              string `json:"filetype"`
@@ -546,7 +578,7 @@ func CargarAjustesPosteriores(c *gin.Context) {
 		return
 	}
 
-	err := services.CargarAjustesPosterioresSUNAT(request.Filename, request.Filetype, request.NumRuc,
+	err := svc.CargarAjustesPosterioresSUNAT(request.Filename, request.Filetype, request.NumRuc,
 		request.PerTributario, request.CodOrigenEnvio, request.CodProceso, request.CodTipoCorrelativo,
 		request.NomArchivoImportacion, request.CodLibro)
 
@@ -560,6 +592,7 @@ func CargarAjustesPosteriores(c *gin.Context) {
 
 // 19 Servicio Web Api enviar ajustes posteriores
 func EnviarAjustesPosteriores(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	codOrigenEnvio := c.Param("codOrigenEnvio")
 
@@ -599,7 +632,7 @@ func EnviarAjustesPosteriores(c *gin.Context) {
 		return
 	}
 
-	err := services.EnviarAjustesPosterioresSUNAT(perTributario, codOrigenEnvio, request.NumAjustePosterior, request.CodLibro, request.NumTicket)
+	err := svc.EnviarAjustesPosterioresSUNAT(perTributario, codOrigenEnvio, request.NumAjustePosterior, request.CodLibro, request.NumTicket)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -610,6 +643,7 @@ func EnviarAjustesPosteriores(c *gin.Context) {
 
 // 20 Servicio Web Api eliminar comprobante de ajustes posteriores
 func EliminarComprobanteAjustes(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	indTipoAjustePosterior := c.Param("indTipoAjustePosterior")
 
@@ -649,7 +683,7 @@ func EliminarComprobanteAjustes(c *gin.Context) {
 		return
 	}
 
-	err := services.EliminarComprobanteAjustesSUNAT(perTributario, indTipoAjustePosterior, request)
+	err := svc.EliminarComprobanteAjustesSUNAT(perTributario, indTipoAjustePosterior, request)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -660,6 +694,7 @@ func EliminarComprobanteAjustes(c *gin.Context) {
 
 // 21 Servicio Web Api cargar ajustes posteriores no domiciliados
 func CargarAjustesNoDomiciliados(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	var request struct {
 		Filename              string `json:"filename"`
 		Filetype              string `json:"filetype"`
@@ -701,7 +736,7 @@ func CargarAjustesNoDomiciliados(c *gin.Context) {
 		request.CodLibro = "080000"
 	}
 
-	numTicket, err := services.CargarAjustesNoDomiciliadosSUNAT(request.Filename, request.Filetype, request.NumRuc,
+	numTicket, err := svc.CargarAjustesNoDomiciliadosSUNAT(request.Filename, request.Filetype, request.NumRuc,
 		request.PerTributario, request.CodOrigenEnvio, request.CodProceso, request.CodTipoCorrelativo,
 		request.NomArchivoImportacion, request.CodLibro)
 
@@ -718,6 +753,7 @@ func CargarAjustesNoDomiciliados(c *gin.Context) {
 
 // 22 Servicio Web Api enviar ajustes posteriores no domiciliados
 func EnviarAjustesNoDomiciliados(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	numAjustePosterior := c.Param("numAjustePosterior")
 	codLibro := c.Param("codLibro")
@@ -743,7 +779,7 @@ func EnviarAjustesNoDomiciliados(c *gin.Context) {
 		return
 	}
 
-	err := services.EnviarAjustesNoDomiciliadosSUNAT(perTributario, numAjustePosterior, codLibro, numTicket)
+	err := svc.EnviarAjustesNoDomiciliadosSUNAT(perTributario, numAjustePosterior, codLibro, numTicket)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -754,6 +790,7 @@ func EnviarAjustesNoDomiciliados(c *gin.Context) {
 
 // 23 Servicio Web Api eliminar comprobante de ajustes posteriores no domiciliados
 func EliminarComprobanteAjustesPosteriorNoDOM(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	indTipoAjustePosteriorStr := c.Param("indTipoAjustePosterior")
 
@@ -789,7 +826,7 @@ func EliminarComprobanteAjustesPosteriorNoDOM(c *gin.Context) {
 		return
 	}
 
-	err = services.EliminarComprobanteAjustesPosteriorNoDOM(perTributario, indTipoAjustePosterior, requestData.CodAjustePosterior, requestData.DetalleAjustes)
+	err = svc.EliminarComprobanteAjustesPosteriorNoDOM(perTributario, indTipoAjustePosterior, requestData.CodAjustePosterior, requestData.DetalleAjustes)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -800,6 +837,7 @@ func EliminarComprobanteAjustesPosteriorNoDOM(c *gin.Context) {
 
 // 24 Servicio Web Api cargar ajustes posteriores de periodos anteriores
 func CargarAjustesPosterioresPeriodosAnteriores(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	var requestData struct {
 		Filename              string `json:"filename"`
 		Filetype              string `json:"filetype"`
@@ -824,7 +862,7 @@ func CargarAjustesPosterioresPeriodosAnteriores(c *gin.Context) {
 		return
 	}
 
-	response, err := services.CargarAjustesPosterioresPeriodosAnteriores(
+	response, err := svc.CargarAjustesPosterioresPeriodosAnteriores(
 		requestData.Filename, requestData.Filetype, requestData.NumRuc, requestData.PerTributario,
 		requestData.CodOrigenEnvio, requestData.CodProceso, requestData.CodTipoCorrelativo,
 		requestData.NomArchivoImportacion, requestData.CodLibro)
@@ -838,6 +876,7 @@ func CargarAjustesPosterioresPeriodosAnteriores(c *gin.Context) {
 
 // 25 Servicio Web Api enviar ajustes posteriores de periodos anteriores
 func EnviarAjustesPosterioresPeriodosAnteriores(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	numAjustePosterior := c.Param("numAjustePosterior")
 	codLibro := c.Param("codLibro")
@@ -868,7 +907,7 @@ func EnviarAjustesPosterioresPeriodosAnteriores(c *gin.Context) {
 		return
 	}
 
-	err := services.EnviarAjustesPosterioresPeriodosAnteriores(perTributario, numAjustePosterior, codLibro,
+	err := svc.EnviarAjustesPosterioresPeriodosAnteriores(perTributario, numAjustePosterior, codLibro,
 		numTicket, requestData.CodAjustePosterior, requestData.DetalleAjustes)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -880,6 +919,7 @@ func EnviarAjustesPosterioresPeriodosAnteriores(c *gin.Context) {
 
 // 26 Servicio Web Api eliminar comprobante de ajustes posteriores de periodos anteriores
 func EliminarComprobanteAjustesPosterioresPeriodosAnteriores(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	indTipoAjustePosteriorStr := c.Param("indTipoAjustePosterior")
 	perTributario := c.Param("perTributario")
 
@@ -913,7 +953,7 @@ func EliminarComprobanteAjustesPosterioresPeriodosAnteriores(c *gin.Context) {
 		return
 	}
 
-	err = services.EliminarComprobanteAjustesPosterioresPeriodosAnteriores(indTipoAjustePosterior, perTributario,
+	err = svc.EliminarComprobanteAjustesPosterioresPeriodosAnteriores(indTipoAjustePosterior, perTributario,
 		requestData.CodAjustePosterior, requestData.DetalleAjustes)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -925,6 +965,7 @@ func EliminarComprobanteAjustesPosterioresPeriodosAnteriores(c *gin.Context) {
 
 // 27 Servicio Web Api cargar ajustes posteriores de periodos anteriores no domiciliados
 func CargarAjustesPosterioresPeriodosAnterioresNoDOM(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	var requestData struct {
 		Filename              string `json:"filename"`
 		Filetype              string `json:"filetype"`
@@ -949,7 +990,7 @@ func CargarAjustesPosterioresPeriodosAnterioresNoDOM(c *gin.Context) {
 		return
 	}
 
-	response, err := services.CargarAjustesPosterioresPeriodosAnterioresNoDOM(
+	response, err := svc.CargarAjustesPosterioresPeriodosAnterioresNoDOM(
 		requestData.Filename, requestData.Filetype, requestData.NumRuc, requestData.PerTributario,
 		requestData.CodOrigenEnvio, requestData.CodProceso, requestData.CodTipoCorrelativo,
 		requestData.NomArchivoImportacion, requestData.CodLibro)
@@ -963,6 +1004,7 @@ func CargarAjustesPosterioresPeriodosAnterioresNoDOM(c *gin.Context) {
 
 // 28 Servicio Web Api enviar ajustes posteriores de periodos anteriores no domiciliados
 func EnviarAjustesPosterioresController(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	numAjustePosterior := c.Param("numAjustePosterior")
 	codLibro := c.Param("codLibro")
@@ -988,7 +1030,7 @@ func EnviarAjustesPosterioresController(c *gin.Context) {
 		return
 	}
 
-	err := services.EnviarAjustesPosterioresService(perTributario, numAjustePosterior, codLibro, numTicket)
+	err := svc.EnviarAjustesPosterioresService(perTributario, numAjustePosterior, codLibro, numTicket)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -999,6 +1041,7 @@ func EnviarAjustesPosterioresController(c *gin.Context) {
 
 // 29 Servicio Web Api eliminar comprobante de ajustes posteriores de periodos anteriores no domiciliados
 func EliminarComprobanteAjustesRCE(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	numAjustePosterior := c.Param("numAjustePosterior")
 	perTributario := c.Param("perTributario")
 
@@ -1018,7 +1061,7 @@ func EliminarComprobanteAjustesRCE(c *gin.Context) {
 		return
 	}
 
-	result, err := services.EliminarComprobanteAjustesRCESUNAT(numAjustePosterior, perTributario, requestBody)
+	result, err := svc.EliminarComprobanteAjustesRCESUNAT(numAjustePosterior, perTributario, requestBody)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1029,6 +1072,7 @@ func EliminarComprobanteAjustesRCE(c *gin.Context) {
 
 // 31 Servicio Web Api consultar estado ticket
 func ConsultarEstadoTickets(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perIni := c.Query("perIni")
 	perFin := c.Query("perFin")
 	page := c.Query("page")
@@ -1055,7 +1099,7 @@ func ConsultarEstadoTickets(c *gin.Context) {
 		return
 	}
 
-	result, err := services.ConsultarEstadoTicketsSUNAT(perIni, perFin, page, perPage, numTicket)
+	result, err := svc.ConsultarEstadoTicketsSUNAT(perIni, perFin, page, perPage, numTicket)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1066,6 +1110,7 @@ func ConsultarEstadoTickets(c *gin.Context) {
 
 // 32 Servicio Web Api descargar archivo
 func DescargarArchivoReporte(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	nomArchivoReporte := c.Query("nomArchivoReporte")
 	codTipoArchivoReporte := c.Query("codTipoArchivoReporte")
 
@@ -1079,7 +1124,7 @@ func DescargarArchivoReporte(c *gin.Context) {
 		return
 	}
 
-	result, err := services.DescargarArchivoReporteSUNAT(nomArchivoReporte, codTipoArchivoReporte)
+	result, err := svc.DescargarArchivoReporteSUNAT(nomArchivoReporte, codTipoArchivoReporte)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1090,16 +1135,15 @@ func DescargarArchivoReporte(c *gin.Context) {
 
 // 33 Servicio Web Api consultar año y mes del RCE
 func ConsultarPeriodosRCE(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	codLibro := c.Param("codLibro")
-
 	if codLibro == "" {
-		c.JSON(400, gin.H{"error": "codLibro es requerido"})
-		return
+		codLibro = "080000"
 	}
 
-	result, err := services.ConsultarPeriodosRCESUNAT(codLibro)
+	result, err := svc.ConsultarPeriodosRCESUNAT(codLibro)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		sunat.RespondWithError(c, err)
 		return
 	}
 
@@ -1108,6 +1152,7 @@ func ConsultarPeriodosRCE(c *gin.Context) {
 
 // 34 Servicio Web Api descargar propuesta
 func DescargarPropuestaRCE(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	codTipoArchivo := c.Query("codTipoArchivo")
 	codOrigenEnvio := c.Query("codOrigenEnvio")
@@ -1142,7 +1187,7 @@ func DescargarPropuestaRCE(c *gin.Context) {
 		"mtoHasta":          c.Query("mtoHasta"),
 	}
 
-	result, err := services.DescargarPropuestaRCESUNAT(perTributario, params)
+	result, err := svc.DescargarPropuestaRCESUNAT(perTributario, params)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1153,6 +1198,7 @@ func DescargarPropuestaRCE(c *gin.Context) {
 
 // 35 Servicio Web Api descargar resumen
 func DescargarResumenRCE(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	codTipoResumen := c.Param("codTipoResumen")
 	codTipoArchivo := c.Param("codTipoArchivo")
@@ -1178,7 +1224,7 @@ func DescargarResumenRCE(c *gin.Context) {
 		return
 	}
 
-	result, err := services.DescargarResumenRCESUNAT(perTributario, codTipoResumen, codTipoArchivo, codLibro)
+	result, err := svc.DescargarResumenRCESUNAT(perTributario, codTipoResumen, codTipoArchivo, codLibro)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1191,6 +1237,7 @@ func DescargarResumenRCE(c *gin.Context) {
 
 // 37 Servicio Web Api descargar excluidos
 func DescargarExcluidosRCE(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	codTipoArchivo := c.Query("codTipoArchivo")
 	codOrigenEnvio := c.Query("codOrigenEnvio")
@@ -1225,7 +1272,7 @@ func DescargarExcluidosRCE(c *gin.Context) {
 		"codOrigenEnvio":    codOrigenEnvio,
 	}
 
-	result, err := services.DescargarExcluidosRCESUNAT(perTributario, params)
+	result, err := svc.DescargarExcluidosRCESUNAT(perTributario, params)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1236,6 +1283,7 @@ func DescargarExcluidosRCE(c *gin.Context) {
 
 // 38 Servicio Web Api eliminar comprobante no domiciliado
 func EliminarComprobanteNoDomiciliado(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -1267,7 +1315,7 @@ func EliminarComprobanteNoDomiciliado(c *gin.Context) {
 		return
 	}
 
-	err := services.EliminarComprobanteNoDomiciliadoSUNAT(perTributario, requestBody)
+	err := svc.EliminarComprobanteNoDomiciliadoSUNAT(perTributario, requestBody)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1278,6 +1326,7 @@ func EliminarComprobanteNoDomiciliado(c *gin.Context) {
 
 // 39 Servicio Web Api exportar preliminar de registro de compras no domiciliados
 func ExportarPreliminarNoDomiciliados(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -1316,7 +1365,7 @@ func ExportarPreliminarNoDomiciliados(c *gin.Context) {
 		"numDocAdquiriente":               c.Query("numDocAdquiriente"),
 	}
 
-	result, err := services.ExportarPreliminarNoDomiciliadosSUNAT(perTributario, queryParams)
+	result, err := svc.ExportarPreliminarNoDomiciliadosSUNAT(perTributario, queryParams)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1327,6 +1376,7 @@ func ExportarPreliminarNoDomiciliados(c *gin.Context) {
 
 // 40 Servicio Web Api exportar preliminar de registro de compras
 func ExportarPreliminarRegistroCompras(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -1365,7 +1415,7 @@ func ExportarPreliminarRegistroCompras(c *gin.Context) {
 		"numDocAdquiriente":               c.Query("numDocAdquiriente"),
 	}
 
-	result, err := services.ExportarPreliminarRegistroComprasSUNAT(perTributario, queryParams)
+	result, err := svc.ExportarPreliminarRegistroComprasSUNAT(perTributario, queryParams)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1376,6 +1426,7 @@ func ExportarPreliminarRegistroCompras(c *gin.Context) {
 
 // 41 Servicio Web Api descargar reporte de casillas
 func DescargarReporteCasillas(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	tipoReporte := c.Param("tipoReporte")
 	tipoDescarga := c.Param("tipoDescarga")
@@ -1405,7 +1456,7 @@ func DescargarReporteCasillas(c *gin.Context) {
 		return
 	}
 
-	fileData, contentType, err := services.DescargarReporteCasillasSUNAT(perTributario, tipoReporte, tipoDescarga)
+	fileData, contentType, err := svc.DescargarReporteCasillasSUNAT(perTributario, tipoReporte, tipoDescarga)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1419,6 +1470,7 @@ func DescargarReporteCasillas(c *gin.Context) {
 
 // 42 Servicio Web Api descargar inconsistencias en registros preliminar registrado
 func DescargarInconsistenciasPreliminar(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	codTipoArchivo := c.Param("codTipoArchivo")
 
@@ -1443,7 +1495,7 @@ func DescargarInconsistenciasPreliminar(c *gin.Context) {
 		return
 	}
 
-	fileData, contentType, err := services.DescargarInconsistenciasPreliminarSUNAT(perTributario, codTipoArchivo, cntlimite)
+	fileData, contentType, err := svc.DescargarInconsistenciasPreliminarSUNAT(perTributario, codTipoArchivo, cntlimite)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1457,6 +1509,7 @@ func DescargarInconsistenciasPreliminar(c *gin.Context) {
 
 // 43 Servicio Web Api descargar inconsistencias por montos totales
 func DescargarInconsistenciasMontosTotales(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -1486,7 +1539,7 @@ func DescargarInconsistenciasMontosTotales(c *gin.Context) {
 		"codLibro":       codLibro,
 	}
 
-	result, err := services.DescargarInconsistenciasMontosTotalesSUNAT(perTributario, queryParams)
+	result, err := svc.DescargarInconsistenciasMontosTotalesSUNAT(perTributario, queryParams)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1497,6 +1550,7 @@ func DescargarInconsistenciasMontosTotales(c *gin.Context) {
 
 // 44 Servicio Web Api descargar inconsistencias por comprobante pago
 func DescargarInconsistenciasComprobantes(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	codLibro := c.Param("codLibro")
 
@@ -1542,7 +1596,7 @@ func DescargarInconsistenciasComprobantes(c *gin.Context) {
 		"codOrigenEnvio":                  codOrigenEnvio,
 	}
 
-	result, err := services.DescargarInconsistenciasComprobantesSUNAT(perTributario, codLibro, queryParams)
+	result, err := svc.DescargarInconsistenciasComprobantesSUNAT(perTributario, codLibro, queryParams)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1553,6 +1607,7 @@ func DescargarInconsistenciasComprobantes(c *gin.Context) {
 
 // 45 Servicio Web Api descargar ajustes posteriores
 func DescargarAjustesPosteriores(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -1582,7 +1637,7 @@ func DescargarAjustesPosteriores(c *gin.Context) {
 		"codOrigenEnvio": codOrigenEnvio,
 	}
 
-	result, err := services.DescargarAjustesPosterioresSUNAT(perTributario, queryParams)
+	result, err := svc.DescargarAjustesPosterioresSUNAT(perTributario, queryParams)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1593,6 +1648,7 @@ func DescargarAjustesPosteriores(c *gin.Context) {
 
 // 46 Servicio Web Api descargar ajustes posteriores no domiciliados
 func DescargarAjustesPosterioresNoDomiciliados(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 
 	if perTributario == "" {
@@ -1611,7 +1667,7 @@ func DescargarAjustesPosterioresNoDomiciliados(c *gin.Context) {
 		return
 	}
 
-	result, err := services.DescargarAjustesPosterioresNoDomiciliadosSUNAT(perTributario, codTipoArchivo)
+	result, err := svc.DescargarAjustesPosterioresNoDomiciliadosSUNAT(perTributario, codTipoArchivo)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1622,6 +1678,7 @@ func DescargarAjustesPosterioresNoDomiciliados(c *gin.Context) {
 
 // 47 Servicio Web Api descargar ajustes posteriores de periodos anteriores
 func ExportarAjustesPosteriores(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	codTipoArchivo := c.Query("codTipoArchivo")
 	indAjustePosteriorPle := c.Query("indAjustePosteriorPle")
@@ -1652,7 +1709,7 @@ func ExportarAjustesPosteriores(c *gin.Context) {
 		return
 	}
 
-	err := services.ExportarAjustesPosterioresSUNAT(perTributario, codTipoArchivo, indAjustePosteriorPle, codOrigenEnvio)
+	err := svc.ExportarAjustesPosterioresSUNAT(perTributario, codTipoArchivo, indAjustePosteriorPle, codOrigenEnvio)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1663,6 +1720,7 @@ func ExportarAjustesPosteriores(c *gin.Context) {
 
 // 48 Servicio Web Api descargar ajustes posteriores de periodos anteriores no domiciliados
 func ExportarAjustesPosterioresND(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	codTipoArchivo := c.Query("codTipoArchivo")
 	codOrigenEnvio := c.Query("codOrigenEnvio")
@@ -1682,7 +1740,7 @@ func ExportarAjustesPosterioresND(c *gin.Context) {
 		return
 	}
 
-	err := services.ExportarAjustesPosterioresNDSUNAT(perTributario, codTipoArchivo, codOrigenEnvio)
+	err := svc.ExportarAjustesPosterioresNDSUNAT(perTributario, codTipoArchivo, codOrigenEnvio)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1693,6 +1751,7 @@ func ExportarAjustesPosterioresND(c *gin.Context) {
 
 // 49 Servicio Web Api descargar constancia de recepción
 func DescargarConstanciaRecepcion(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	nomConstanciaRecepcion := c.Query("nomConstanciaRecepcion")
 
 	if nomConstanciaRecepcion == "" {
@@ -1700,7 +1759,7 @@ func DescargarConstanciaRecepcion(c *gin.Context) {
 		return
 	}
 
-	err := services.DescargarConstanciaRecepcionSUNAT(nomConstanciaRecepcion)
+	err := svc.DescargarConstanciaRecepcionSUNAT(nomConstanciaRecepcion)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1711,6 +1770,7 @@ func DescargarConstanciaRecepcion(c *gin.Context) {
 
 // 50 Servicio Web Api descargar reporte consolidado registro por periodo
 func DescargarReporteConsolidado(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	codTipoArchivo := c.Query("codTipoArchivo")
 	codMoneda := c.Query("codMoneda")
@@ -1743,7 +1803,7 @@ func DescargarReporteConsolidado(c *gin.Context) {
 		return
 	}
 
-	err := services.DescargarReporteConsolidadoSUNAT(perTributario, codTipoArchivo, codMoneda, codProceso, codOrigenEnvio, lisPeriodos)
+	err := svc.DescargarReporteConsolidadoSUNAT(perTributario, codTipoArchivo, codMoneda, codProceso, codOrigenEnvio, lisPeriodos)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1754,6 +1814,7 @@ func DescargarReporteConsolidado(c *gin.Context) {
 
 // 51 Servicio Web Api descargar RCE por periodo
 func DescargarRCEPorPeriodo(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	codTipoArchivo := c.Query("codTipoArchivo")
 	codMoneda := c.Query("codMoneda")
@@ -1786,7 +1847,7 @@ func DescargarRCEPorPeriodo(c *gin.Context) {
 		return
 	}
 
-	err := services.DescargarRCEPorPeriodoSUNAT(perTributario, codTipoArchivo, codMoneda, codProceso, codOrigen, lisPeriodos)
+	err := svc.DescargarRCEPorPeriodoSUNAT(perTributario, codTipoArchivo, codMoneda, codProceso, codOrigen, lisPeriodos)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1797,6 +1858,7 @@ func DescargarRCEPorPeriodo(c *gin.Context) {
 
 // 52 Servicio Web Api descargar reporte inconsistencias por periodo
 func DescargarInconsistenciasPeriodo(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	nomArchivo := c.Query("nomArchivo")
 	codTipoArchivoReporte := c.Query("codTipoArchivoReporte")
 	codOrigen := c.Query("codOrigen")
@@ -1816,7 +1878,7 @@ func DescargarInconsistenciasPeriodo(c *gin.Context) {
 		return
 	}
 
-	err := services.DescargarInconsistenciasPeriodoSUNAT(nomArchivo, codTipoArchivoReporte, codOrigen)
+	err := svc.DescargarInconsistenciasPeriodoSUNAT(nomArchivo, codTipoArchivoReporte, codOrigen)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1827,6 +1889,7 @@ func DescargarInconsistenciasPeriodo(c *gin.Context) {
 
 // 53 Servicio Web Api descargar reporte CAR por periodo y fase
 func DescargarReporteCARPorPeriodo(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	codOrigenEnvio := c.Query("codOrigenEnvio")
 	codLibro := c.Query("codLibro")
@@ -1852,7 +1915,7 @@ func DescargarReporteCARPorPeriodo(c *gin.Context) {
 		return
 	}
 
-	err := services.DescargarReporteCARPorPeriodoSUNAT(perTributario, codOrigenEnvio, codLibro, codFase)
+	err := svc.DescargarReporteCARPorPeriodoSUNAT(perTributario, codOrigenEnvio, codLibro, codFase)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1863,6 +1926,7 @@ func DescargarReporteCARPorPeriodo(c *gin.Context) {
 
 // 54 Servicio Web Api descargar reporte estadístico compras por proveedor por periodo
 func DescargarReporteEstadisticoCompras(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	numRuc := c.Query("numRuc")
 	perTributario := c.Query("perTributario")
 	fechaini := c.Query("fechaini")
@@ -1893,7 +1957,7 @@ func DescargarReporteEstadisticoCompras(c *gin.Context) {
 		return
 	}
 
-	err := services.DescargarReporteEstadisticoComprasSUNAT(numRuc, perTributario, fechaini, fechafin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro)
+	err := svc.DescargarReporteEstadisticoComprasSUNAT(numRuc, perTributario, fechaini, fechafin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1904,6 +1968,7 @@ func DescargarReporteEstadisticoCompras(c *gin.Context) {
 
 // 55 Servicio Web Api descargar reporte estadístico NC-ND por proveedor y periodo
 func DescargarReporteEstadisticoNCND(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	numRuc := c.Query("numRuc")
 	perTributario := c.Query("perTributario")
 	fechaini := c.Query("fechaini")
@@ -1939,7 +2004,7 @@ func DescargarReporteEstadisticoNCND(c *gin.Context) {
 		return
 	}
 
-	err := services.DescargarReporteEstadisticoNCNDSUNAT(numRuc, perTributario, fechaini, fechafin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro)
+	err := svc.DescargarReporteEstadisticoNCNDSUNAT(numRuc, perTributario, fechaini, fechafin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1950,6 +2015,7 @@ func DescargarReporteEstadisticoNCND(c *gin.Context) {
 
 // 56 Servicio Web Api descargar reporte estadístico Compras por día y periodo
 func DescargarReporteEstadisticoComprasDia(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	numRuc := c.Query("numRuc")
 	perTributario := c.Query("perTributario")
 	fechaIni := c.Query("fechaIni")
@@ -1985,7 +2051,7 @@ func DescargarReporteEstadisticoComprasDia(c *gin.Context) {
 		return
 	}
 
-	err := services.DescargarReporteEstadisticoComprasDiaSUNAT(numRuc, perTributario, fechaIni, fechaFin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro)
+	err := svc.DescargarReporteEstadisticoComprasDiaSUNAT(numRuc, perTributario, fechaIni, fechaFin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -1996,6 +2062,7 @@ func DescargarReporteEstadisticoComprasDia(c *gin.Context) {
 
 // 57 Servicio Web Api descargar reporte estadístico Compras por CIIU
 func DescargarReporteEstadisticoComprasCIIU(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	numRuc := c.Query("numRuc")
 	perTributario := c.Query("perTributario")
 	fechaIni := c.Query("fechaIni")
@@ -2031,7 +2098,7 @@ func DescargarReporteEstadisticoComprasCIIU(c *gin.Context) {
 		return
 	}
 
-	err := services.DescargarReporteEstadisticoComprasCIIUSUNAT(numRuc, perTributario, fechaIni, fechaFin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro)
+	err := svc.DescargarReporteEstadisticoComprasCIIUSUNAT(numRuc, perTributario, fechaIni, fechaFin, numRucproveedor, codTipoCDP, codTipoArchivo, codTipoReporte, codLibro)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -2042,6 +2109,7 @@ func DescargarReporteEstadisticoComprasCIIU(c *gin.Context) {
 
 // 58 Servicio Web Api descargar reporte de cumplimiento
 func DescargarReporteCumplimiento(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	perTributario := c.Param("perTributario")
 	codLibro := c.Param("codLibro")
 
@@ -2065,7 +2133,7 @@ func DescargarReporteCumplimiento(c *gin.Context) {
 		return
 	}
 
-	err := services.DescargarReporteCumplimientoService(perTributario, codLibro)
+	err := svc.DescargarReporteCumplimientoService(perTributario, codLibro)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -2076,6 +2144,7 @@ func DescargarReporteCumplimiento(c *gin.Context) {
 
 // 59 Servicio Web Api consultar ajustes posteriores RCE
 func ConsultarAjustesPosterioresRCE(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	periodoSeleccionado := c.Param("periodoSeleccionado")
 	tipoInfo := c.Query("tipoInfo")
 
@@ -2093,7 +2162,7 @@ func ConsultarAjustesPosterioresRCE(c *gin.Context) {
 		tipoInfo = "FV0621"
 	}
 
-	err := services.ConsultarAjustesPosterioresRCEService(periodoSeleccionado, tipoInfo)
+	err := svc.ConsultarAjustesPosterioresRCEService(periodoSeleccionado, tipoInfo)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -2103,6 +2172,7 @@ func ConsultarAjustesPosterioresRCE(c *gin.Context) {
 }
 
 func ListarComprobantesAjustesPost(c *gin.Context) {
+	svc := services.New(SunatClient, getRuc(c))
 	periodoSeleccionado := c.Param("periodoSeleccionado")
 	page := c.Query("page")
 	perPage := c.Query("perPage")
@@ -2125,7 +2195,7 @@ func ListarComprobantesAjustesPost(c *gin.Context) {
 		perPage = "10"
 	}
 
-	err := services.ListarComprobantesAjustesPostService(periodoSeleccionado, page, perPage)
+	err := svc.ListarComprobantesAjustesPostService(periodoSeleccionado, page, perPage)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
