@@ -277,9 +277,13 @@ func TestSireFullAsyncFlowAndWorker(t *testing.T) {
 		t.Fatalf("El worker no completó la descarga dentro del tiempo límite")
 	}
 
-	// Paso 3: Verificar que el archivo exista en disco y que el hash sea válido
-	if _, err := os.Stat(finalDescarga.RutaLocal); os.IsNotExist(err) {
-		t.Fatalf("El archivo físico no existe en disco: %s", finalDescarga.RutaLocal)
+	// Paso 3: Verificar que la ruta guardada en BD sea relativa al storageDir, exista en disco y el hash sea válido
+	if filepath.IsAbs(finalDescarga.RutaLocal) {
+		t.Fatalf("Se esperaba ruta relativa portable al storageDir, se obtuvo absoluta: %s", finalDescarga.RutaLocal)
+	}
+	expectedDiskPath := filepath.Join(storageDir, filepath.FromSlash(finalDescarga.RutaLocal))
+	if _, err := os.Stat(expectedDiskPath); os.IsNotExist(err) {
+		t.Fatalf("El archivo físico no existe en disco: %s", expectedDiskPath)
 	}
 
 	if finalDescarga.TamanoBytes != int64(len(dummyZip)) {
@@ -290,13 +294,17 @@ func TestSireFullAsyncFlowAndWorker(t *testing.T) {
 		t.Fatalf("Hash SHA256 inválido: %s", finalDescarga.HashArchivo)
 	}
 
-	// Paso 4: Probar descarga segura de archivo por ID
+	// Paso 4: Probar descarga segura de archivo por ID (resuelve ruta relativa al storageDir)
 	dRetrieved, absPath, err := service.ObtenerArchivoParaDescarga(descarga.ID, testRUC)
 	if err != nil {
 		t.Fatalf("Error al obtener archivo para descarga: %v", err)
 	}
-	if dRetrieved.ID != descarga.ID || absPath != finalDescarga.RutaLocal {
-		t.Fatalf("Ruta o descarga incorrecta")
+	evalExpected, _ := filepath.EvalSymlinks(expectedDiskPath)
+	if evalExpected == "" {
+		evalExpected = expectedDiskPath
+	}
+	if dRetrieved.ID != descarga.ID || !strings.EqualFold(filepath.Clean(absPath), filepath.Clean(evalExpected)) {
+		t.Fatalf("Ruta o descarga incorrecta: got=%s want=%s", absPath, evalExpected)
 	}
 
 	// Paso 5: Consultar detalle paginado de la propuesta
@@ -398,8 +406,12 @@ func TestSireWorkerStartupRecovery(t *testing.T) {
 		t.Fatalf("El worker no recuperó ni completó el ticket pendiente tras reinicio")
 	}
 
-	if _, err := os.Stat(recovered.RutaLocal); os.IsNotExist(err) {
-		t.Fatalf("El archivo recuperado no fue guardado en disco: %s", recovered.RutaLocal)
+	if filepath.IsAbs(recovered.RutaLocal) {
+		t.Fatalf("Se esperaba ruta relativa portable tras recuperación, se obtuvo: %s", recovered.RutaLocal)
+	}
+	recoveredDiskPath := filepath.Join(storageDir, filepath.FromSlash(recovered.RutaLocal))
+	if _, err := os.Stat(recoveredDiskPath); os.IsNotExist(err) {
+		t.Fatalf("El archivo recuperado no fue guardado en disco: %s", recoveredDiskPath)
 	}
 }
 

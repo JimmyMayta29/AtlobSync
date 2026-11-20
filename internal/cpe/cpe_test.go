@@ -221,3 +221,75 @@ func TestParseRealSunatRVIEAndRCE_SpannedZip_ModificadoColumns_AndMultiSupplierC
 		t.Fatalf("se esperaban 2 compras distintas en BD (sin colisión de serie E001-146), obtenido len=%d err=%v", len(listed), err)
 	}
 }
+
+func TestStoragePathPortability_RelativeAbsoluteAndTraversal(t *testing.T) {
+	db, err := database.InitDB(":memory:")
+	if err != nil {
+		t.Fatalf("error init db: %v", err)
+	}
+	defer db.Close()
+
+	storage1 := t.TempDir()
+	storage2 := t.TempDir()
+	outsideDir := t.TempDir()
+
+	repo := NewRepository(db)
+	svc1 := NewService(repo, &mockCreds{}, nil, storage1)
+
+	sampleXML := `<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2">
+  <cbc:ID>F001-00000777</cbc:ID>
+  <cbc:IssueDate>2026-10-20</cbc:IssueDate>
+  <cbc:InvoiceTypeCode>01</cbc:InvoiceTypeCode>
+  <cbc:DocumentCurrencyCode>PEN</cbc:DocumentCurrencyCode>
+  <cac:AccountingSupplierParty><cac:Party><cac:PartyIdentification><cbc:ID>20000000004</cbc:ID></cac:PartyIdentification><cac:PartyLegalEntity><cbc:RegistrationName>PROVEEDOR PORTABLE SAC</cbc:RegistrationName></cac:PartyLegalEntity></cac:Party></cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty><cac:Party><cac:PartyIdentification><cbc:ID>20000000001</cbc:ID></cac:PartyIdentification><cac:PartyLegalEntity><cbc:RegistrationName>EMPRESA DEMO S.A.C.</cbc:RegistrationName></cac:PartyLegalEntity></cac:Party></cac:AccountingCustomerParty>
+  <cac:TaxTotal><cbc:TaxAmount>18.00</cbc:TaxAmount></cac:TaxTotal>
+  <cac:LegalMonetaryTotal><cbc:LineExtensionAmount>100.00</cbc:LineExtensionAmount><cbc:PayableAmount>118.00</cbc:PayableAmount></cac:LegalMonetaryTotal>
+</Invoice>`
+
+	impRes, err := svc1.ImportUploadedFile("20000000001", "COMPRAS", "20000000004-01-F001-00000777.xml", []byte(sampleXML), 0)
+	if err != nil || len(impRes.Comprobantes) != 1 {
+		t.Fatalf("error importando XML: err=%v res=%+v", err, impRes)
+	}
+	comp := impRes.Comprobantes[0]
+	if filepath.IsAbs(comp.RutaXML) {
+		t.Fatalf("se esperaba RutaXML relativa portable, se obtuvo absoluta: %s", comp.RutaXML)
+	}
+
+	// Simular traslado de toda la carpeta de descargas a otro directorio (storage2)
+	srcFile := filepath.Join(storage1, filepath.FromSlash(comp.RutaXML))
+	dstFile := filepath.Join(storage2, filepath.FromSlash(comp.RutaXML))
+	if err := os.MkdirAll(filepath.Dir(dstFile), 0755); err != nil {
+		t.Fatalf("error mkdir dst: %v", err)
+	}
+	raw, err := os.ReadFile(srcFile)
+	if err != nil {
+		t.Fatalf("error leyendo srcFile: %v", err)
+	}
+	if err := os.WriteFile(dstFile, raw, 0644); err != nil {
+		t.Fatalf("error copiando a storage2: %v", err)
+	}
+
+	svc2 := NewService(repo, &mockCreds{}, nil, storage2)
+	gotXML, _, _, _, err := svc2.GetDownloadFile(comp.ID, "20000000001", "xml")
+	if err != nil || len(gotXML) == 0 {
+		t.Fatalf("el archivo relativo no sobrevivió al cambio de storageDir: err=%v", err)
+	}
+
+	// Compatibilidad con ruta absoluta dentro del storage actual
+	if _, err := svc2.readSafeFile(dstFile); err != nil {
+		t.Fatalf("readSafeFile debe seguir leyendo rutas absolutas dentro del storage actual: %v", err)
+	}
+
+	// Traversal y rutas fuera del storage deben ser bloqueados
+	outsideFile := filepath.Join(outsideDir, "secreto.xml")
+	_ = os.WriteFile(outsideFile, []byte("<secret/>"), 0644)
+	for _, bad := range []string{"../secreto.xml", "20000000001/../../secreto.xml", outsideFile, "/etc/passwd"} {
+		if _, err := svc2.readSafeFile(bad); err == nil {
+			t.Fatalf("readSafeFile debió rechazar ruta insegura %q", bad)
+		}
+	}
+}

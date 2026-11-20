@@ -1429,7 +1429,23 @@ func resolveSafeStoragePath(storageDir, targetPath string) (string, error) {
 		evalStorage = resolved
 	}
 
-	absTarget, err := filepath.Abs(filepath.Clean(targetPath))
+	trimmedTarget := strings.TrimSpace(targetPath)
+	cleanedTarget := filepath.Clean(trimmedTarget)
+	var candidatePath string
+	if filepath.IsAbs(cleanedTarget) {
+		candidatePath = cleanedTarget
+	} else {
+		if strings.HasPrefix(trimmedTarget, "/") || strings.HasPrefix(trimmedTarget, "\\") {
+			return "", &ProposalParseError{
+				Code:       ErrCodeRutaInvalida,
+				HTTPStatus: http.StatusForbidden,
+				Message:    "violación de seguridad: la ruta del archivo queda fuera del área permitida",
+			}
+		}
+		candidatePath = filepath.Join(rawAbsStorage, filepath.FromSlash(cleanedTarget))
+	}
+
+	absTarget, err := filepath.Abs(filepath.Clean(candidatePath))
 	if err != nil {
 		return "", &ProposalParseError{
 			Code:       ErrCodeRutaInvalida,

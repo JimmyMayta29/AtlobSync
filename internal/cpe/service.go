@@ -104,7 +104,11 @@ func (s *Service) SyncFromDescarga(d *sire.DescargaSire) (int, error) {
 	if origen != "COMPRAS" {
 		origen = "VENTAS"
 	}
-	items, err := ParseSIREProposalArchive(d.RutaLocal, d.EmpresaRUC, origen, d.Periodo)
+	safePath, err := s.resolveSafePath(d.RutaLocal)
+	if err != nil {
+		return 0, err
+	}
+	items, err := ParseSIREProposalArchive(safePath, d.EmpresaRUC, origen, d.Periodo)
 	if err != nil {
 		return 0, err
 	}
@@ -160,7 +164,7 @@ func (s *Service) SyncFromSIREDownloads(ruc string, descargaID int64) (*SyncResu
 		if d.Estado != string(sire.EstadoCompletado) || d.RutaLocal == "" {
 			continue
 		}
-		if _, err := os.Stat(d.RutaLocal); err != nil {
+		if !s.safeFileExists(d.RutaLocal) {
 			res.Advertencias = append(res.Advertencias, fmt.Sprintf("Archivo local no encontrado para ticket %s (%s)", d.Ticket, d.NombreArchivo))
 			continue
 		}
@@ -556,13 +560,13 @@ func (s *Service) GetDownloadFileWithContext(ctx context.Context, id int64, ruc,
 		needFetch := false
 		switch tipoLower {
 		case "pdf":
-			needFetch = !fileExists(comp.RutaPDF) && !fileExists(comp.RutaXML)
+			needFetch = !s.safeFileExists(comp.RutaPDF) && !s.safeFileExists(comp.RutaXML)
 		case "xml":
-			needFetch = !fileExists(comp.RutaXML)
+			needFetch = !s.safeFileExists(comp.RutaXML)
 		case "cdr":
-			needFetch = !fileExists(comp.RutaCDR)
+			needFetch = !s.safeFileExists(comp.RutaCDR)
 		case "json":
-			needFetch = !fileExists(comp.RutaXML)
+			needFetch = !s.safeFileExists(comp.RutaXML)
 		}
 		if needFetch {
 			_, _ = s.DownloadSingleFromSUNAT(ctx, id, ruc)
@@ -655,7 +659,7 @@ func (s *Service) GetDetalleComprobante(ctx context.Context, id int64, ruc strin
 	}
 
 	var syncAdvertencia string
-	if autoSync && !fileExists(comp.RutaXML) {
+	if autoSync && !s.safeFileExists(comp.RutaXML) {
 		if dlRes, dlErr := s.DownloadSingleFromSUNAT(ctx, id, ruc); dlErr != nil {
 			syncAdvertencia = dlErr.Error()
 		} else if dlRes != nil && len(dlRes.Advertencias) > 0 {
@@ -1033,7 +1037,9 @@ func (s *Service) saveFile(ruc, origen, cleanName string, data []byte) (string, 
 	if safeName == "" || safeName == "." {
 		safeName = "comprobante.bin"
 	}
-	targetDir := filepath.Join(s.storageDir, ruc, "cpe", strings.ToLower(origen))
+	origenLower := strings.ToLower(origen)
+	relPath := filepath.ToSlash(filepath.Join(ruc, "cpe", origenLower, safeName))
+	targetDir := filepath.Join(s.storageDir, ruc, "cpe", origenLower)
 	if err := os.MkdirAll(targetDir, 0755); err != nil {
 		return "", "", fmt.Errorf("error creando directorio CPE: %w", err)
 	}
@@ -1042,15 +1048,85 @@ func (s *Service) saveFile(ruc, origen, cleanName string, data []byte) (string, 
 		return "", "", fmt.Errorf("error escribiendo archivo CPE: %w", err)
 	}
 	sum := sha256.Sum256(data)
-	return targetPath, hex.EncodeToString(sum[:]), nil
+	return relPath, hex.EncodeToString(sum[:]), nil
+}
+
+func (s *Service) resolveSafePath(rawPath string) (string, error) {
+	trimmed := strings.TrimSpace(rawPath)
+	if trimmed == "" {
+		return "", errors.New("ruta de archivo vacía")
+	}
+
+	rawAbsStorage, err := filepath.Abs(filepath.Clean(s.storageDir))
+	if err != nil {
+		return "", errors.New("violación de seguridad: no se pudo resolver el directorio permitido")
+	}
+	evalStorage := rawAbsStorage
+	if resolved, rErr := filepath.EvalSymlinks(rawAbsStorage); rErr == nil {
+		evalStorage = resolved
+	}
+
+	cleaned := filepath.Clean(trimmed)
+	var candidate string
+	if filepath.IsAbs(cleaned) {
+		candidate = cleaned
+	} else {
+		if strings.HasPrefix(trimmed, "/") || strings.HasPrefix(trimmed, "\\") {
+			return "", errors.New("violación de seguridad: archivo fuera del directorio permitido")
+		}
+		candidate = filepath.Join(rawAbsStorage, filepath.FromSlash(cleaned))
+	}
+
+	absTarget, err := filepath.Abs(filepath.Clean(candidate))
+	if err != nil {
+		return "", errors.New("violación de seguridad: ruta de archivo inválida")
+	}
+	if !isPathWithinBaseCPE(rawAbsStorage, absTarget) && !isPathWithinBaseCPE(evalStorage, absTarget) {
+		return "", errors.New("violación de seguridad: archivo fuera del directorio permitido")
+	}
+
+	if evalTarget, eErr := filepath.EvalSymlinks(absTarget); eErr == nil {
+		if !isPathWithinBaseCPE(evalStorage, evalTarget) {
+			return "", errors.New("violación de seguridad: archivo fuera del directorio permitido")
+		}
+		return evalTarget, nil
+	} else if !os.IsNotExist(eErr) {
+		return "", errors.New("violación de seguridad: no se pudo validar la ruta real del archivo")
+	}
+
+	return absTarget, nil
+}
+
+func (s *Service) safeFileExists(rawPath string) bool {
+	resolved, err := s.resolveSafePath(rawPath)
+	if err != nil {
+		return false
+	}
+	info, err := os.Stat(resolved)
+	return err == nil && !info.IsDir() && info.Size() > 0
+}
+
+func isPathWithinBaseCPE(baseDir, targetPath string) bool {
+	baseClean := filepath.Clean(baseDir)
+	targetClean := filepath.Clean(targetPath)
+	if filepath.Separator == '\\' {
+		baseClean = strings.ToLower(baseClean)
+		targetClean = strings.ToLower(targetClean)
+	}
+	rel, err := filepath.Rel(baseClean, targetClean)
+	if err != nil {
+		return false
+	}
+	if rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) || filepath.IsAbs(rel) {
+		return false
+	}
+	return true
 }
 
 func (s *Service) readSafeFile(path string) ([]byte, error) {
-	cleanPath := filepath.Clean(path)
-	absStorage, _ := filepath.Abs(s.storageDir)
-	absTarget, _ := filepath.Abs(cleanPath)
-	if !strings.HasPrefix(strings.ToLower(absTarget), strings.ToLower(absStorage)) {
-		return nil, errors.New("violación de seguridad: archivo fuera del directorio permitido")
+	resolved, err := s.resolveSafePath(path)
+	if err != nil {
+		return nil, err
 	}
-	return os.ReadFile(cleanPath)
+	return os.ReadFile(resolved)
 }

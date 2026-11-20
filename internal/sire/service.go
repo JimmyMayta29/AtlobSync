@@ -189,21 +189,13 @@ func (s *Service) ObtenerArchivoParaDescarga(id int64, ruc string) (*DescargaSir
 		return nil, "", errors.New("no existe ruta registrada para el archivo físico")
 	}
 
-	// Seguridad: Verificar que la ruta física esté dentro del directorio de descargas permitido
-	cleanPath := filepath.Clean(d.RutaLocal)
-	absStorage, _ := filepath.Abs(s.storageDir)
-	absTarget, _ := filepath.Abs(cleanPath)
-
-	if !strings.HasPrefix(strings.ToLower(absTarget), strings.ToLower(absStorage)) {
-		return nil, "", errors.New("violación de seguridad: la ruta del archivo se encuentra fuera del área permitida")
+	// Seguridad y portabilidad: resuelve rutas relativas al storageDir y rutas absolutas heredadas dentro del área permitida
+	safePath, err := resolveSafeStoragePath(s.storageDir, d.RutaLocal)
+	if err != nil {
+		return nil, "", err
 	}
 
-	fileInfo, err := os.Stat(cleanPath)
-	if err != nil || fileInfo.IsDir() {
-		return nil, "", fmt.Errorf("el archivo físico no fue encontrado en el servidor: %s", d.NombreArchivo)
-	}
-
-	return d, cleanPath, nil
+	return d, safePath, nil
 }
 
 // DescargarConstanciaRecepcion descarga la Constancia de Recepción (CDR) del libro SIRE y guarda copia local

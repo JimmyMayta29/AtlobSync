@@ -905,6 +905,79 @@ func TestProposalService_InMemoryCache_Hit_MtimeInvalidation_Eviction_TTL_AndSta
 	}
 }
 
+func TestResolveSafeStoragePath_RelativeAbsoluteAndTraversal(t *testing.T) {
+	db, tempDir := setupTestDB(t)
+	defer db.Close()
+	defer os.RemoveAll(tempDir)
+
+	storageDir := filepath.Join(tempDir, "descargas")
+	insideDir := filepath.Join(storageDir, "20000000001", "VENTAS", "202610")
+	if err := os.MkdirAll(insideDir, 0755); err != nil {
+		t.Fatalf("error creando directorio interno: %v", err)
+	}
+	outsideDir := filepath.Join(tempDir, "afuera")
+	if err := os.MkdirAll(outsideDir, 0755); err != nil {
+		t.Fatalf("error creando directorio externo: %v", err)
+	}
+
+	txt := strings.Join([]string{
+		strings.Join(rvieExpectedHeaders, "|"),
+		makeRVIERow("01", "F001", "00000001", "20000000002", "CLIENTE DEMO", "100.00", "18.00", "118.00", "1"),
+	}, "\n") + "\n"
+	zipBytes := buildSyntheticZIPBytes(t, map[string][]byte{"propuesta.txt": []byte(txt)})
+
+	insideAbs := filepath.Join(insideDir, "propuesta_rel.zip")
+	if err := os.WriteFile(insideAbs, zipBytes, 0644); err != nil {
+		t.Fatalf("error escribiendo ZIP interno: %v", err)
+	}
+	outsideAbs := filepath.Join(outsideDir, "escapado.zip")
+	if err := os.WriteFile(outsideAbs, zipBytes, 0644); err != nil {
+		t.Fatalf("error escribiendo ZIP externo: %v", err)
+	}
+
+	repo := NewRepository(db)
+	svc := NewService(repo, nil, nil, storageDir)
+
+	// 1. Ruta relativa portable dentro de storageDir -> éxito en descarga y análisis
+	dRel := &DescargaSire{
+		EmpresaRUC: "20000000001", CodLibro: "140000", Libro: "VENTAS", Periodo: "202610",
+		Ticket: "TKT-REL-1", Estado: string(EstadoCompletado), NombreArchivo: "propuesta_rel.zip",
+		RutaLocal: "20000000001/VENTAS/202610/propuesta_rel.zip",
+	}
+	if err := repo.Create(dRel); err != nil {
+		t.Fatalf("error creando descarga relativa: %v", err)
+	}
+	if _, safePath, err := svc.ObtenerArchivoParaDescarga(dRel.ID, "20000000001"); err != nil || safePath == "" {
+		t.Fatalf("ObtenerArchivoParaDescarga falló con ruta relativa: err=%v path=%q", err, safePath)
+	}
+	resRel, err := svc.AnalizarPropuestaTXT(dRel.ID, ProposalQueryOptions{Limit: 10})
+	if err != nil || resRel.Resumen.Totales.TotalCP != 118.00 {
+		t.Fatalf("AnalizarPropuestaTXT falló con ruta relativa: err=%v res=%+v", err, resRel)
+	}
+
+	// 2. Compatibilidad con ruta absoluta dentro del mismo storageDir
+	dAbs := &DescargaSire{
+		EmpresaRUC: "20000000001", CodLibro: "140000", Libro: "VENTAS", Periodo: "202610",
+		Ticket: "TKT-ABS-1", Estado: string(EstadoCompletado), NombreArchivo: "propuesta_rel.zip",
+		RutaLocal: insideAbs,
+	}
+	if err := repo.Create(dAbs); err != nil {
+		t.Fatalf("error creando descarga absoluta: %v", err)
+	}
+	if _, _, err := svc.ObtenerArchivoParaDescarga(dAbs.ID, "20000000001"); err != nil {
+		t.Fatalf("ObtenerArchivoParaDescarga falló con ruta absoluta heredada dentro de storage: %v", err)
+	}
+
+	// 3. Traversal relativo (../) bloqueado con 403 RUTA_FUERA_DE_STORAGE
+	for _, bad := range []string{"../afuera/escapado.zip", "20000000001/../../afuera/escapado.zip", "/afuera/escapado.zip", outsideAbs} {
+		_, err := resolveSafeStoragePath(storageDir, bad)
+		var pErr *ProposalParseError
+		if !errors.As(err, &pErr) || pErr.Code != ErrCodeRutaInvalida || pErr.HTTPStatus != http.StatusForbidden {
+			t.Fatalf("se esperaba 403 %s para ruta maliciosa %q, obtenido: %v", ErrCodeRutaInvalida, bad, err)
+		}
+	}
+}
+
 // TestProposalTXTParser_RealFixtureManual ejecuta verificación manual local de cuadre contra un ZIP real
 // ÚNICAMENTE cuando existe la variable de entorno SIRE_REAL_FIXTURE.
 // Imprime SOLO libro, periodo, totales y conteos (nunca filas, RUC ni razones sociales).

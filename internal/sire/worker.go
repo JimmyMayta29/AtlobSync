@@ -275,16 +275,17 @@ func (w *Worker) processJob(id int64) {
 			}
 		}
 
+		relPath := filepath.ToSlash(filepath.Join(descarga.EmpresaRUC, descarga.Libro, descarga.Periodo, cleanNomArchivo))
 		targetDir := filepath.Join(w.storageDir, descarga.EmpresaRUC, descarga.Libro, descarga.Periodo)
 		if err := os.MkdirAll(targetDir, 0755); err != nil {
-			log.Printf("[SIRE-WORKER] Error al crear directorio local de almacenamiento '%s': %v", targetDir, err)
+			log.Printf("[SIRE-WORKER] Error al crear directorio local de almacenamiento: %v", err)
 			_ = w.repo.UpdateStatus(descarga.ID, string(EstadoError), fmt.Sprintf("Error en sistema de archivos local: %v", err))
 			return
 		}
 
 		targetFilePath := filepath.Join(targetDir, cleanNomArchivo)
 		if err := os.WriteFile(targetFilePath, fileBytes, 0644); err != nil {
-			log.Printf("[SIRE-WORKER] Error al escribir archivo '%s': %v", targetFilePath, err)
+			log.Printf("[SIRE-WORKER] Error al escribir archivo '%s': %v", cleanNomArchivo, err)
 			_ = w.repo.UpdateStatus(descarga.ID, string(EstadoError), fmt.Sprintf("Error al escribir archivo en disco: %v", err))
 			return
 		}
@@ -295,19 +296,19 @@ func (w *Worker) processJob(id int64) {
 		hashHex := hex.EncodeToString(hasher.Sum(nil))
 		fileSize := int64(len(fileBytes))
 
-		if err := w.repo.UpdateCompleted(descarga.ID, cleanNomArchivo, targetFilePath, fileSize, hashHex); err != nil {
+		if err := w.repo.UpdateCompleted(descarga.ID, cleanNomArchivo, relPath, fileSize, hashHex); err != nil {
 			log.Printf("[SIRE-WORKER] Error al actualizar estado completado en BD: %v", err)
 			return
 		}
 
 		log.Printf("[SIRE-WORKER] [EXITO] Ticket %s completado. Archivo: %s (%d bytes, SHA256: %s)",
-			descarga.Ticket, targetFilePath, fileSize, hashHex[:12])
+			descarga.Ticket, cleanNomArchivo, fileSize, hashHex[:12])
 
 		if w.OnDownloadCompleted != nil {
 			completed := *descarga
 			completed.Estado = string(EstadoCompletado)
 			completed.NombreArchivo = cleanNomArchivo
-			completed.RutaLocal = targetFilePath
+			completed.RutaLocal = relPath
 			completed.TamanoBytes = fileSize
 			completed.HashArchivo = hashHex
 			go w.OnDownloadCompleted(&completed)

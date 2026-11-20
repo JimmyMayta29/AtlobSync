@@ -239,15 +239,15 @@ func (b *BulkDownloader) runJob(
 	needsSolToken := false
 	if wantXML || wantPDF || wantCDR {
 		for _, it := range items {
-			if wantXML && (!soloPendientes || !it.TieneXML || !fileExists(it.RutaXML)) {
+			if wantXML && (!soloPendientes || !it.TieneXML || !b.svc.safeFileExists(it.RutaXML)) {
 				needsSolToken = true
 				break
 			}
-			if wantPDF && (!soloPendientes || !it.TienePDF || !fileExists(it.RutaPDF)) {
+			if wantPDF && (!soloPendientes || !it.TienePDF || !b.svc.safeFileExists(it.RutaPDF)) {
 				needsSolToken = true
 				break
 			}
-			if wantCDR && (!soloPendientes || !it.TieneCDR || !fileExists(it.RutaCDR)) {
+			if wantCDR && (!soloPendientes || !it.TieneCDR || !b.svc.safeFileExists(it.RutaCDR)) {
 				needsSolToken = true
 				break
 			}
@@ -442,7 +442,7 @@ func (b *BulkDownloader) processOneItem(
 	}
 
 	var xmlBytes []byte
-	if item.TieneXML && fileExists(item.RutaXML) {
+	if item.TieneXML && b.svc.safeFileExists(item.RutaXML) {
 		xmlBytes, _ = b.svc.readSafeFile(item.RutaXML)
 	}
 
@@ -473,7 +473,7 @@ func (b *BulkDownloader) processOneItem(
 					res.Error = appendErr(res.Error, "XML disco: "+wErr.Error())
 				}
 				// Bonus: si el ZIP de SUNAT ya traía el CDR embebido, guardarlo también
-				if len(dlRes.EmbeddedCDR) > 0 && (!item.TieneCDR || !fileExists(item.RutaCDR)) {
+				if len(dlRes.EmbeddedCDR) > 0 && (!item.TieneCDR || !b.svc.safeFileExists(item.RutaCDR)) {
 					cdrName := dlRes.CDRFileName
 					if cdrName == "" {
 						cdrName = fmt.Sprintf("R-%s-%s-%s-%s.xml", rucEmisor, padTipoCP(item.TipoCP), item.Serie, item.Numero)
@@ -498,7 +498,7 @@ func (b *BulkDownloader) processOneItem(
 
 	// 2. Descargar PDF original desde api-cpe.sunat.gob.pe (sufijo 01) o generar desde XML UBL 2.1
 	if wantPDF {
-		if soloPendientes && item.TienePDF && fileExists(item.RutaPDF) {
+		if soloPendientes && item.TienePDF && b.svc.safeFileExists(item.RutaPDF) {
 			res.PDF = "omitido"
 		} else {
 			dlRes, err := b.downloadWithRetry(ctx, "pdf", item.EmpresaRUC, rucEmisor, item.TipoCP, item.Serie, item.Numero, getToken, refreshToken)
@@ -536,7 +536,7 @@ func (b *BulkDownloader) processOneItem(
 
 	// 3. Descargar CDR oficial vía api-cpe.sunat.gob.pe (/03 — funciona para COMPRAS y VENTAS), con respaldo SOAP billConsultService
 	if wantCDR && res.CDR == "" {
-		if soloPendientes && item.TieneCDR && fileExists(item.RutaCDR) {
+		if soloPendientes && item.TieneCDR && b.svc.safeFileExists(item.RutaCDR) {
 			res.CDR = "omitido"
 		} else {
 			cdrSaved := false
@@ -671,6 +671,7 @@ func (b *BulkDownloader) packageBulkZIP(
 		tagPeriodo = "TODOS"
 	}
 	zipName := fmt.Sprintf("CPE_%s_%s_%s_%s.zip", ruc, origen, tagPeriodo, time.Now().Format("20060102_150405"))
+	relZipPath := filepath.ToSlash(filepath.Join(ruc, "cpe", "lotes", zipName))
 	zipPath := filepath.Join(lotesDir, zipName)
 
 	zf, err := os.Create(zipPath)
@@ -790,7 +791,7 @@ func (b *BulkDownloader) packageBulkZIP(
 	if err := zw.Close(); err != nil {
 		return "", "", err
 	}
-	return zipPath, zipName, nil
+	return relZipPath, zipName, nil
 }
 
 func (b *BulkDownloader) updateJobStatus(aj *activeJob, estado, msg string) {
