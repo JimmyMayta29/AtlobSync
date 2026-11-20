@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/SwodLore/sire-api/internal/sunat"
 	"github.com/gin-gonic/gin"
@@ -468,10 +469,35 @@ func (ctrl *Controller) AnalizarPropuestaTXT(c *gin.Context) {
 		estadoFilter = norm
 	}
 
+	tipoCP := strings.TrimSpace(c.Query("tipo_cp"))
+	if utf8.RuneCountInString(tipoCP) > 10 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success":     false,
+			"codigo":      "PARAMETRO_INVALIDO",
+			"error":       "Parámetro tipo_cp inválido",
+			"codigo_http": http.StatusBadRequest,
+		})
+		return
+	}
+
+	queryText := strings.TrimSpace(c.Query("q"))
+	if utf8.RuneCountInString(queryText) > MaxProposalQueryLen {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success":     false,
+			"codigo":      "PARAMETRO_INVALIDO",
+			"error":       "Parámetro de búsqueda demasiado largo",
+			"detalle":     fmt.Sprintf("q admite un máximo de %d caracteres", MaxProposalQueryLen),
+			"codigo_http": http.StatusBadRequest,
+		})
+		return
+	}
+
 	result, err := ctrl.service.AnalizarPropuestaTXT(id, ProposalQueryOptions{
 		Limit:  limit,
 		Offset: offset,
 		Estado: estadoFilter,
+		TipoCP: tipoCP,
+		Query:  queryText,
 	})
 	if err != nil {
 		var pErr *ProposalParseError
@@ -505,10 +531,11 @@ func (ctrl *Controller) AnalizarPropuestaTXT(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"success":    true,
-		"resumen":    result.Resumen,
-		"paginacion": result.Paginacion,
-		"filas":      result.Filas,
-		"anulados":   result.Anulados,
+		"success":        true,
+		"resumen":        result.Resumen,
+		"total_filtrado": result.TotalFiltrado,
+		"paginacion":     result.Paginacion,
+		"filas":          result.Filas,
+		"anulados":       result.Anulados,
 	})
 }

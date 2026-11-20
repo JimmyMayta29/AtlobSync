@@ -10,10 +10,13 @@ import (
 	"math"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/SwodLore/sire-api/internal/database"
 	"github.com/SwodLore/sire-api/internal/middleware"
@@ -714,6 +717,191 @@ func TestProposalEndpoint_Auth_PathSecurity_States_Pagination_EstadoFilter_AndNo
 	svc.maxProposalTXTBytes = 64
 	if wSmall := doReq(fmt.Sprintf("/api/descargas/%d/propuesta-txt", dOK.ID), true); wSmall.Code != http.StatusRequestEntityTooLarge {
 		t.Fatalf("con tope 64 bytes se esperaba 413, se obtuvo %d", wSmall.Code)
+	}
+}
+
+func TestProposalEndpoint_Filters_TipoCP_QueryLiteral_SpecialChars_OffsetOutOfRange_MaxLen(t *testing.T) {
+	r, token, repo, _, storageDir, cleanup := setupProposalEndpointEnv(t)
+	defer cleanup()
+
+	lines := []string{
+		strings.Join(rvieExpectedHeaders, "|"),
+		makeRVIERow("01", "F001", "00000001", "20000000002", "CLIENTE UNO", "100.00", "18.00", "118.00", "1"),
+		makeRVIERow("01", "F002", "00000002", "20000000003", "CLIENTE DOS", "200.00", "36.00", "236.00", "1"),
+		makeRVIERow("07", "FC01", "00000009", "20000000002", "CLIENTE UNO", "-50.00", "-9.00", "-59.00", "1"),
+		makeRVIERow("01", "F001", "00000003", "20000000004", "CLIENTE ANULADO", "999.00", "179.82", "1178.82", "2"),
+	}
+	zipBytes := buildSyntheticZIPBytes(t, map[string][]byte{
+		"LE200000000012026100014040001EXP2.txt": []byte(strings.Join(lines, "\n") + "\n"),
+	})
+	insideDir := filepath.Join(storageDir, "20000000001", "VENTAS", "202610")
+	_ = os.MkdirAll(insideDir, 0755)
+	insideZIP := filepath.Join(insideDir, "filtros_demo.zip")
+	_ = os.WriteFile(insideZIP, zipBytes, 0644)
+
+	d := &DescargaSire{
+		EmpresaRUC: "20000000001", CodLibro: "140000", Libro: "VENTAS", Periodo: "202610",
+		Ticket: "TKT-FILT-001", Estado: string(EstadoCompletado), NombreArchivo: "filtros_demo.zip", RutaLocal: insideZIP,
+	}
+	if err := repo.Create(d); err != nil {
+		t.Fatalf("error creando descarga: %v", err)
+	}
+
+	type filterResp struct {
+		Success       bool               `json:"success"`
+		Resumen       ProposalSummary    `json:"resumen"`
+		TotalFiltrado int                `json:"total_filtrado"`
+		Paginacion    ProposalPagination `json:"paginacion"`
+		Filas         []ProposalRow      `json:"filas"`
+	}
+
+	call := func(params url.Values) (*httptest.ResponseRecorder, filterResp) {
+		u := fmt.Sprintf("/api/descargas/%d/propuesta-txt", d.ID)
+		if len(params) > 0 {
+			u += "?" + params.Encode()
+		}
+		req, _ := http.NewRequest(http.MethodGet, u, nil)
+		req.Host = "127.0.0.1:8080"
+		req.Header.Set("X-Local-Token", token)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		var out filterResp
+		_ = json.Unmarshal(w.Body.Bytes(), &out)
+		return w, out
+	}
+
+	// 1. Filtro por tipo_cp=07 -> 1 fila, resumen completo sigue en 295.00
+	w1, r1 := call(url.Values{"tipo_cp": {"07"}})
+	if w1.Code != http.StatusOK || r1.TotalFiltrado != 1 || len(r1.Filas) != 1 || r1.Filas[0].TipoCP != "07" {
+		t.Fatalf("filtro tipo_cp=07 falló: code=%d resp=%+v", w1.Code, r1)
+	}
+	if r1.Resumen.Totales.TotalCP != 295.00 {
+		t.Fatalf("resumen no debe cambiar por tipo_cp: %.2f", r1.Resumen.Totales.TotalCP)
+	}
+
+	// 2. q sin resultados
+	w2, r2 := call(url.Values{"q": {"NOEXISTE999"}})
+	if w2.Code != http.StatusOK || r2.TotalFiltrado != 0 || len(r2.Filas) != 0 || r2.Resumen.Totales.TotalCP != 295.00 {
+		t.Fatalf("q sin resultados falló: code=%d total=%d filas=%d", w2.Code, r2.TotalFiltrado, len(r2.Filas))
+	}
+
+	// 3. q con caracteres especiales (regex/SQL) tratados estrictamente como texto literal
+	for _, special := range []string{".*", "[0-9]+", "F001%_", "(F001|FC01)", `\d+`} {
+		ws, rs := call(url.Values{"q": {special}})
+		if ws.Code != http.StatusOK || rs.TotalFiltrado != 0 || len(rs.Filas) != 0 {
+			t.Fatalf("q especial %q debe tratarse como texto literal sin coincidencias: code=%d total=%d", special, ws.Code, rs.TotalFiltrado)
+		}
+	}
+
+	// 4. Combinación estado=todos + tipo_cp=01 + q=F001 -> coincide fila activa y fila anulada (2 total)
+	wComb, rComb := call(url.Values{"estado": {"todos"}, "tipo_cp": {"01"}, "q": {"f001"}, "limit": {"1"}, "offset": {"1"}})
+	if wComb.Code != http.StatusOK || rComb.TotalFiltrado != 2 || len(rComb.Filas) != 1 || rComb.Filas[0].EstadoMarca != EstadoMarcaAnulado {
+		t.Fatalf("combinación estado+tipo_cp+q+offset falló: code=%d total=%d filas=%+v", wComb.Code, rComb.TotalFiltrado, rComb.Filas)
+	}
+
+	// 5. offset fuera de rango -> 200 con filas vacías y total_filtrado real
+	wOff, rOff := call(url.Values{"estado": {"activo"}, "offset": {"9999"}})
+	if wOff.Code != http.StatusOK || rOff.TotalFiltrado != 3 || len(rOff.Filas) != 0 || rOff.Paginacion.Devueltas != 0 || rOff.Paginacion.TieneMas {
+		t.Fatalf("offset fuera de rango falló: code=%d pag=%+v", wOff.Code, rOff.Paginacion)
+	}
+
+	// 6. q demasiado largo (> 40 caracteres) -> 400 Bad Request
+	tooLong := strings.Repeat("a", MaxProposalQueryLen+1)
+	wLong, _ := call(url.Values{"q": {tooLong}})
+	if wLong.Code != http.StatusBadRequest {
+		t.Fatalf("q de 41 caracteres debe devolver 400, se obtuvo %d", wLong.Code)
+	}
+}
+
+func TestProposalService_InMemoryCache_Hit_MtimeInvalidation_Eviction_TTL_AndStableSummary(t *testing.T) {
+	_, _, repo, svc, storageDir, cleanup := setupProposalEndpointEnv(t)
+	defer cleanup()
+
+	insideDir := filepath.Join(storageDir, "20000000001", "VENTAS", "202610")
+	_ = os.MkdirAll(insideDir, 0755)
+
+	writeZip := func(name string, totalStr string) string {
+		lines := []string{
+			strings.Join(rvieExpectedHeaders, "|"),
+			makeRVIERow("01", "F001", "00000001", "20000000002", "CLIENTE UNO", "100.00", "18.00", totalStr, "1"),
+			makeRVIERow("01", "F001", "00000002", "20000000003", "CLIENTE DOS", "200.00", "36.00", "236.00", "1"),
+			makeRVIERow("01", "F001", "00000003", "20000000004", "CLIENTE TRES", "300.00", "54.00", "354.00", "1"),
+		}
+		zb := buildSyntheticZIPBytes(t, map[string][]byte{"propuesta.txt": []byte(strings.Join(lines, "\n") + "\n")})
+		p := filepath.Join(insideDir, name)
+		if err := os.WriteFile(p, zb, 0644); err != nil {
+			t.Fatalf("error escribiendo ZIP %s: %v", name, err)
+		}
+		return p
+	}
+
+	zip1 := writeZip("cache_1.zip", "118.00")
+	d1 := &DescargaSire{
+		EmpresaRUC: "20000000001", CodLibro: "140000", Libro: "VENTAS", Periodo: "202610",
+		Ticket: "TKT-CACHE-1", Estado: string(EstadoCompletado), NombreArchivo: "cache_1.zip", RutaLocal: zip1,
+	}
+	if err := repo.Create(d1); err != nil {
+		t.Fatalf("error creando descarga d1: %v", err)
+	}
+
+	// 1. Primera lectura -> miss
+	p1, err := svc.AnalizarPropuestaTXT(d1.ID, ProposalQueryOptions{Limit: 1, Offset: 0})
+	if err != nil {
+		t.Fatalf("error en lectura 1: %v", err)
+	}
+	if svc.proposalCacheMisses != 1 || svc.proposalCacheHits != 0 {
+		t.Fatalf("esperado miss=1 hit=0, obtenido miss=%d hit=%d", svc.proposalCacheMisses, svc.proposalCacheHits)
+	}
+
+	// 2. Segunda página -> acierto de caché + resumen idéntico entre páginas
+	p2, err := svc.AnalizarPropuestaTXT(d1.ID, ProposalQueryOptions{Limit: 1, Offset: 1})
+	if err != nil {
+		t.Fatalf("error en lectura 2: %v", err)
+	}
+	if svc.proposalCacheHits != 1 || svc.proposalCacheMisses != 1 {
+		t.Fatalf("esperado acierto de caché (hit=1 miss=1), obtenido hit=%d miss=%d", svc.proposalCacheHits, svc.proposalCacheMisses)
+	}
+	if !reflect.DeepEqual(p1.Resumen, p2.Resumen) {
+		t.Fatalf("el resumen cambió entre páginas:\np1=%+v\np2=%+v", p1.Resumen, p2.Resumen)
+	}
+
+	// 3. Invalidación cuando cambia el mtime del archivo en disco
+	writeZip("cache_1.zip", "218.00")
+	futureTime := time.Now().Add(10 * time.Second)
+	if err := os.Chtimes(zip1, futureTime, futureTime); err != nil {
+		t.Fatalf("error cambiando mtime: %v", err)
+	}
+	p3, err := svc.AnalizarPropuestaTXT(d1.ID, ProposalQueryOptions{Limit: 1, Offset: 0})
+	if err != nil {
+		t.Fatalf("error en lectura tras cambio mtime: %v", err)
+	}
+	if svc.proposalCacheMisses != 2 || p3.Resumen.Totales.TotalCP != 808.00 {
+		t.Fatalf("esperada invalidación por mtime (miss=2 total=808.00), obtenido miss=%d total=%.2f", svc.proposalCacheMisses, p3.Resumen.Totales.TotalCP)
+	}
+
+	// 4. Límite de entradas en caché (evicción LRU con máx. 2)
+	svc.proposalCacheMax = 2
+	zip2 := writeZip("cache_2.zip", "118.00")
+	zip3 := writeZip("cache_3.zip", "118.00")
+	d2 := &DescargaSire{EmpresaRUC: "20000000001", CodLibro: "140000", Libro: "VENTAS", Periodo: "202610", Ticket: "TKT-CACHE-2", Estado: string(EstadoCompletado), NombreArchivo: "cache_2.zip", RutaLocal: zip2}
+	d3 := &DescargaSire{EmpresaRUC: "20000000001", CodLibro: "140000", Libro: "VENTAS", Periodo: "202610", Ticket: "TKT-CACHE-3", Estado: string(EstadoCompletado), NombreArchivo: "cache_3.zip", RutaLocal: zip3}
+	_ = repo.Create(d2)
+	_ = repo.Create(d3)
+
+	_, _ = svc.AnalizarPropuestaTXT(d2.ID, ProposalQueryOptions{Limit: 1})
+	_, _ = svc.AnalizarPropuestaTXT(d3.ID, ProposalQueryOptions{Limit: 1})
+	if len(svc.proposalCache) > 2 {
+		t.Fatalf("la caché excedió el límite de 2 entradas: len=%d", len(svc.proposalCache))
+	}
+
+	// 5. Expiración por TTL
+	svc.proposalCacheTTL = 25 * time.Millisecond
+	_, _ = svc.AnalizarPropuestaTXT(d1.ID, ProposalQueryOptions{Limit: 1})
+	missesBeforeTTL := svc.proposalCacheMisses
+	time.Sleep(40 * time.Millisecond)
+	_, _ = svc.AnalizarPropuestaTXT(d1.ID, ProposalQueryOptions{Limit: 1})
+	if svc.proposalCacheMisses != missesBeforeTTL+1 {
+		t.Fatalf("se esperaba expiración por TTL (miss incrementado), antes=%d después=%d", missesBeforeTTL, svc.proposalCacheMisses)
 	}
 }
 

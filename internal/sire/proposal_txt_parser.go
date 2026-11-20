@@ -30,6 +30,11 @@ const (
 	// DefaultProposalPageLimit y MaxProposalPageLimit controlan la paginación segura del endpoint.
 	DefaultProposalPageLimit = 50
 	MaxProposalPageLimit     = 500
+	MaxProposalQueryLen      = 40
+
+	// Parámetros de caché en memoria para análisis TXT (nunca se persiste en disco ni en BD).
+	DefaultProposalCacheMaxEntries = 4
+	DefaultProposalCacheTTL        = 5 * 60 // segundos (5 minutos)
 
 	// Códigos de error estructurados del analizador (nunca exponen RUC, montos, razones sociales ni tokens).
 	ErrCodeZipInesperado      = "ZIP_INESPERADO"
@@ -219,11 +224,13 @@ func (e *ProposalParseError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Code, e.Message)
 }
 
-// ProposalQueryOptions configura límites de lectura, filtro de estado y paginación para el análisis.
+// ProposalQueryOptions configura límites de lectura, filtros opcionales y paginación para el análisis.
 type ProposalQueryOptions struct {
 	Limit                int
 	Offset               int
 	Estado               string // "", "activo" (defecto), "anulado", "todos"
+	TipoCP               string // filtro opcional por código de tipo de comprobante (ej. "01", "07")
+	Query                string // búsqueda literal opcional (máx. 40 caracteres) en serie, número o documento
 	MaxUncompressedBytes int64
 }
 
@@ -366,11 +373,14 @@ type ProposalSummary struct {
 	TopContrapartes          []ProposalCounterpartyAgg `json:"top_contrapartes"`
 }
 
-// ProposalPagination informa el tramo de filas devuelto al cliente según el filtro de estado aplicado.
+// ProposalPagination informa el tramo de filas devuelto al cliente según los filtros aplicados.
 type ProposalPagination struct {
 	Estado            string `json:"estado"`
+	TipoCP            string `json:"tipo_cp,omitempty"`
+	Query             string `json:"q,omitempty"`
 	Limit             int    `json:"limit"`
 	Offset            int    `json:"offset"`
+	TotalFiltrado     int    `json:"total_filtrado"`
 	TotalFiltradas    int    `json:"total_filtradas"`
 	TotalFilasActivas int    `json:"total_filas_activas"`
 	Devueltas         int    `json:"devueltas"`
@@ -379,10 +389,11 @@ type ProposalPagination struct {
 
 // ProposalAnalysisResponse es la respuesta completa del endpoint GET /api/descargas/:id/propuesta-txt.
 type ProposalAnalysisResponse struct {
-	Resumen    ProposalSummary    `json:"resumen"`
-	Paginacion ProposalPagination `json:"paginacion"`
-	Filas      []ProposalRow      `json:"filas"`
-	Anulados   []ProposalRow      `json:"anulados"`
+	Resumen       ProposalSummary    `json:"resumen"`
+	TotalFiltrado int                `json:"total_filtrado"`
+	Paginacion    ProposalPagination `json:"paginacion"`
+	Filas         []ProposalRow      `json:"filas"`
+	Anulados      []ProposalRow      `json:"anulados"`
 }
 
 // ParsedProposalTXT es el resultado completo en memoria antes de paginar.
@@ -1293,60 +1304,101 @@ func normalizeEstadoFilter(raw string) (string, bool) {
 	}
 }
 
-// PaginateProposalResult construye la respuesta paginada con filtro opcional de estado ("activo", "anulado", "todos").
-// El resumen siempre proviene del archivo completo (parsed.Resumen), nunca de la página ni del filtro.
-func PaginateProposalResult(parsed *ParsedProposalTXT, limit, offset int, estadoFilter string) *ProposalAnalysisResponse {
+func matchesProposalFilters(row ProposalRow, tipoFilter, qLower string) bool {
+	if tipoFilter != "" && !strings.EqualFold(strings.TrimSpace(row.TipoCP), tipoFilter) {
+		return false
+	}
+	if qLower != "" {
+		serieLower := strings.ToLower(row.Serie)
+		numLower := strings.ToLower(row.Numero)
+		docLower := strings.ToLower(row.NroDocIdentidad)
+		compLower := serieLower + "-" + numLower
+		if !strings.Contains(serieLower, qLower) &&
+			!strings.Contains(numLower, qLower) &&
+			!strings.Contains(compLower, qLower) &&
+			!strings.Contains(docLower, qLower) {
+			return false
+		}
+	}
+	return true
+}
+
+// PaginateProposalResult construye la respuesta paginada aplicando filtros combinados (estado, tipo_cp y q literal).
+// El resumen siempre proviene del archivo completo (parsed.Resumen), nunca de la página ni de los filtros.
+func PaginateProposalResult(parsed *ParsedProposalTXT, opts ProposalQueryOptions) *ProposalAnalysisResponse {
+	limit := opts.Limit
 	if limit <= 0 {
 		limit = DefaultProposalPageLimit
 	}
 	if limit > MaxProposalPageLimit {
 		limit = MaxProposalPageLimit
 	}
+	offset := opts.Offset
 	if offset < 0 {
 		offset = 0
 	}
 
-	normEstado, ok := normalizeEstadoFilter(estadoFilter)
+	normEstado, ok := normalizeEstadoFilter(opts.Estado)
 	if !ok {
 		normEstado = EstadoMarcaActivo
 	}
 
-	var source []ProposalRow
+	var base []ProposalRow
 	switch normEstado {
 	case EstadoMarcaAnulado:
-		source = parsed.Anulados
+		base = parsed.Anulados
 	case EstadoFiltroTodos:
-		source = parsed.Todas
+		base = parsed.Todas
 	default:
-		source = parsed.Activos
+		base = parsed.Activos
 	}
 
-	totalFiltradas := len(source)
+	tipoFilter := strings.TrimSpace(opts.TipoCP)
+	qTrim := strings.TrimSpace(opts.Query)
+	qLower := strings.ToLower(qTrim)
+
+	var filtered []ProposalRow
+	if tipoFilter == "" && qLower == "" {
+		filtered = base
+	} else {
+		filtered = make([]ProposalRow, 0)
+		for _, row := range base {
+			if matchesProposalFilters(row, tipoFilter, qLower) {
+				filtered = append(filtered, row)
+			}
+		}
+	}
+
+	totalFiltrado := len(filtered)
 	start := offset
-	if start > totalFiltradas {
-		start = totalFiltradas
+	if start > totalFiltrado {
+		start = totalFiltrado
 	}
 	end := start + limit
-	if end > totalFiltradas {
-		end = totalFiltradas
+	if end > totalFiltrado {
+		end = totalFiltrado
 	}
 
 	pageRows := make([]ProposalRow, end-start)
-	copy(pageRows, source[start:end])
+	copy(pageRows, filtered[start:end])
 
 	anuladosCopy := make([]ProposalRow, len(parsed.Anulados))
 	copy(anuladosCopy, parsed.Anulados)
 
 	return &ProposalAnalysisResponse{
-		Resumen: parsed.Resumen,
+		Resumen:       parsed.Resumen,
+		TotalFiltrado: totalFiltrado,
 		Paginacion: ProposalPagination{
 			Estado:            normEstado,
+			TipoCP:            tipoFilter,
+			Query:             qTrim,
 			Limit:             limit,
 			Offset:            offset,
-			TotalFiltradas:    totalFiltradas,
+			TotalFiltrado:     totalFiltrado,
+			TotalFiltradas:    totalFiltrado,
 			TotalFilasActivas: len(parsed.Activos),
 			Devueltas:         len(pageRows),
-			TieneMas:          end < totalFiltradas,
+			TieneMas:          end < totalFiltrado,
 		},
 		Filas:    pageRows,
 		Anulados: anuladosCopy,

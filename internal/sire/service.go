@@ -8,9 +8,24 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
+	"time"
 )
 
 var rePeriodo = regexp.MustCompile(`^\d{6}$`)
+
+type proposalCacheKey struct {
+	descargaID int64
+	mtimeNano  int64
+	maxBytes   int64
+}
+
+type proposalCacheEntry struct {
+	key        proposalCacheKey
+	parsed     *ParsedProposalTXT
+	expiresAt  time.Time
+	lastAccess time.Time
+}
 
 type Service struct {
 	repo                *Repository
@@ -18,6 +33,12 @@ type Service struct {
 	worker              *Worker
 	storageDir          string
 	maxProposalTXTBytes int64
+	proposalCacheMu     sync.Mutex
+	proposalCache       map[proposalCacheKey]*proposalCacheEntry
+	proposalCacheMax    int
+	proposalCacheTTL    time.Duration
+	proposalCacheHits   int64
+	proposalCacheMisses int64
 }
 
 func NewService(repo *Repository, sireClient *SunatSireClient, worker *Worker, storageDir string) *Service {
@@ -257,17 +278,111 @@ func (s *Service) AnalizarPropuestaTXT(id int64, opts ProposalQueryOptions) (*Pr
 		maxBytes = DefaultMaxProposalTXTBytes
 	}
 
-	parsed, err := ParseProposalZIPFile(safePath, d.Libro, d.CodLibro, maxBytes)
-	if err != nil {
-		return nil, err
+	fileInfo, statErr := os.Stat(safePath)
+	if statErr != nil || fileInfo.IsDir() {
+		return nil, &ProposalParseError{
+			Code:       ErrCodeNoEncontrado,
+			HTTPStatus: http.StatusNotFound,
+			Message:    "el archivo físico no fue encontrado en el servidor",
+		}
 	}
 
-	parsed.Resumen.DescargaID = d.ID
-	if d.Periodo != "" {
-		parsed.Resumen.Periodo = d.Periodo
+	cacheKey := proposalCacheKey{
+		descargaID: d.ID,
+		mtimeNano:  fileInfo.ModTime().UnixNano(),
+		maxBytes:   maxBytes,
 	}
-	parsed.Resumen.NombreArchivoZIP = d.NombreArchivo
-	parsed.Resumen.Ticket = d.Ticket
 
-	return PaginateProposalResult(parsed, opts.Limit, opts.Offset, opts.Estado), nil
+	parsed := s.getCachedProposal(cacheKey)
+	if parsed == nil {
+		parsed, err = ParseProposalZIPFile(safePath, d.Libro, d.CodLibro, maxBytes)
+		if err != nil {
+			return nil, err
+		}
+
+		parsed.Resumen.DescargaID = d.ID
+		if d.Periodo != "" {
+			parsed.Resumen.Periodo = d.Periodo
+		}
+		parsed.Resumen.NombreArchivoZIP = d.NombreArchivo
+		parsed.Resumen.Ticket = d.Ticket
+
+		s.putCachedProposal(cacheKey, parsed)
+	}
+
+	return PaginateProposalResult(parsed, opts), nil
+}
+
+func (s *Service) getCachedProposal(key proposalCacheKey) *ParsedProposalTXT {
+	now := time.Now()
+	s.proposalCacheMu.Lock()
+	defer s.proposalCacheMu.Unlock()
+
+	if s.proposalCache == nil {
+		s.proposalCacheMisses++
+		return nil
+	}
+
+	entry, ok := s.proposalCache[key]
+	if !ok {
+		s.proposalCacheMisses++
+		return nil
+	}
+	if now.After(entry.expiresAt) {
+		delete(s.proposalCache, key)
+		s.proposalCacheMisses++
+		return nil
+	}
+
+	entry.lastAccess = now
+	s.proposalCacheHits++
+	return entry.parsed
+}
+
+func (s *Service) putCachedProposal(key proposalCacheKey, parsed *ParsedProposalTXT) {
+	now := time.Now()
+	s.proposalCacheMu.Lock()
+	defer s.proposalCacheMu.Unlock()
+
+	if s.proposalCache == nil {
+		s.proposalCache = make(map[proposalCacheKey]*proposalCacheEntry)
+	}
+
+	maxEntries := s.proposalCacheMax
+	if maxEntries <= 0 {
+		maxEntries = DefaultProposalCacheMaxEntries
+	}
+	ttl := s.proposalCacheTTL
+	if ttl <= 0 {
+		ttl = time.Duration(DefaultProposalCacheTTL) * time.Second
+	}
+
+	// Purgar entradas expiradas o de la misma descarga con mtime distinto
+	for k, e := range s.proposalCache {
+		if now.After(e.expiresAt) || (k.descargaID == key.descargaID && k.mtimeNano != key.mtimeNano) {
+			delete(s.proposalCache, k)
+		}
+	}
+
+	// Evicción LRU si se alcanzó el límite máximo de entradas en memoria
+	for len(s.proposalCache) >= maxEntries {
+		var oldestKey proposalCacheKey
+		var oldestTime time.Time
+		first := true
+		for k, e := range s.proposalCache {
+			if first || e.lastAccess.Before(oldestTime) {
+				oldestKey = k
+				oldestTime = e.lastAccess
+				first = false
+			}
+		}
+		delete(s.proposalCache, oldestKey)
+	}
+
+	s.proposalCache[key] = &proposalCacheEntry{
+		key:        key,
+		parsed:     parsed,
+		expiresAt:  now.Add(ttl),
+		lastAccess: now,
+	}
 }
