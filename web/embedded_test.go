@@ -70,3 +70,44 @@ func TestEmbeddedWeb_PageLoadsWithoutSunatCallsAndHasSessionToken(t *testing.T) 
 		}
 	}
 }
+
+func TestEmbeddedWeb_ServesBrandAssetsAndFavicon(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	RegisterRoutes(r)
+
+	cases := []struct {
+		path        string
+		contentType string
+	}{
+		{"/favicon.ico", "image/x-icon"},
+		{"/assets/atlob-icon.png", "image/png"},
+		{"/assets/atlob-isotipo.png", "image/png"},
+		{"/assets/atlob-logo-horizontal.png", "image/png"},
+		{"/assets/atlob-logo-horizontal-dark.png", "image/png"},
+		{"/assets/atlob-logo-vertical.png", "image/png"},
+	}
+
+	for _, tc := range cases {
+		req, _ := http.NewRequest(http.MethodGet, tc.path, nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		if w.Code != http.StatusOK {
+			t.Fatalf("GET %s devolvió %d, se esperaba 200", tc.path, w.Code)
+		}
+		if got := w.Header().Get("Content-Type"); !strings.Contains(got, tc.contentType) {
+			t.Fatalf("GET %s Content-Type = %q, se esperaba %q", tc.path, got, tc.contentType)
+		}
+		if w.Body.Len() == 0 {
+			t.Fatalf("GET %s devolvió cuerpo vacío", tc.path)
+		}
+	}
+
+	// Ruta inexistente debe devolver 404
+	req404, _ := http.NewRequest(http.MethodGet, "/assets/no-existe.png", nil)
+	w404 := httptest.NewRecorder()
+	r.ServeHTTP(w404, req404)
+	if w404.Code != http.StatusNotFound {
+		t.Fatalf("Asset inexistente devolvió %d, se esperaba 404", w404.Code)
+	}
+}

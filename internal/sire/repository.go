@@ -68,17 +68,21 @@ func (r *Repository) GetByTicket(ruc, ticket string) (*DescargaSire, error) {
 	return scanDescarga(row)
 }
 
-// ListByEmpresa obtiene el historial de descargas de una empresa, opcionalmente filtrado por libro o periodo
+// ListByEmpresa obtiene el historial de descargas de una empresa (o global si ruc es vacío), opcionalmente filtrado por libro o periodo
 func (r *Repository) ListByEmpresa(ruc string, libro string, periodo string) ([]DescargaSire, error) {
 	query := `
 		SELECT id, empresa_ruc, cod_libro, libro, periodo, ticket,
 		       estado, mensaje_sunat, nombre_archivo, ruta_local,
 		       tamano_bytes, hash_archivo, reintentos, created_at, updated_at
 		FROM descargas_sire
-		WHERE empresa_ruc = ?
+		WHERE 1=1
 	`
-	args := []interface{}{ruc}
+	var args []interface{}
 
+	if ruc != "" {
+		query += " AND empresa_ruc = ?"
+		args = append(args, ruc)
+	}
 	if libro != "" {
 		query += " AND (libro = ? OR cod_libro = ?)"
 		args = append(args, libro, libro)
@@ -187,6 +191,20 @@ func (r *Repository) IncrementRetries(id int64, mensaje string) error {
 		WHERE id = ?
 	`
 	_, err := r.db.Exec(query, mensaje, id)
+	return err
+}
+
+// ResetForRetry reinicia un ticket fallido para volver a consultarlo y descargarlo desde SUNAT
+func (r *Repository) ResetForRetry(id int64) error {
+	query := `
+		UPDATE descargas_sire
+		SET estado = 'EN_PROCESO',
+		    reintentos = 0,
+		    mensaje_sunat = 'Reintento solicitado. Consultando estado del ticket en SUNAT...',
+		    updated_at = CURRENT_TIMESTAMP
+		WHERE id = ?
+	`
+	_, err := r.db.Exec(query, id)
 	return err
 }
 

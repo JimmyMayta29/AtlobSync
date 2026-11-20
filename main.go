@@ -13,6 +13,7 @@ import (
 	ventasRoutes "github.com/SwodLore/sire-api/VENTAS/routes"
 	"github.com/SwodLore/sire-api/internal/company"
 	"github.com/SwodLore/sire-api/internal/config"
+	"github.com/SwodLore/sire-api/internal/cpe"
 	"github.com/SwodLore/sire-api/internal/crypto"
 	"github.com/SwodLore/sire-api/internal/database"
 	"github.com/SwodLore/sire-api/internal/middleware"
@@ -31,12 +32,12 @@ func main() {
 	// 2. Comprobar disponibilidad de puerto y detectar si ya existe instancia activa
 	port, isRunning, err := config.ProbeAvailablePort(cfg.Host, cfg.Port)
 	if err != nil {
-		config.ShowWindowsAlert("SIRE API - Error de Red", fmt.Sprintf("No se pudo enlazar ningún puerto disponible: %v", err))
+		config.ShowWindowsAlert("ATLOB Sync - Error de Red", fmt.Sprintf("No se pudo enlazar ningún puerto disponible: %v", err))
 		log.Fatalf("Error crítico al buscar puerto: %v", err)
 	}
 
 	if isRunning {
-		log.Printf("[INICIO] Se detectó una instancia de SIRE API ya en ejecución en el puerto %s.", port)
+		log.Printf("[INICIO] Se detectó una instancia de ATLOB Sync · SUNAT ya en ejecución en el puerto %s.", port)
 		config.OpenBrowser(fmt.Sprintf("http://127.0.0.1:%s", port))
 		return // Salida limpia sin abrir segundo proceso
 	}
@@ -53,7 +54,7 @@ func main() {
 	// 4. Inicializar Base de Datos SQLite (WAL y migraciones)
 	db, err := database.InitDB(cfg.DBPath)
 	if err != nil {
-		config.ShowWindowsAlert("SIRE API - Error de Base de Datos", fmt.Sprintf("Error abriendo base de datos: %v", err))
+		config.ShowWindowsAlert("ATLOB Sync - Error de Base de Datos", fmt.Sprintf("Error abriendo base de datos: %v", err))
 		log.Fatalf("Error crítico al inicializar base de datos SQLite: %v", err)
 	}
 	defer db.Close()
@@ -61,7 +62,7 @@ func main() {
 	// 5. Inicializar Servicio Criptográfico AES-256-GCM
 	cryptoSvc, err := crypto.NewCryptoService(cfg.AppMasterKey)
 	if err != nil {
-		config.ShowWindowsAlert("SIRE API - Error Criptográfico", fmt.Sprintf("Error en servicio criptográfico: %v", err))
+		config.ShowWindowsAlert("ATLOB Sync - Error Criptográfico", fmt.Sprintf("Error en servicio criptográfico: %v", err))
 		log.Fatalf("Error crítico al inicializar servicio criptográfico: %v", err)
 	}
 
@@ -81,7 +82,19 @@ func main() {
 	// 9. Inicializar Módulo Asíncrono SIRE (Worker en segundo plano y descargas)
 	sireRepo := sire.NewRepository(db)
 	sireClient := sire.NewSunatSireClient(sunatClient)
+
+	// Conectar verificador real de acceso a api-sire.sunat.gob.pe para "Probar Conexión"
+	companySvc.SetSireVerifier(sireClient.VerificarAccesoSIRE)
+
+	// 9.1 Inicializar Módulo de Comprobantes Individuales (PDF / XML / CDR)
+	cpeRepo := cpe.NewRepository(db)
+	cpeSvc := cpe.NewService(cpeRepo, companySvc, sireRepo, cfg.StorageDir)
+	cpeCtrl := cpe.NewController(cpeSvc)
+
 	sireWorker := sire.NewWorker(sireRepo, sireClient, tokenMgr, cfg.StorageDir)
+	sireWorker.OnDownloadCompleted = func(d *sire.DescargaSire) {
+		_, _ = cpeSvc.SyncFromDescarga(d)
+	}
 	sireWorker.Start()
 	defer sireWorker.Stop()
 
@@ -159,8 +172,11 @@ func main() {
 		// Endpoints multiempresa protegidos por validación de RUC activo
 		empresaMiddleware := middleware.RequireActiveCompany(companyRepo)
 
-		// Rutas SIRE Asíncronas (Exportar, Tickets, Descargas seguras, Detalle paginado)
+		// Rutas SIRE Asíncronas (Exportar, Tickets, Descargas seguras, Detalle paginado, Constancia CDR)
 		sireCtrl.RegisterRoutes(apiGroup, empresaMiddleware)
+
+		// Rutas de Comprobantes Individuales (PDF / XML / CDR)
+		cpeCtrl.RegisterRoutes(apiGroup, empresaMiddleware)
 
 		ventasGroup := apiGroup.Group("/empresas/:ruc/ventas", empresaMiddleware)
 		ventasRoutes.RegisterRoutes(ventasGroup)
@@ -184,17 +200,17 @@ func main() {
 	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 	appURL := fmt.Sprintf("http://127.0.0.1:%s", cfg.Port)
 
-	log.Printf("=====================================================")
-	log.Printf("  SIRE - SUNAT Multiempresa v2.0 Iniciado con Éxito  ")
-	log.Printf("  URL de la aplicación: %s                         ", appURL)
-	log.Printf("  Carpeta de datos:     %s                         ", cfg.DBPath)
-	log.Printf("  Carpeta de descargas: %s                         ", cfg.StorageDir)
-	log.Printf("=====================================================")
+	log.Printf("========================================================")
+	log.Printf("  ATLOB Sync · SUNAT (ATLOB Consultores) v2.0 Iniciado  ")
+	log.Printf("  URL de la aplicación: %s                              ", appURL)
+	log.Printf("  Carpeta de datos:     %s                              ", cfg.DBPath)
+	log.Printf("  Carpeta de descargas: %s                              ", cfg.StorageDir)
+	log.Printf("========================================================")
 
 	config.OpenBrowser(appURL)
 
 	if err := r.Run(addr); err != nil {
-		config.ShowWindowsAlert("SIRE API - Error de Ejecución", fmt.Sprintf("Error iniciando servidor en %s: %v", addr, err))
+		config.ShowWindowsAlert("ATLOB Sync - Error de Ejecución", fmt.Sprintf("Error iniciando servidor en %s: %v", addr, err))
 		log.Fatalf("Error al iniciar servidor HTTP: %v", err)
 	}
 }

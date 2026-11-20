@@ -3,10 +3,12 @@ package company
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/SwodLore/sire-api/internal/crypto"
+	"github.com/SwodLore/sire-api/internal/sunat"
 )
 
 type TokenProvider interface {
@@ -16,10 +18,14 @@ type TokenProvider interface {
 	ClearCooldown(ruc string)
 }
 
+// SireAccessVerifier verifica acceso real al gateway api-sire.sunat.gob.pe tras obtener el token OAuth2
+type SireAccessVerifier func(ruc string) (statusCode int, body string, err error)
+
 type Service struct {
 	repo         *Repository
 	cryptoSvc    *crypto.CryptoService
 	tokenManager TokenProvider
+	sireVerifier SireAccessVerifier
 }
 
 func NewService(repo *Repository, cryptoSvc *crypto.CryptoService, tokenMgr TokenProvider) *Service {
@@ -28,6 +34,11 @@ func NewService(repo *Repository, cryptoSvc *crypto.CryptoService, tokenMgr Toke
 		cryptoSvc:    cryptoSvc,
 		tokenManager: tokenMgr,
 	}
+}
+
+// SetSireVerifier inyecta un verificador ligero contra api-sire.sunat.gob.pe para validar permisos reales de SIRE
+func (s *Service) SetSireVerifier(v SireAccessVerifier) {
+	s.sireVerifier = v
 }
 
 func (s *Service) ListEmpresas() ([]EmpresaResponse, error) {
@@ -216,16 +227,51 @@ func (s *Service) TestConnection(ruc string) (map[string]interface{}, error) {
 			until.Format("15:04:05"), reason)
 	}
 
-	// Forzar obtención/renovación de token
+	// 1. Forzar obtención/renovación de token OAuth2 en api-seguridad.sunat.gob.pe
 	s.tokenManager.InvalidateToken(ruc)
 	_, err := s.tokenManager.GetToken(ruc)
 	if err != nil {
 		return nil, err
 	}
 
+	// 2. Si hay verificador SIRE configurado, comprobar acceso real a api-sire.sunat.gob.pe (1 sola llamada)
+	if s.sireVerifier != nil {
+		statusCode, body, vErr := s.sireVerifier(ruc)
+		if vErr != nil {
+			return nil, vErr
+		}
+		if statusCode == http.StatusUnauthorized || statusCode == http.StatusForbidden {
+			msg := "OAuth2 aceptó la Clave SOL, pero el gateway SIRE rechazó el token (HTTP 401/403). En Portal SOL verifique que la aplicación tenga alcance Desktop (no Web) y el servicio MIGE RCE y RVIE – SIRE habilitado."
+			_ = s.repo.UpdateAuthStatus(ruc, "SIN_PERMISO_SIRE", msg, nil)
+			return nil, &sunat.SunatHttpError{
+				StatusCode: statusCode,
+				Host:       "api-sire.sunat.gob.pe",
+				RawBody:    body,
+				Ruta:       "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/padron/web/omisos/140000/periodos",
+			}
+		}
+		if statusCode >= 500 {
+			return nil, &sunat.SunatHttpError{
+				StatusCode: statusCode,
+				Host:       "api-sire.sunat.gob.pe",
+				RawBody:    body,
+				Ruta:       "https://api-sire.sunat.gob.pe/v1/contribuyente/migeigv/libros/rvierce/padron/web/omisos/140000/periodos",
+			}
+		}
+		_ = s.repo.UpdateAuthStatus(ruc, "VALIDO", "Autenticación OAuth2 y acceso real a SIRE verificados correctamente", nil)
+		return map[string]interface{}{
+			"success":  true,
+			"oauth_ok": true,
+			"sire_ok":  true,
+			"mensaje":  "Conexión completa verificada: Login OAuth2 y acceso al gateway SIRE (periodos) respondieron correctamente.",
+		}, nil
+	}
+
 	return map[string]interface{}{
-		"success": true,
-		"mensaje": "Conexión con SUNAT exitosa. Credenciales y permisos validados.",
+		"success":  true,
+		"oauth_ok": true,
+		"sire_ok":  true,
+		"mensaje":  "Conexión con SUNAT exitosa. Credenciales y permisos validados.",
 	}, nil
 }
 

@@ -70,6 +70,8 @@ type TicketStatusSUNAT struct {
 	ArchivoReporte       []struct {
 		NomArchivoReporte     string `json:"nomArchivoReporte"`
 		CodTipoArchivoReporte string `json:"codTipoArchivoReporte"`
+		CodTipoAchivoReporte  string `json:"codTipoAchivoReporte"` // Typo real en API oficial SUNAT (sin 'r')
+		NomArchivoContenido   string `json:"nomArchivoContenido"`
 	} `json:"archivoReporte"`
 }
 

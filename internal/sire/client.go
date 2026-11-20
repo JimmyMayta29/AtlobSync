@@ -256,10 +256,12 @@ func (s *SunatSireClient) ConsultarDetallePropuesta(ruc, codLibro, periodo strin
 	}
 
 	var endpoint string
-	if codLibro == "140000" {
+	isCompras := codLibro != "140000"
+	if !isCompras {
 		endpoint = fmt.Sprintf("%s/v1/contribuyente/migeigv/libros/rvie/propuesta/web/propuesta/%s/comprobantes", s.client.BaseURL, periodo)
 	} else {
-		endpoint = fmt.Sprintf("%s/v1/contribuyente/migeigv/libros/rce/propuesta/web/propuesta/%s/comprobantes", s.client.BaseURL, periodo)
+		// En RCE (Compras 080000), el endpoint oficial de consulta paginada de propuesta es /busqueda con codTipoOpe=1
+		endpoint = fmt.Sprintf("%s/v1/contribuyente/migeigv/libros/rce/propuesta/web/propuesta/%s/busqueda", s.client.BaseURL, periodo)
 	}
 
 	page := f.Page
@@ -274,6 +276,10 @@ func (s *SunatSireClient) ConsultarDetallePropuesta(ruc, codLibro, periodo strin
 	req.SetHeader("Accept", "application/json").
 		SetQueryParam("page", page).
 		SetQueryParam("perPage", perPage)
+
+	if isCompras {
+		req.SetQueryParam("codTipoOpe", "1")
+	}
 
 	if f.CodTipoCDP != "" {
 		req.SetQueryParam("codTipoCDP", f.CodTipoCDP)
@@ -291,7 +297,11 @@ func (s *SunatSireClient) ConsultarDetallePropuesta(ruc, codLibro, periodo strin
 		req.SetQueryParam("fecEmisionFin", f.FecEmisionFin)
 	}
 	if f.NumDocIdentidad != "" {
-		req.SetQueryParam("numDocIdentidad", f.NumDocIdentidad)
+		if isCompras {
+			req.SetQueryParam("numDocIdentidadProveedor", f.NumDocIdentidad)
+		} else {
+			req.SetQueryParam("numDocIdentidad", f.NumDocIdentidad)
+		}
 	}
 
 	resp, err := req.Get(endpoint)
@@ -309,6 +319,94 @@ func (s *SunatSireClient) ConsultarDetallePropuesta(ruc, codLibro, periodo strin
 	}
 
 	return result, nil
+}
+
+// VerificarAccesoSIRE realiza una consulta ligera a periodos (140000) para comprobar que el token es aceptado por api-sire.sunat.gob.pe
+func (s *SunatSireClient) VerificarAccesoSIRE(ruc string) (int, string, error) {
+	req, err := s.client.R(ruc)
+	if err != nil {
+		return 0, "", err
+	}
+
+	endpoint := fmt.Sprintf("%s/v1/contribuyente/migeigv/libros/rvierce/padron/web/omisos/140000/periodos", s.client.BaseURL)
+	resp, err := req.
+		SetHeader("Accept", "application/json").
+		SetHeader("Content-Type", "application/json").
+		Get(endpoint)
+	if err != nil {
+		return 0, "", fmt.Errorf("error de red al verificar acceso a SIRE: %w", err)
+	}
+
+	return resp.StatusCode(), resp.String(), nil
+}
+
+// DescargarConstanciaRecepcion descarga la Constancia de Recepción (CDR) de un libro SIRE (RVIE 140000 o RCE 080000)
+func (s *SunatSireClient) DescargarConstanciaRecepcion(ruc, codLibro, nomArchivo string) ([]byte, string, error) {
+	nomArchivo = strings.TrimSpace(nomArchivo)
+	if nomArchivo == "" {
+		return nil, "", fmt.Errorf("el nombre del archivo de constancia de recepción es obligatorio")
+	}
+
+	type attempt struct {
+		path  string
+		param string
+	}
+
+	var attempts []attempt
+	if codLibro == "080000" {
+		attempts = []attempt{
+			{path: "/v1/contribuyente/migeigv/libros/rvierce/gestionlibro/web/registroslibros/constancia/constanciarecepcion", param: "nomConstanciaRecepcion"},
+			{path: "/v1/contribuyente/migeigv/libros/rvierce/gestionlibro/web/registroslibros/constancia/archivo", param: "nomArchivo"},
+		}
+	} else {
+		attempts = []attempt{
+			{path: "/v1/contribuyente/migeigv/libros/rvierce/gestionlibro/web/registroslibros/constancia/archivo", param: "nomArchivo"},
+			{path: "/v1/contribuyente/migeigv/libros/rvierce/gestionlibro/web/registroslibros/constancia/constanciarecepcion", param: "nomConstanciaRecepcion"},
+		}
+	}
+
+	var lastStatus int
+	var lastBody string
+
+	for i, a := range attempts {
+		req, err := s.client.R(ruc)
+		if err != nil {
+			return nil, "", fmt.Errorf("error al inicializar autenticación SUNAT: %w", err)
+		}
+
+		endpoint := fmt.Sprintf("%s%s", s.client.BaseURL, a.path)
+		resp, err := req.
+			SetHeader("Accept", "application/json").
+			SetQueryParam(a.param, nomArchivo).
+			Get(endpoint)
+		if err != nil {
+			return nil, "", fmt.Errorf("error de red al descargar constancia de recepción: %w", err)
+		}
+
+		if resp.StatusCode() == http.StatusOK && len(resp.Body()) > 0 {
+			contentType := resp.Header().Get("Content-Type")
+			if contentType == "" {
+				contentType = "application/octet-stream"
+			}
+			return resp.Body(), contentType, nil
+		}
+
+		lastStatus = resp.StatusCode()
+		lastBody = resp.String()
+
+		// Solo intentar ruta alternativa si SUNAT devolvió 404/405
+		if i == 0 && (resp.StatusCode() == http.StatusNotFound || resp.StatusCode() == http.StatusMethodNotAllowed) {
+			continue
+		}
+		break
+	}
+
+	return nil, "", &sunat.SunatHttpError{
+		StatusCode: lastStatus,
+		Host:       "api-sire.sunat.gob.pe",
+		RawBody:    lastBody,
+		Ruta:       fmt.Sprintf("%s/v1/contribuyente/migeigv/libros/rvierce/gestionlibro/web/registroslibros/constancia", s.client.BaseURL),
+	}
 }
 
 func extractTicket(data map[string]interface{}) string {

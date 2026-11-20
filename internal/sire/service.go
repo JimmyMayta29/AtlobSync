@@ -131,6 +131,26 @@ func (s *Service) ObtenerDescargaPorTicket(ticket, ruc string) (*DescargaSire, e
 	return d, nil
 }
 
+// ReintentarDescarga vuelve a encolar un ticket existente en ERROR o EN_PROCESO para descargar su archivo
+func (s *Service) ReintentarDescarga(id int64) (*DescargaSire, error) {
+	d, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, errors.New("descarga no encontrada")
+	}
+	if d.Estado == string(EstadoCompletado) {
+		return d, nil
+	}
+	if err := s.repo.ResetForRetry(id); err != nil {
+		return nil, fmt.Errorf("no se pudo reiniciar el ticket: %w", err)
+	}
+	s.worker.Enqueue(id)
+	updated, err := s.repo.GetByID(id)
+	if err != nil {
+		return d, nil
+	}
+	return updated, nil
+}
+
 // ObtenerArchivoParaDescarga verifica permisos y ruta física en disco sin aceptar rutas arbitrarias del cliente
 func (s *Service) ObtenerArchivoParaDescarga(id int64, ruc string) (*DescargaSire, string, error) {
 	d, err := s.ObtenerDescarga(id, ruc)
@@ -161,4 +181,41 @@ func (s *Service) ObtenerArchivoParaDescarga(id int64, ruc string) (*DescargaSir
 	}
 
 	return d, cleanPath, nil
+}
+
+// DescargarConstanciaRecepcion descarga la Constancia de Recepción (CDR) del libro SIRE y guarda copia local
+func (s *Service) DescargarConstanciaRecepcion(ruc, libro, nomArchivo string) ([]byte, string, string, error) {
+	libroUpper := strings.ToUpper(strings.TrimSpace(libro))
+	codLibro := "140000"
+	libroDir := "VENTAS"
+	if libroUpper == "COMPRAS" || libroUpper == "RCE" || libroUpper == "080000" {
+		codLibro = "080000"
+		libroDir = "COMPRAS"
+	}
+
+	data, contentType, err := s.sireClient.DescargarConstanciaRecepcion(ruc, codLibro, nomArchivo)
+	if err != nil {
+		return nil, "", "", err
+	}
+
+	cleanName := filepath.Base(filepath.Clean(strings.TrimSpace(nomArchivo)))
+	if cleanName == "." || cleanName == "" {
+		cleanName = fmt.Sprintf("constancia_%s_%s.zip", ruc, codLibro)
+	}
+	if !strings.Contains(cleanName, ".") {
+		if isZipBytes(data) {
+			cleanName += ".zip"
+		} else if len(data) >= 4 && string(data[:4]) == "%PDF" {
+			cleanName += ".pdf"
+		} else {
+			cleanName += ".json"
+		}
+	}
+
+	targetDir := filepath.Join(s.storageDir, ruc, libroDir, "constancias")
+	if err := os.MkdirAll(targetDir, 0755); err == nil {
+		_ = os.WriteFile(filepath.Join(targetDir, cleanName), data, 0644)
+	}
+
+	return data, cleanName, contentType, nil
 }

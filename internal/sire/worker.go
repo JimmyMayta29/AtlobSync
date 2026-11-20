@@ -18,15 +18,16 @@ type TokenProvider interface {
 }
 
 type Worker struct {
-	repo       *Repository
-	sireClient *SunatSireClient
-	tokenMgr   TokenProvider
-	storageDir string
-	queue      chan int64
-	stopChan   chan struct{}
-	activeMu   sync.Mutex
-	activeJobs map[int64]bool
-	running    bool
+	repo                *Repository
+	sireClient          *SunatSireClient
+	tokenMgr            TokenProvider
+	storageDir          string
+	queue               chan int64
+	stopChan            chan struct{}
+	activeMu            sync.Mutex
+	activeJobs          map[int64]bool
+	running             bool
+	OnDownloadCompleted func(d *DescargaSire)
 }
 
 func NewWorker(repo *Repository, sireClient *SunatSireClient, tokenMgr TokenProvider, storageDir string) *Worker {
@@ -200,8 +201,10 @@ func (w *Worker) processJob(id int64) {
 
 		if len(status.ArchivoReporte) > 0 {
 			nomArchivo = status.ArchivoReporte[0].NomArchivoReporte
-			if status.ArchivoReporte[0].CodTipoArchivoReporte != "" {
-				codTipo = status.ArchivoReporte[0].CodTipoArchivoReporte
+			if strings.TrimSpace(status.ArchivoReporte[0].CodTipoArchivoReporte) != "" {
+				codTipo = strings.TrimSpace(status.ArchivoReporte[0].CodTipoArchivoReporte)
+			} else if strings.TrimSpace(status.ArchivoReporte[0].CodTipoAchivoReporte) != "" {
+				codTipo = strings.TrimSpace(status.ArchivoReporte[0].CodTipoAchivoReporte)
 			}
 		}
 
@@ -249,7 +252,7 @@ func (w *Worker) processJob(id int64) {
 
 		// Preservar la extensión que SUNAT entrega en nomArchivoReporte; no forzar .xlsx arbitrariamente
 		cleanNomArchivo := filepath.Base(filepath.Clean(nomArchivo))
-		if bytes.HasPrefix(fileBytes, []byte("PK\x03\x04")) {
+		if isZipBytes(fileBytes) {
 			if !strings.HasSuffix(strings.ToLower(cleanNomArchivo), ".zip") {
 				cleanNomArchivo += ".zip"
 			}
@@ -299,11 +302,22 @@ func (w *Worker) processJob(id int64) {
 
 		log.Printf("[SIRE-WORKER] [EXITO] Ticket %s completado. Archivo: %s (%d bytes, SHA256: %s)",
 			descarga.Ticket, targetFilePath, fileSize, hashHex[:12])
+
+		if w.OnDownloadCompleted != nil {
+			completed := *descarga
+			completed.Estado = string(EstadoCompletado)
+			completed.NombreArchivo = cleanNomArchivo
+			completed.RutaLocal = targetFilePath
+			completed.TamanoBytes = fileSize
+			completed.HashArchivo = hashHex
+			go w.OnDownloadCompleted(&completed)
+		}
 		return
 	}
 
-	// Estados de procesamiento en cola o progreso ("00", "01", "02", "03", "04")
-	if strings.Contains("00 01 02 03 04", status.CodEstadoProceso) || status.CodEstadoProceso == "" {
+	// Estados de procesamiento en cola o progreso en SUNAT:
+	// "00" inicial, "01" cargado/solicitado, "02" validando/en proceso, "04" procesado parcial, "05" En proceso (producción SUNAT)
+	if isTicketInProgress(status.CodEstadoProceso, status.DesEstadoProceso) {
 		desEstado := status.DesEstadoProceso
 		if desEstado == "" {
 			desEstado = "En proceso en SUNAT"
@@ -324,17 +338,38 @@ func (w *Worker) processJob(id int64) {
 	_ = w.repo.UpdateStatus(descarga.ID, string(EstadoError), fmt.Sprintf("SUNAT reportó finalización con error (código %s): %s", status.CodEstadoProceso, status.DesEstadoProceso))
 }
 
+func isZipBytes(b []byte) bool {
+	return bytes.HasPrefix(b, []byte("PK\x03\x04")) || bytes.HasPrefix(b, []byte("PK\x07\x08PK\x03\x04"))
+}
+
+func isTicketInProgress(codEstado, desEstado string) bool {
+	cod := strings.TrimSpace(codEstado)
+	switch cod {
+	case "", "00", "01", "02", "04", "05":
+		return true
+	}
+	des := strings.ToLower(strings.TrimSpace(desEstado))
+	if strings.Contains(des, "error") || strings.Contains(des, "rechaz") || strings.Contains(des, "fall") {
+		return false
+	}
+	return strings.Contains(des, "en proceso") ||
+		strings.Contains(des, "pendiente") ||
+		strings.Contains(des, "solicitado") ||
+		strings.Contains(des, "cargado") ||
+		strings.Contains(des, "validando")
+}
+
 func (w *Worker) retryWithBackoff(id int64, retryCount int) {
-	// Backoff exponencial con jitter razonable: 3s, 5s, 8s, 13s, 20s, max 30s
-	delaySeconds := 3
+	// Backoff progresivo: 2s, 4s, 7s, 12s, 18s, max 30s
+	delaySeconds := 2
 	if retryCount == 2 {
-		delaySeconds = 5
+		delaySeconds = 4
 	} else if retryCount == 3 {
-		delaySeconds = 8
+		delaySeconds = 7
 	} else if retryCount == 4 {
-		delaySeconds = 13
+		delaySeconds = 12
 	} else if retryCount == 5 {
-		delaySeconds = 20
+		delaySeconds = 18
 	} else if retryCount > 5 {
 		delaySeconds = 30
 	}

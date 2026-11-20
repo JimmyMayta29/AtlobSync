@@ -1,6 +1,6 @@
 @echo off
 echo ==================================================
-echo   Compilando SIRE - SUNAT Multiempresa v2.0
+echo   Compilando ATLOB Sync - SUNAT (ATLOB Consultores)
 echo   Modo: Ejecutable de Doble Clic (Windows GUI)
 echo ==================================================
 go build -ldflags "-H=windowsgui -s -w" -o sire_api.exe .

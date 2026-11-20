@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	_ "modernc.org/sqlite"
 )
@@ -24,11 +25,16 @@ func InitDB(dbPath string) (*sql.DB, error) {
 		return nil, fmt.Errorf("error al abrir base de datos SQLite en '%s': %w", dbPath, err)
 	}
 
+	// En SQLite los PRAGMAs son por conexión y solo existe un escritor simultáneo.
+	// Limitar el pool a 1 conexión garantiza que los PRAGMAs apliquen siempre y elimina errores SQLITE_BUSY.
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+
 	// Configurar pragmas obligatorios para rendimiento e integridad referencial
 	pragmas := []string{
 		"PRAGMA journal_mode = WAL;",
 		"PRAGMA foreign_keys = ON;",
-		"PRAGMA busy_timeout = 5000;",
+		"PRAGMA busy_timeout = 10000;",
 		"PRAGMA synchronous = NORMAL;",
 	}
 
@@ -100,19 +106,25 @@ func runMigrations(db *sql.DB) error {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		empresa_ruc TEXT NOT NULL,
 		origen TEXT NOT NULL,
+		periodo TEXT DEFAULT '',
 		tipo_cp TEXT NOT NULL,
 		serie TEXT NOT NULL,
 		numero TEXT NOT NULL,
-		fecha_emision TEXT,
+		fecha_emision TEXT DEFAULT '',
+		ruc_contraparte TEXT DEFAULT '',
+		razon_contraparte TEXT DEFAULT '',
+		base_imponible REAL DEFAULT 0.0,
+		igv REAL DEFAULT 0.0,
 		monto_total REAL DEFAULT 0.0,
 		moneda TEXT DEFAULT 'PEN',
 		estado_sunat TEXT DEFAULT 'DESCONOCIDO',
+		car_sunat TEXT DEFAULT '',
 		ruta_xml TEXT DEFAULT '',
 		ruta_cdr TEXT DEFAULT '',
 		ruta_pdf TEXT DEFAULT '',
 		hash_archivo TEXT DEFAULT '',
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		UNIQUE(empresa_ruc, tipo_cp, serie, numero)
+		UNIQUE(empresa_ruc, origen, ruc_contraparte, tipo_cp, serie, numero)
 	);
 
 	CREATE INDEX IF NOT EXISTS idx_cpe_ruc_fecha ON comprobantes_cpe(empresa_ruc, fecha_emision);
@@ -136,6 +148,72 @@ func runMigrations(db *sql.DB) error {
 	_, _ = db.Exec("ALTER TABLE empresas ADD COLUMN estado_credenciales TEXT DEFAULT 'PENDIENTE';")
 	_, _ = db.Exec("ALTER TABLE empresas ADD COLUMN bloqueado_hasta DATETIME NULL;")
 	_, _ = db.Exec("ALTER TABLE empresas ADD COLUMN mensaje_auth TEXT DEFAULT '';")
+	_, _ = db.Exec("ALTER TABLE comprobantes_cpe ADD COLUMN periodo TEXT DEFAULT '';")
+	_, _ = db.Exec("ALTER TABLE comprobantes_cpe ADD COLUMN ruc_contraparte TEXT DEFAULT '';")
+	_, _ = db.Exec("ALTER TABLE comprobantes_cpe ADD COLUMN razon_contraparte TEXT DEFAULT '';")
+	_, _ = db.Exec("ALTER TABLE comprobantes_cpe ADD COLUMN base_imponible REAL DEFAULT 0.0;")
+	_, _ = db.Exec("ALTER TABLE comprobantes_cpe ADD COLUMN igv REAL DEFAULT 0.0;")
+	_, _ = db.Exec("ALTER TABLE comprobantes_cpe ADD COLUMN car_sunat TEXT DEFAULT '';")
+	_, _ = db.Exec("ALTER TABLE comprobantes_cpe ADD COLUMN concordancia_sire TEXT DEFAULT 'PENDIENTE';")
+	_, _ = db.Exec("ALTER TABLE comprobantes_cpe ADD COLUMN detalle_concordancia TEXT DEFAULT '';")
+	_, _ = db.Exec("ALTER TABLE comprobantes_cpe ADD COLUMN resumen_items TEXT DEFAULT '';")
+	_, _ = db.Exec("ALTER TABLE comprobantes_cpe ADD COLUMN vigente_sire INTEGER DEFAULT 1;")
+
+	// Migrar restricción UNIQUE de comprobantes_cpe para soportar compras de distintos proveedores con misma serie (ej. E001-1)
+	var cpeTableSQL string
+	_ = db.QueryRow("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'comprobantes_cpe'").Scan(&cpeTableSQL)
+	if cpeTableSQL != "" && !strings.Contains(cpeTableSQL, "UNIQUE(empresa_ruc, origen, ruc_contraparte, tipo_cp, serie, numero)") {
+		if tx, txErr := db.Begin(); txErr == nil {
+			_, e1 := tx.Exec(`
+				CREATE TABLE comprobantes_cpe_v2 (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					empresa_ruc TEXT NOT NULL,
+					origen TEXT NOT NULL,
+					periodo TEXT DEFAULT '',
+					tipo_cp TEXT NOT NULL,
+					serie TEXT NOT NULL,
+					numero TEXT NOT NULL,
+					fecha_emision TEXT DEFAULT '',
+					ruc_contraparte TEXT DEFAULT '',
+					razon_contraparte TEXT DEFAULT '',
+					base_imponible REAL DEFAULT 0.0,
+					igv REAL DEFAULT 0.0,
+					monto_total REAL DEFAULT 0.0,
+					moneda TEXT DEFAULT 'PEN',
+					estado_sunat TEXT DEFAULT 'DESCONOCIDO',
+					car_sunat TEXT DEFAULT '',
+					ruta_xml TEXT DEFAULT '',
+					ruta_cdr TEXT DEFAULT '',
+					ruta_pdf TEXT DEFAULT '',
+					hash_archivo TEXT DEFAULT '',
+					created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+					UNIQUE(empresa_ruc, origen, ruc_contraparte, tipo_cp, serie, numero)
+				);
+			`)
+			_, e2 := tx.Exec(`
+				INSERT OR IGNORE INTO comprobantes_cpe_v2 (
+					id, empresa_ruc, origen, periodo, tipo_cp, serie, numero,
+					fecha_emision, ruc_contraparte, razon_contraparte,
+					base_imponible, igv, monto_total, moneda,
+					estado_sunat, car_sunat, ruta_xml, ruta_cdr, ruta_pdf, hash_archivo, created_at
+				)
+				SELECT
+					id, empresa_ruc, COALESCE(origen, 'VENTAS'), COALESCE(periodo, ''), tipo_cp, serie, numero,
+					COALESCE(fecha_emision, ''), COALESCE(ruc_contraparte, ''), COALESCE(razon_contraparte, ''),
+					COALESCE(base_imponible, 0.0), COALESCE(igv, 0.0), COALESCE(monto_total, 0.0), COALESCE(moneda, 'PEN'),
+					COALESCE(estado_sunat, 'DESCONOCIDO'), COALESCE(car_sunat, ''), COALESCE(ruta_xml, ''), COALESCE(ruta_cdr, ''), COALESCE(ruta_pdf, ''), COALESCE(hash_archivo, ''), created_at
+				FROM comprobantes_cpe;
+			`)
+			_, e3 := tx.Exec("DROP TABLE comprobantes_cpe;")
+			_, e4 := tx.Exec("ALTER TABLE comprobantes_cpe_v2 RENAME TO comprobantes_cpe;")
+			_, e5 := tx.Exec("CREATE INDEX IF NOT EXISTS idx_cpe_ruc_fecha ON comprobantes_cpe(empresa_ruc, fecha_emision);")
+			if e1 == nil && e2 == nil && e3 == nil && e4 == nil && e5 == nil {
+				_ = tx.Commit()
+			} else {
+				_ = tx.Rollback()
+			}
+		}
+	}
 
 	// Purgar cualquier tabla heredada que contenga la columna en texto plano 'access_token'
 	var legacyCol string

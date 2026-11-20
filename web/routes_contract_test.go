@@ -15,6 +15,7 @@ import (
 	ventasRoutes "github.com/SwodLore/sire-api/VENTAS/routes"
 	"github.com/SwodLore/sire-api/internal/company"
 	"github.com/SwodLore/sire-api/internal/config"
+	"github.com/SwodLore/sire-api/internal/cpe"
 	"github.com/SwodLore/sire-api/internal/crypto"
 	"github.com/SwodLore/sire-api/internal/database"
 	"github.com/SwodLore/sire-api/internal/middleware"
@@ -99,6 +100,10 @@ func setupTestRouter(t *testing.T) (*gin.Engine, string) {
 	sireSvc := sire.NewService(sireRepo, sireClient, sireWorker, t.TempDir())
 	sireCtrl := sire.NewController(sireSvc)
 
+	cpeRepo := cpe.NewRepository(db)
+	cpeSvc := cpe.NewService(cpeRepo, companySvc, sireRepo, t.TempDir())
+	cpeCtrl := cpe.NewController(cpeSvc)
+
 	cfg := &config.Config{Host: "127.0.0.1", Port: "8080", BaseDir: "."}
 	sysCtrl := system.NewController(cfg, tokenMgr, companyRepo, sunatClient, sireWorker)
 
@@ -111,6 +116,7 @@ func setupTestRouter(t *testing.T) (*gin.Engine, string) {
 
 		empresaMiddleware := middleware.RequireActiveCompany(companyRepo)
 		sireCtrl.RegisterRoutes(apiGroup, empresaMiddleware)
+		cpeCtrl.RegisterRoutes(apiGroup, empresaMiddleware)
 
 		ventasGroup := apiGroup.Group("/empresas/:ruc/ventas", empresaMiddleware)
 		ventasRoutes.RegisterRoutes(ventasGroup)
@@ -187,6 +193,24 @@ func TestRoutesContract_AllFrontendRoutesExistInBackend(t *testing.T) {
 		{"Estado Worker", "GET", "/api/sistema/estado-worker"},
 		{"Diagnóstico Periodos", "POST", "/api/sistema/diagnostico/:ruc"},
 		{"Salud de la App", "GET", "/api/salud"},
+		{"Constancia Recepción SIRE", "GET", "/api/empresas/:ruc/sire/constancia"},
+		{"Listar Comprobantes CPE", "GET", "/api/empresas/:ruc/cpe"},
+		{"Sincronizar CPE desde SIRE", "POST", "/api/empresas/:ruc/cpe/sincronizar-sire"},
+		{"Registrar CPE Manual", "POST", "/api/empresas/:ruc/cpe/manual"},
+		{"Importar XML/PDF/CDR", "POST", "/api/empresas/:ruc/cpe/importar"},
+		{"Consultar CDR SOAP SUNAT", "POST", "/api/empresas/:ruc/cpe/:id/consultar-cdr"},
+		{"Descargar Individual SUNAT SOL", "POST", "/api/empresas/:ruc/cpe/:id/descargar-sunat"},
+		{"Ver Detalle Real CPE", "GET", "/api/empresas/:ruc/cpe/:id/detalle"},
+		{"Descargar PDF CPE", "GET", "/api/empresas/:ruc/cpe/:id/pdf"},
+		{"Descargar XML CPE", "GET", "/api/empresas/:ruc/cpe/:id/xml"},
+		{"Descargar CDR CPE", "GET", "/api/empresas/:ruc/cpe/:id/cdr"},
+		{"Descargar JSON CPE", "GET", "/api/empresas/:ruc/cpe/:id/json"},
+		{"Iniciar Descarga Masiva CPE", "POST", "/api/empresas/:ruc/cpe/descarga-masiva"},
+		{"Listar Lotes Descarga Masiva CPE", "GET", "/api/empresas/:ruc/cpe/descarga-masiva"},
+		{"Estado Lote Descarga Masiva CPE", "GET", "/api/empresas/:ruc/cpe/descarga-masiva/:job_id"},
+		{"Cancelar Lote Descarga Masiva CPE", "DELETE", "/api/empresas/:ruc/cpe/descarga-masiva/:job_id"},
+		{"Descargar ZIP Lote Descarga Masiva CPE", "GET", "/api/empresas/:ruc/cpe/descarga-masiva/:job_id/zip"},
+		{"Exportar Items CSV CPE", "GET", "/api/empresas/:ruc/cpe/exportar-items"},
 	}
 
 	for _, er := range expectedRoutes {

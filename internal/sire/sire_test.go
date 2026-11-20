@@ -999,5 +999,148 @@ func TestWorker_MissingCodProcesoFailsWithError(t *testing.T) {
 	}
 }
 
+func TestSireWorker_Estado05EnProceso_TypoCodTipoAchivo_SpannedZip_y_RCEBusqueda(t *testing.T) {
+	db, tempDir := setupTestDB(t)
+	defer db.Close()
+	defer os.RemoveAll(tempDir)
+
+	storageDir := filepath.Join(tempDir, "descargas")
+
+	// Simular ZIP con prefijo PK\x07\x08PK\x03\x04 como entrega SUNAT en producción
+	spannedZip := append([]byte("PK\x07\x08"), createDummyZip()...)
+
+	var mu sync.Mutex
+	pollCount := 0
+	var capturedCodTipo string
+	var capturedRcePath string
+	var capturedCodTipoOpe string
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if strings.Contains(r.URL.Path, "consultaestadotickets") {
+			mu.Lock()
+			pollCount++
+			c := pollCount
+			mu.Unlock()
+
+			if c == 1 {
+				// Respuesta real de SUNAT producción justo después de exportar: código 05 "En proceso"
+				_ = json.NewEncoder(w).Encode(map[string]interface{}{
+					"registros": []map[string]interface{}{
+						{
+							"numTicket":        "20260300000080",
+							"codEstadoProceso": "05",
+							"desEstadoProceso": "En proceso",
+							"perTributario":    "202610",
+							"codProceso":       "10",
+						},
+					},
+				})
+				return
+			}
+
+			// Segundo intento: SUNAT responde 06 con su typo real "codTipoAchivoReporte"
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
+				"registros": []map[string]interface{}{
+					{
+						"numTicket":        "20260300000080",
+						"codEstadoProceso": "06",
+						"desEstadoProceso": "Terminado",
+						"perTributario":    "202610",
+						"codProceso":       "10",
+						"archivoReporte": []map[string]string{
+							{
+								"codTipoAchivoReporte": "00",
+								"nomArchivoReporte":    "20000000001-20261119-120142-propuesta.zip",
+								"nomArchivoContenido":  "20000000001-20261119-1201-propuesta.txt",
+							},
+						},
+					},
+				},
+			})
+			return
+		}
+
+		if strings.Contains(r.URL.Path, "archivoreporte") {
+			capturedCodTipo = r.URL.Query().Get("codTipoArchivoReporte")
+			w.Header().Set("Content-Type", "application/zip")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write(spannedZip)
+			return
+		}
+
+		if strings.Contains(r.URL.Path, "/rce/propuesta/web/propuesta/") {
+			capturedRcePath = r.URL.Path
+			capturedCodTipoOpe = r.URL.Query().Get("codTipoOpe")
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
+				"paginacion": map[string]interface{}{"page": 1, "perPage": 20, "totalRegistros": 1},
+				"registros":  []map[string]interface{}{{"codTipoCDP": "01", "numSerieCDP": "E001", "numCDP": "482"}},
+			})
+			return
+		}
+
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	mockToken := &mockTokenProvider{}
+	sunatClient := sunat.NewClient(mockToken)
+	sunatClient.SetBaseURL(server.URL)
+
+	sireClient := NewSunatSireClient(sunatClient)
+	repo := NewRepository(db)
+	worker := NewWorker(repo, sireClient, mockToken, storageDir)
+	service := NewService(repo, sireClient, worker, storageDir)
+
+	worker.Start()
+	defer worker.Stop()
+
+	// Crear ticket fallido y probar ReintentarDescarga + transición 05 -> 06
+	tErr := &DescargaSire{
+		EmpresaRUC:   "20000000001",
+		CodLibro:     "080000",
+		Libro:        "COMPRAS",
+		Periodo:      "202610",
+		Ticket:       "20260300000080",
+		Estado:       string(EstadoError),
+		MensajeSUNAT: "Error previo simulado",
+	}
+	if err := repo.Create(tErr); err != nil {
+		t.Fatalf("Error creando ticket: %v", err)
+	}
+
+	if _, err := service.ReintentarDescarga(tErr.ID); err != nil {
+		t.Fatalf("Error en ReintentarDescarga: %v", err)
+	}
+
+	var done *DescargaSire
+	for i := 0; i < 30; i++ {
+		time.Sleep(200 * time.Millisecond)
+		d, err := repo.GetByID(tErr.ID)
+		if err == nil && d.Estado == string(EstadoCompletado) {
+			done = d
+			break
+		}
+	}
+	if done == nil {
+		d, _ := repo.GetByID(tErr.ID)
+		t.Fatalf("Ticket con estado 05 -> 06 no se completó. Estado=%v Msg=%v", d.Estado, d.MensajeSUNAT)
+	}
+	if capturedCodTipo != "00" {
+		t.Fatalf("Se esperaba codTipoArchivoReporte='00' leído desde codTipoAchivoReporte, obtenido: '%s'", capturedCodTipo)
+	}
+	if !strings.HasSuffix(done.NombreArchivo, ".zip") {
+		t.Fatalf("Se esperaba extensión .zip, obtenido: %s", done.NombreArchivo)
+	}
+
+	// Verificar que ConsultarDetallePropuesta para COMPRAS usa /busqueda?codTipoOpe=1
+	if _, err := service.ConsultarDetallePropuesta("20000000001", "COMPRAS", "202610", FiltrosPropuestaDetalle{Page: "1", PerPage: "20"}); err != nil {
+		t.Fatalf("Error consultando detalle RCE Compras: %v", err)
+	}
+	if !strings.HasSuffix(capturedRcePath, "/202610/busqueda") || capturedCodTipoOpe != "1" {
+		t.Fatalf("RCE Compras debe invocar /busqueda con codTipoOpe=1, recibido path=%s codTipoOpe=%s", capturedRcePath, capturedCodTipoOpe)
+	}
+}
+
 
 

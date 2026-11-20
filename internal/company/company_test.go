@@ -222,3 +222,49 @@ func TestEndpointsNeverReturnSecrets(t *testing.T) {
 	}
 }
 
+func TestTestConnection_VerifiesSireGateway(t *testing.T) {
+	db, repo, svc := setupTestDB(t)
+	defer db.Close()
+
+	_, err := svc.CreateEmpresa(&CreateEmpresaRequest{
+		RUC:          "20000000001",
+		RazonSocial:  "EMPRESA DEMO S.A.C.",
+		UsuarioSOL:   "DEMOUSER",
+		ClaveSOL:     "Clave123",
+		ClientID:     "cid-test",
+		ClientSecret: "csec-test",
+	})
+	if err != nil {
+		t.Fatalf("error creando empresa: %v", err)
+	}
+
+	// Caso 1: OAuth2 OK pero SIRE devuelve 401 (ej. credenciales Web en vez de Desktop)
+	svc.SetSireVerifier(func(ruc string) (int, string, error) {
+		return 401, "<html>401 Authorization Required</html>", nil
+	})
+	if _, err := svc.TestConnection("20000000001"); err == nil {
+		t.Fatalf("se esperaba error cuando SIRE devuelve 401")
+	}
+	emp, _ := repo.GetByRUC("20000000001")
+	if emp.EstadoCredenciales != "SIN_PERMISO_SIRE" {
+		t.Fatalf("se esperaba estado SIN_PERMISO_SIRE, se obtuvo %s", emp.EstadoCredenciales)
+	}
+
+	// Caso 2: OAuth2 OK y SIRE devuelve 200
+	svc.SetSireVerifier(func(ruc string) (int, string, error) {
+		return 200, `[{"numEjercicio":"2026"}]`, nil
+	})
+	res, err := svc.TestConnection("20000000001")
+	if err != nil {
+		t.Fatalf("no se esperaba error con SIRE 200: %v", err)
+	}
+	if res["sire_ok"] != true || res["oauth_ok"] != true {
+		t.Fatalf("respuesta inesperada: %v", res)
+	}
+	emp, _ = repo.GetByRUC("20000000001")
+	if emp.EstadoCredenciales != "VALIDO" {
+		t.Fatalf("se esperaba estado VALIDO, se obtuvo %s", emp.EstadoCredenciales)
+	}
+}
+
+

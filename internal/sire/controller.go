@@ -3,7 +3,9 @@ package sire
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/SwodLore/sire-api/internal/sunat"
 	"github.com/gin-gonic/gin"
@@ -21,6 +23,7 @@ func (ctrl *Controller) RegisterRoutes(apiGroup *gin.RouterGroup, empresaAuth gi
 	// Endpoints globales directos (usados por la interfaz web y clientes)
 	apiGroup.GET("/descargas", ctrl.ListarDescargasGlobal)
 	apiGroup.GET("/descargas/:id/archivo", ctrl.DescargarArchivoDirecto)
+	apiGroup.POST("/descargas/:id/reintentar", ctrl.ReintentarDescarga)
 	apiGroup.POST("/sire/propuesta/exportar", ctrl.SolicitarExportacionGlobal)
 	apiGroup.GET("/sire/propuesta/detalle", ctrl.ConsultarDetallePropuestaGlobal)
 	apiGroup.GET("/sire/tickets/:ruc/:ticket", ctrl.ConsultarTicket)
@@ -42,6 +45,9 @@ func (ctrl *Controller) RegisterRoutes(apiGroup *gin.RouterGroup, empresaAuth gi
 
 		// 5. Descargar archivo físico por ID de base de datos
 		sireGroup.GET("/descargas/:id/archivo", ctrl.DescargarArchivoEmpresa)
+
+		// 6. Descargar Constancia de Recepción (CDR) del libro SIRE (RVIE o RCE)
+		sireGroup.GET("/constancia", ctrl.DescargarConstanciaRecepcion)
 	}
 }
 
@@ -154,8 +160,57 @@ func (ctrl *Controller) DescargarArchivoEmpresa(c *gin.Context) {
 	}
 
 	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", descarga.NombreArchivo))
-	c.Header("Content-Type", "application/zip")
+	c.Header("Content-Type", detectDownloadContentType(descarga.NombreArchivo))
 	c.File(filePath)
+}
+
+func (ctrl *Controller) DescargarConstanciaRecepcion(c *gin.Context) {
+	ruc := c.GetString("ruc")
+	libro := c.DefaultQuery("libro", "VENTAS")
+	nomArchivo := strings.TrimSpace(c.Query("nomArchivo"))
+	if nomArchivo == "" {
+		nomArchivo = strings.TrimSpace(c.Query("nomConstanciaRecepcion"))
+	}
+	if nomArchivo == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success":     false,
+			"error":       "Debe indicar el nombre de archivo de la constancia de recepción (nomArchivo)",
+			"detalle":     "Ejemplo: nombre exacto de constancia devuelto por SUNAT al presentar el libro SIRE",
+			"codigo_http": http.StatusBadRequest,
+		})
+		return
+	}
+
+	data, fileName, contentType, err := ctrl.service.DescargarConstanciaRecepcion(ruc, libro, nomArchivo)
+	if err != nil {
+		sunat.RespondWithError(c, err)
+		return
+	}
+
+	if contentType == "" || contentType == "application/octet-stream" {
+		contentType = detectDownloadContentType(fileName)
+	}
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", fileName))
+	c.Data(http.StatusOK, contentType, data)
+}
+
+func detectDownloadContentType(filename string) string {
+	switch strings.ToLower(filepath.Ext(filename)) {
+	case ".zip":
+		return "application/zip"
+	case ".txt":
+		return "text/plain; charset=utf-8"
+	case ".csv":
+		return "text/csv; charset=utf-8"
+	case ".xls", ".xlsx":
+		return "application/vnd.ms-excel"
+	case ".pdf":
+		return "application/pdf"
+	case ".xml":
+		return "application/xml"
+	default:
+		return "application/octet-stream"
+	}
 }
 
 func (ctrl *Controller) DescargarArchivoDirecto(c *gin.Context) {
@@ -179,8 +234,29 @@ func (ctrl *Controller) DescargarArchivoDirecto(c *gin.Context) {
 	}
 
 	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", descarga.NombreArchivo))
-	c.Header("Content-Type", "application/zip")
+	c.Header("Content-Type", detectDownloadContentType(descarga.NombreArchivo))
 	c.File(filePath)
+}
+
+func (ctrl *Controller) ReintentarDescarga(c *gin.Context) {
+	idParam := c.Param("id")
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "ID de descarga inválido"})
+		return
+	}
+
+	descarga, err := ctrl.service.ReintentarDescarga(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusAccepted, gin.H{
+		"success": true,
+		"mensaje": fmt.Sprintf("Ticket %s reencolado para descarga automática.", descarga.Ticket),
+		"data":    descarga,
+	})
 }
 
 func (ctrl *Controller) ListarDescargasGlobal(c *gin.Context) {
