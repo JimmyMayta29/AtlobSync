@@ -1,8 +1,10 @@
 package middleware
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -137,5 +139,99 @@ func TestSecurity_RejectionOfForeignOriginAndHost(t *testing.T) {
 
 	if wHost.Code != http.StatusForbidden {
 		t.Fatalf("Se esperaba 403 para Host no permitido, pero se obtuvo %d", wHost.Code)
+	}
+}
+
+func TestSanitizedLoggerMiddleware_OmitsQueryAndMasks11DigitSegments(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	var logBuf bytes.Buffer
+
+	r := gin.New()
+	r.Use(SanitizedLoggerMiddlewareWithWriter(&logBuf))
+	r.GET("/api/salud", func(c *gin.Context) { c.Status(http.StatusOK) })
+	r.GET("/api/descargas/:id/propuesta-txt", func(c *gin.Context) { c.Status(http.StatusOK) })
+	r.GET("/api/empresas/:ruc/cpe", func(c *gin.Context) { c.Status(http.StatusOK) })
+	r.GET("/api/sire/tickets/:ruc/:ticket", func(c *gin.Context) { c.Status(http.StatusOK) })
+	r.GET("/api/sire/propuesta/detalle", func(c *gin.Context) { c.Status(http.StatusOK) })
+	r.GET("/api/items/:code", func(c *gin.Context) { c.Status(http.StatusOK) })
+
+	cases := []struct {
+		name         string
+		target       string
+		wantContains []string
+		wantAbsent   []string
+	}{
+		{
+			name:         "query string omitido completamente",
+			target:       "/api/sire/propuesta/detalle?ruc=20000000001&token=secreto_xyz&periodo=202610",
+			wantContains: []string{`"/api/sire/propuesta/detalle"`},
+			wantAbsent:   []string{"?", "20000000001", "secreto_xyz", "periodo=202610"},
+		},
+		{
+			name:         "ruc enmascarado en ruta de empresa",
+			target:       "/api/empresas/20000000001/cpe?origen=COMPRAS&q=factura",
+			wantContains: []string{`"/api/empresas/[RUC]/cpe"`},
+			wantAbsent:   []string{"20000000001", "origen=", "factura"},
+		},
+		{
+			name:         "ruc enmascarado en ruta de tickets conservando ticket de 14 digitos",
+			target:       "/api/sire/tickets/20000000001/20260300000080",
+			wantContains: []string{`"/api/sire/tickets/[RUC]/20260300000080"`},
+			wantAbsent:   []string{"20000000001"},
+		},
+		{
+			name:         "segmento de 10 digitos no enmascarado",
+			target:       "/api/items/1234567890",
+			wantContains: []string{`"/api/items/1234567890"`},
+			wantAbsent:   []string{"[RUC]"},
+		},
+		{
+			name:         "segmento de 12 digitos no enmascarado",
+			target:       "/api/items/123456789012",
+			wantContains: []string{`"/api/items/123456789012"`},
+			wantAbsent:   []string{"[RUC]"},
+		},
+		{
+			name:         "id numerico de 11 digitos no-RUC enmascarado por seguridad",
+			target:       "/api/descargas/99999999999/propuesta-txt?limit=50",
+			wantContains: []string{`"/api/descargas/[RUC]/propuesta-txt"`},
+			wantAbsent:   []string{"99999999999", "limit=50"},
+		},
+		{
+			name:         "ruta sin ruc permanece intacta",
+			target:       "/api/descargas/42/propuesta-txt",
+			wantContains: []string{`"/api/descargas/42/propuesta-txt"`},
+			wantAbsent:   []string{"[RUC]"},
+		},
+		{
+			name:         "ruta salud intacta",
+			target:       "/api/salud",
+			wantContains: []string{`"/api/salud"`},
+			wantAbsent:   []string{"[RUC]"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			logBuf.Reset()
+			req, _ := http.NewRequest(http.MethodGet, tc.target, nil)
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+
+			if w.Code != http.StatusOK {
+				t.Fatalf("status inesperado %d", w.Code)
+			}
+			line := logBuf.String()
+			for _, want := range tc.wantContains {
+				if !strings.Contains(line, want) {
+					t.Errorf("log debería contener %q, obtenido: %s", want, line)
+				}
+			}
+			for _, bad := range tc.wantAbsent {
+				if strings.Contains(line, bad) {
+					t.Errorf("log NO debería contener %q, obtenido: %s", bad, line)
+				}
+			}
+		})
 	}
 }

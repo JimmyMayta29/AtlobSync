@@ -112,7 +112,7 @@ func main() {
 	_ = r.SetTrustedProxies(nil)
 	r.HandleMethodNotAllowed = true
 
-	r.Use(gin.Logger())
+	r.Use(middleware.SanitizedLoggerMiddleware())
 	r.Use(gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {
 		if strings.HasPrefix(c.Request.URL.Path, "/api") {
 			c.JSON(http.StatusInternalServerError, gin.H{

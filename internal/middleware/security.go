@@ -3,13 +3,75 @@ package middleware
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
+	"io"
 	"net"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+var reElevenDigits = regexp.MustCompile(`^\d{11}$`)
+
+// SanitizeLogPath limpia una ruta HTTP para logs:
+//  1. Elimina cualquier query string (aunque se pase con '?').
+//  2. Enmascara como "[RUC]" todo segmento de ruta compuesto por exactamente 11 dígitos.
+//
+// Decisión de seguridad: un ID numérico de 11 dígitos que no sea RUC también se enmascara
+// como "[RUC]" por principio de precaución para evitar falsos negativos si se incorpora un
+// prefijo nuevo; segmentos de 10 o 12+ dígitos (como tickets de 14 dígitos) se conservan intactos.
+func SanitizeLogPath(rawPath string) string {
+	pathOnly := rawPath
+	if idx := strings.IndexByte(pathOnly, '?'); idx >= 0 {
+		pathOnly = pathOnly[:idx]
+	}
+	if pathOnly == "" {
+		return "/"
+	}
+	parts := strings.Split(pathOnly, "/")
+	for i, seg := range parts {
+		if reElevenDigits.MatchString(seg) {
+			parts[i] = "[RUC]"
+		}
+	}
+	return strings.Join(parts, "/")
+}
+
+// SanitizedLoggerMiddleware reemplaza gin.Logger() omitiendo completamente los query strings
+// y enmascarando segmentos de 11 dígitos (RUC) en la ruta.
+func SanitizedLoggerMiddleware() gin.HandlerFunc {
+	return SanitizedLoggerMiddlewareWithWriter(gin.DefaultWriter)
+}
+
+// SanitizedLoggerMiddlewareWithWriter permite inyectar un io.Writer (útil para pruebas unitarias).
+func SanitizedLoggerMiddlewareWithWriter(out io.Writer) gin.HandlerFunc {
+	if out == nil {
+		out = io.Discard
+	}
+	return func(c *gin.Context) {
+		start := time.Now()
+		cleanPath := SanitizeLogPath(c.Request.URL.Path)
+
+		c.Next()
+
+		latency := time.Since(start)
+		status := c.Writer.Status()
+		clientIP := c.ClientIP()
+		method := c.Request.Method
+		_, _ = fmt.Fprintf(out, "[GIN] %s | %3d | %13v | %15s | %-7s %q\n",
+			time.Now().Format("2006/01/02 - 15:04:05"),
+			status,
+			latency,
+			clientIP,
+			method,
+			cleanPath,
+		)
+	}
+}
 
 var (
 	localSessionToken string
