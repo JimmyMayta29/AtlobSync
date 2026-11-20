@@ -652,3 +652,63 @@ func TestTargetedSingleFormatDownload_PDFXMLCDR_BoundedRetriesAndErrorClassifica
 		}
 	}
 }
+
+func TestSolSessionStatus_NoSecretLeak_AndProbarSesionSOL(t *testing.T) {
+	mgr := NewSolTokenManager()
+	const secretJWT = "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjQ5OTk5OTk5OTl9.SUPER_SECRET_SIG"
+
+	mgr.mu.Lock()
+	mgr.tokens["20000000001"] = &cachedSolToken{
+		Token:     secretJWT,
+		ExpiresAt: time.Now().Add(20 * time.Minute),
+	}
+	mgr.mu.Unlock()
+
+	st := mgr.Status("20000000001")
+	if !st.TokenVigente || st.ExpiraEn == "" {
+		t.Fatalf("se esperaba token vigente en Status: %+v", st)
+	}
+	rawJSON, err := json.Marshal(st)
+	if err != nil {
+		t.Fatalf("error serializando SolSessionStatus: %v", err)
+	}
+	if strings.Contains(string(rawJSON), secretJWT) || strings.Contains(string(rawJSON), "SUPER_SECRET_SIG") {
+		t.Fatalf("SolSessionStatus filtró el JWT en JSON!")
+	}
+
+	mgr.mu.Lock()
+	mgr.cooldowns["20000000001"] = &solCooldown{
+		Until:  time.Now().Add(5 * time.Minute),
+		Reason: "CAPTCHA detectado",
+	}
+	mgr.mu.Unlock()
+
+	stCD := mgr.Status("20000000001")
+	if !stCD.EnCooldown || stCD.CooldownHasta == "" {
+		t.Fatalf("se esperaba EnCooldown=true: %+v", stCD)
+	}
+	mgr.ClearCooldown("20000000001")
+	if mgr.Status("20000000001").EnCooldown {
+		t.Fatalf("ClearCooldown no limpió el cooldown")
+	}
+
+	// ProbarSesionSOL a través de Service con mock exitoso y con CAPTCHA
+	db, err := database.InitDB(":memory:")
+	if err != nil {
+		t.Fatalf("error init db: %v", err)
+	}
+	defer db.Close()
+
+	svc := NewService(NewRepository(db), &mockCreds{}, nil, t.TempDir())
+	svc.SetSolTokenProvider(&mockSolTokenProvider{tok1: "OK1", tok2: "OK2"})
+	stOk, err := svc.ProbarSesionSOL(context.Background(), "20000000001", true)
+	if err != nil || !stOk.CredencialesSOLConfiguradas {
+		t.Fatalf("ProbarSesionSOL exitoso falló: st=%+v err=%v", stOk, err)
+	}
+
+	svc.SetSolTokenProvider(&failingSolTokenProvider{err: ErrSolCaptchaRequired})
+	_, err = svc.ProbarSesionSOL(context.Background(), "20000000001", true)
+	if !errors.Is(err, ErrSolCaptchaRequired) {
+		t.Fatalf("se esperaba ErrSolCaptchaRequired desde ProbarSesionSOL, obtenido: %v", err)
+	}
+}

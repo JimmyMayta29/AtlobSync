@@ -23,6 +23,8 @@ func (ctrl *Controller) RegisterRoutes(apiGroup *gin.RouterGroup, empresaAuth gi
 	g := apiGroup.Group("/empresas/:ruc/cpe", empresaAuth)
 	{
 		g.GET("", ctrl.List)
+		g.GET("/estado-sol", ctrl.GetSolStatus)
+		g.POST("/probar-sol", ctrl.TestSolSession)
 		g.POST("/sincronizar-sire", ctrl.SyncFromSIRE)
 		g.POST("/manual", ctrl.RegisterManual)
 		g.POST("/importar", ctrl.ImportFile)
@@ -44,6 +46,47 @@ func (ctrl *Controller) RegisterRoutes(apiGroup *gin.RouterGroup, empresaAuth gi
 		g.GET("/:id/cdr", ctrl.DownloadCDR)
 		g.GET("/:id/json", ctrl.DownloadJSON)
 	}
+}
+
+func (ctrl *Controller) GetSolStatus(c *gin.Context) {
+	ruc := c.GetString("ruc")
+	st := ctrl.service.GetSolStatus(ruc)
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    st,
+	})
+}
+
+func (ctrl *Controller) TestSolSession(c *gin.Context) {
+	ruc := c.GetString("ruc")
+	var req struct {
+		ForceRefresh *bool `json:"force_refresh"`
+	}
+	_ = c.ShouldBindJSON(&req)
+	forceRefresh := true
+	if req.ForceRefresh != nil {
+		forceRefresh = *req.ForceRefresh
+	}
+
+	st, err := ctrl.service.ProbarSesionSOL(c.Request.Context(), ruc, forceRefresh)
+	if err != nil {
+		status, errCode, errTitle := classifyCPEError(err, http.StatusBadGateway, "No se pudo validar la sesión Portal SOL para comprobantes CPE")
+		c.JSON(status, gin.H{
+			"success":      false,
+			"error":        errTitle,
+			"detalle":      err.Error(),
+			"codigo_error": errCode,
+			"data":         st,
+			"codigo_http":  status,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"mensaje": "Sesión Portal SOL (Consulta CPE) verificada correctamente. Ya puede descargar PDF, XML y CDR.",
+		"data":    st,
+	})
 }
 
 func (ctrl *Controller) List(c *gin.Context) {

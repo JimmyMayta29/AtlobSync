@@ -26,6 +26,11 @@ type CredentialsProvider interface {
 	GetDecryptedCredentials(ruc string) (rucOut, razonSocial, usuarioSOL, claveSOL, clientSecret string, err error)
 }
 
+type solSessionInspector interface {
+	Status(ruc string) SolSessionStatus
+	ClearCooldown(ruc string)
+}
+
 // SireDownloadLister permite consultar los archivos de propuestas SIRE descargados por empresa
 type SireDownloadLister interface {
 	ListByEmpresa(ruc, libro, periodo string) ([]sire.DescargaSire, error)
@@ -714,6 +719,63 @@ func (s *Service) GetDetalleComprobante(ctx context.Context, id int64, ruc strin
 		"detalle_concordancia": comp.DetalleConcordancia,
 		"advertencia_sync":     syncAdvertencia,
 	}, nil
+}
+
+// GetSolStatus devuelve el estado local (sin red) de la sesión Portal SOL para descarga CPE de una empresa.
+func (s *Service) GetSolStatus(ruc string) SolSessionStatus {
+	var st SolSessionStatus
+	if inspector, ok := s.solTokens.(solSessionInspector); ok {
+		st = inspector.Status(ruc)
+	} else {
+		if execPath := findChromiumExecutable(); execPath != "" {
+			st.BrowserEncontrado = true
+			st.BrowserNombre = filepath.Base(execPath)
+			st.Estado = "LISTO"
+			st.Mensaje = "Navegador local detectado para Portal SOL."
+		} else {
+			st.Estado = "SIN_NAVEGADOR"
+			st.Mensaje = "No se encontró Edge ni Chrome instalado en el equipo."
+		}
+	}
+
+	st.CredencialesSOLConfiguradas = false
+	if s.creds != nil {
+		if _, _, uSol, cSol, _, err := s.creds.GetDecryptedCredentials(ruc); err == nil && strings.TrimSpace(uSol) != "" && strings.TrimSpace(cSol) != "" {
+			st.CredencialesSOLConfiguradas = true
+		}
+	}
+	if !st.CredencialesSOLConfiguradas {
+		st.Estado = "SIN_CREDENCIALES"
+		st.Mensaje = "Falta configurar Usuario SOL o Clave SOL para esta empresa."
+	}
+	return st
+}
+
+// ProbarSesionSOL ejecuta una prueba explícita de autenticación contra el Portal SOL (11.38.1.1.1 / api-cpe)
+// y retorna el estado actualizado de la sesión sin exponer el token ni credenciales.
+func (s *Service) ProbarSesionSOL(ctx context.Context, ruc string, forceRefresh bool) (SolSessionStatus, error) {
+	if s.creds == nil {
+		return s.GetSolStatus(ruc), errors.New("proveedor de credenciales no configurado")
+	}
+	_, _, usuarioSOL, claveSOL, _, err := s.creds.GetDecryptedCredentials(ruc)
+	if err != nil {
+		return s.GetSolStatus(ruc), fmt.Errorf("no se pudieron obtener las credenciales SOL: %w", err)
+	}
+	if strings.TrimSpace(usuarioSOL) == "" || strings.TrimSpace(claveSOL) == "" {
+		return s.GetSolStatus(ruc), errors.New("credenciales SOL incompletas (Usuario SOL y Clave SOL son obligatorios)")
+	}
+
+	if forceRefresh {
+		s.solTokens.Invalidate(ruc)
+		if inspector, ok := s.solTokens.(solSessionInspector); ok {
+			inspector.ClearCooldown(ruc)
+		}
+	}
+
+	if _, err := s.solTokens.GetToken(ctx, ruc, usuarioSOL, claveSOL, forceRefresh); err != nil {
+		return s.GetSolStatus(ruc), err
+	}
+	return s.GetSolStatus(ruc), nil
 }
 
 // DownloadSingleFromSUNAT descarga XML (/02), PDF (/01) y CDR (/03 o SOAP) de un comprobante individual directo desde SUNAT SOL.

@@ -3417,6 +3417,40 @@
               </div>
             </div>
 
+            <!-- PORTAL SOL / COMPROBANTES CPE (API-CPE) -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  Portal SOL · Comprobantes CPE (PDF / XML / CDR)
+                </div>
+                <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+                  <span id="sol-cpe-estado-badge" class="badge pendiente">Verificando...</span>
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-probar-sol-cpe" onclick="probarSesionSOLActiva()">
+                    <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    Probar Sesión SOL (CPE)
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="info-grid">
+                  <div class="info-box">
+                    <div class="info-label">Navegador Local (SOL)</div>
+                    <div class="info-value" id="sol-cpe-browser" style="font-size: 0.82rem;">Verificando...</div>
+                  </div>
+                  <div class="info-box">
+                    <div class="info-label">Vigencia Sesión SOL</div>
+                    <div class="info-value" id="sol-cpe-vigencia" style="font-size: 0.82rem;">Sin sesión iniciada</div>
+                  </div>
+                  <div class="info-box" style="grid-column: span 2;">
+                    <div class="info-label">Diagnóstico del Canal CPE</div>
+                    <div class="info-value" id="sol-cpe-mensaje" style="font-size: 0.81rem; font-weight: 500; color: var(--text-soft);">Listo para verificar credenciales SOL.</div>
+                  </div>
+                </div>
+                <div id="sol-cpe-resultado-box" style="margin-top: 0.65rem;"></div>
+              </div>
+            </div>
+
             <!-- ACCESOS RÁPIDOS A OPERACIONES -->
             <div class="grid-3" style="margin-bottom: 1.15rem;">
               <button class="shortcut-card" onclick="abrirPropuestaLibro('VENTAS')">
@@ -3452,7 +3486,8 @@
                   <li><strong>Ruta Portal SOL:</strong> <code>Empresas &gt; Credenciales de API SUNAT &gt; Gestión Credenciales de API SUNAT</code>.</li>
                   <li><strong>URL de la aplicación:</strong> usa <code>https://www.tuempresa.com.pe</code> o <code>http://localhost</code> (<strong>sin "/" al final</strong>). Con alcance Desktop SUNAT no valida callbacks.</li>
                   <li><strong>Tipo de alcance:</strong> seleccionar obligatoriamente <strong>Desktop</strong> (nunca "Web").</li>
-                  <li><strong>Servicios:</strong> marcar <strong>MIGE RCE y RVIE – SIRE</strong> (recomendado: <em>Seleccionar Todos</em>).</li>
+                  <li><strong>Servicios (Canal API SIRE):</strong> marcar <strong>MIGE RCE y RVIE – SIRE</strong> (recomendado: <em>Seleccionar Todos</em>) para propuestas RVIE/RCE y constancias.</li>
+                  <li><strong>Portal SOL (Canal Comprobantes CPE):</strong> usa el mismo RUC, Usuario SOL y Clave SOL (con permiso de <em>Consulta de Comprobantes de Pago</em>) vía Edge/Chrome local. Si SUNAT pide CAPTCHA, inicia sesión manualmente una vez en el portal web de SUNAT para restablecerlo y vuelve a pulsar <strong>Probar Sesión SOL (CPE)</strong>.</li>
                 </ul>
               </div>
             </details>
@@ -4907,11 +4942,20 @@
 
         if (!res.ok) {
           let errMsg = `Error HTTP ${res.status} al descargar el archivo`;
+          let errCode = '';
           try {
             const errJson = await res.json();
             errMsg = errJson.error || errJson.detalle || errMsg;
+            errCode = errJson.codigo_error || '';
+            if (errJson.detalle && errJson.error && errJson.detalle !== errJson.error && !errMsg.includes(errJson.detalle)) {
+              errMsg += '\n\nDetalle: ' + errJson.detalle;
+            }
           } catch (_) {}
-          showToast(errMsg, 'danger');
+          if (errCode === 'SOL_CAPTCHA_REQUERIDO') {
+            showToast('SUNAT solicitó CAPTCHA en Portal SOL', 'warning');
+          } else {
+            showToast(errMsg.split('\n')[0], 'danger');
+          }
           alert('No se pudo descargar el archivo:\n\n' + errMsg);
           return false;
         }
@@ -8007,6 +8051,120 @@
     }
 
     // --- DIAGNÓSTICO & AJUSTES ---
+    function renderSolCpeStatus(st) {
+      const badge = document.getElementById('sol-cpe-estado-badge');
+      const browserEl = document.getElementById('sol-cpe-browser');
+      const vigEl = document.getElementById('sol-cpe-vigencia');
+      const msgEl = document.getElementById('sol-cpe-mensaje');
+      if (!badge || !browserEl || !vigEl || !msgEl) return;
+
+      if (!st) {
+        badge.className = 'badge pendiente';
+        badge.textContent = 'Sin datos';
+        browserEl.textContent = 'No disponible';
+        vigEl.textContent = '-';
+        msgEl.textContent = 'Seleccione una empresa activa para verificar el estado SOL.';
+        return;
+      }
+
+      const mapEstado = {
+        SESION_ACTIVA: { cls: 'valido', label: 'Sesión activa' },
+        LISTO: { cls: 'info', label: 'Listo' },
+        COOLDOWN: { cls: 'pendiente', label: 'En pausa temporal' },
+        SIN_NAVEGADOR: { cls: 'invalidas', label: 'Sin navegador' },
+        SIN_CREDENCIALES: { cls: 'invalidas', label: 'Sin Clave SOL' }
+      };
+      const meta = mapEstado[st.estado] || { cls: 'pendiente', label: st.estado || 'Pendiente' };
+      badge.className = 'badge ' + meta.cls;
+      badge.textContent = meta.label;
+
+      browserEl.textContent = st.browser_encontrado
+        ? `${st.browser_nombre || 'Navegador'} (detectado)`
+        : 'No detectado (Edge/Chrome)';
+
+      if (st.en_cooldown) {
+        vigEl.textContent = `Pausa hasta ${st.cooldown_hasta || '-'}`;
+      } else if (st.token_vigente) {
+        vigEl.textContent = `Activa hasta ${st.expira_en || '-'} (~${st.minutos_restantes || 1} min)`;
+      } else {
+        vigEl.textContent = 'Se inicia al descargar o probar';
+      }
+
+      msgEl.textContent = st.mensaje || '';
+    }
+
+    async function cargarEstadoSolCPE() {
+      if (!activeRUC) {
+        renderSolCpeStatus(null);
+        return;
+      }
+      try {
+        const res = await apiFetch(`/api/empresas/${activeRUC}/cpe/estado-sol`);
+        if (!res.ok) return;
+        const json = await res.json();
+        renderSolCpeStatus(json.data || null);
+      } catch (_) {
+        renderSolCpeStatus(null);
+      }
+    }
+
+    async function probarSesionSOLActiva() {
+      if (!activeRUC) return alert('Seleccione una empresa activa.');
+      const btn = document.getElementById('btn-probar-sol-cpe');
+      const box = document.getElementById('sol-cpe-resultado-box');
+      if (btn) { btn.disabled = true; btn.textContent = 'Probando Portal SOL...'; }
+      if (box) {
+        box.textContent = '';
+        const infoDiv = document.createElement('div');
+        infoDiv.style.cssText = 'font-size:0.78rem; color:var(--text-muted);';
+        infoDiv.textContent = 'Autenticando contra Portal SOL (Consulta CPE 11.38.1.1.1) en segundo plano. Esto puede tomar ~6–15 s...';
+        box.appendChild(infoDiv);
+      }
+      try {
+        const res = await apiFetch(`/api/empresas/${activeRUC}/cpe/probar-sol`, {
+          method: 'POST',
+          body: { force_refresh: true }
+        });
+        const data = await res.json();
+        if (data && data.data) renderSolCpeStatus(data.data);
+
+        if (box) {
+          box.textContent = '';
+          const banner = document.createElement('div');
+          banner.className = res.ok ? 'banner banner-success' : (data.codigo_error === 'SOL_CAPTCHA_REQUERIDO' || data.codigo_error === 'SOL_COOLDOWN' ? 'banner banner-warning' : 'banner banner-danger');
+          const content = document.createElement('div');
+          const strong = document.createElement('strong');
+          strong.textContent = res.ok ? 'Portal SOL operativo: ' : 'Atención Portal SOL: ';
+          const textNode = document.createTextNode(res.ok ? (data.mensaje || 'Sesión verificada.') : (data.error || 'Error validando sesión SOL.'));
+          content.append(strong, textNode);
+          if (!res.ok && data.detalle && data.detalle !== data.error) {
+            const detEl = document.createElement('div');
+            detEl.style.cssText = 'font-size:0.74rem; margin-top:0.25rem; opacity:0.9;';
+            detEl.textContent = String(data.detalle).slice(0, 260);
+            content.appendChild(detEl);
+          }
+          banner.appendChild(content);
+          box.appendChild(banner);
+        }
+
+        if (res.ok) {
+          showToast('Sesión Portal SOL (CPE) verificada', 'success');
+        } else {
+          showToast(data.error || 'Error en sesión Portal SOL', data.codigo_error === 'SOL_CAPTCHA_REQUERIDO' ? 'warning' : 'danger');
+        }
+      } catch (err) {
+        if (box) {
+          box.textContent = '';
+          const banner = document.createElement('div');
+          banner.className = 'banner banner-danger';
+          banner.textContent = 'Error de comunicación al probar sesión SOL: ' + err.message;
+          box.appendChild(banner);
+        }
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Probar Sesión SOL (CPE)'; }
+      }
+    }
+
     async function cargarEstadoDiagnostico() {
       try {
         const res = await apiFetch('/api/sistema/estado-worker');
@@ -8020,6 +8178,9 @@
           ? `<span style="color: var(--danger);">Bloqueado hasta ${escapeHtml(emp.bloqueado_hasta)}</span>`
           : `<span style="color: var(--success);">Sin bloqueos</span>`;
       }
+      const solBox = document.getElementById('sol-cpe-resultado-box');
+      if (solBox) solBox.textContent = '';
+      cargarEstadoSolCPE();
     }
 
     async function ejecutarDiagnostico() {

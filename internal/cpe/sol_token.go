@@ -53,6 +53,22 @@ type SolTokenProvider interface {
 	Invalidate(ruc string)
 }
 
+// SolSessionStatus describe el estado local de la sesión Portal SOL (api-cpe) para una empresa,
+// sin exponer nunca el valor del token JWT ni credenciales.
+type SolSessionStatus struct {
+	CredencialesSOLConfiguradas bool   `json:"credenciales_sol_configuradas"`
+	BrowserEncontrado           bool   `json:"browser_encontrado"`
+	BrowserNombre               string `json:"browser_nombre,omitempty"`
+	TokenVigente                bool   `json:"token_vigente"`
+	ExpiraEn                    string `json:"expira_en,omitempty"`
+	MinutosRestantes            int    `json:"minutos_restantes,omitempty"`
+	EnCooldown                  bool   `json:"en_cooldown"`
+	CooldownHasta               string `json:"cooldown_hasta,omitempty"`
+	CooldownMotivo              string `json:"cooldown_motivo,omitempty"`
+	Estado                      string `json:"estado"`
+	Mensaje                     string `json:"mensaje"`
+}
+
 type cachedSolToken struct {
 	Token     string
 	ExpiresAt time.Time
@@ -106,7 +122,61 @@ func (m *SolTokenManager) getRucLock(ruc string) *sync.Mutex {
 func (m *SolTokenManager) Invalidate(ruc string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	delete(m.tokens, ruc)
+	delete(m.tokens, strings.TrimSpace(ruc))
+}
+
+// ClearCooldown limpia la pausa temporal SOL de un RUC (usado en pruebas explícitas iniciadas por el usuario).
+func (m *SolTokenManager) ClearCooldown(ruc string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	delete(m.cooldowns, strings.TrimSpace(ruc))
+}
+
+// Status inspecciona localmente el estado de navegador, token en caché y pausa SOL sin contactar a SUNAT.
+func (m *SolTokenManager) Status(ruc string) SolSessionStatus {
+	ruc = strings.TrimSpace(ruc)
+	st := SolSessionStatus{
+		CredencialesSOLConfiguradas: true,
+	}
+
+	if execPath := findChromiumExecutable(); execPath != "" {
+		st.BrowserEncontrado = true
+		st.BrowserNombre = filepath.Base(execPath)
+	}
+
+	now := time.Now()
+	m.mu.RLock()
+	if cd, ok := m.cooldowns[ruc]; ok && now.Before(cd.Until) {
+		st.EnCooldown = true
+		st.CooldownHasta = cd.Until.Format("15:04:05")
+		st.CooldownMotivo = cd.Reason
+	}
+	if cached, ok := m.tokens[ruc]; ok && cached.Token != "" && now.Before(cached.ExpiresAt) {
+		st.TokenVigente = true
+		st.ExpiraEn = cached.ExpiresAt.Format("15:04:05")
+		mins := int(time.Until(cached.ExpiresAt).Minutes())
+		if mins < 1 {
+			mins = 1
+		}
+		st.MinutosRestantes = mins
+	}
+	m.mu.RUnlock()
+
+	switch {
+	case !st.BrowserEncontrado:
+		st.Estado = "SIN_NAVEGADOR"
+		st.Mensaje = "No se encontró Microsoft Edge ni Google Chrome instalado en el equipo (puede definir CHROME_PATH)."
+	case st.EnCooldown:
+		st.Estado = "COOLDOWN"
+		st.Mensaje = fmt.Sprintf("Acceso SOL en pausa temporal hasta %s por seguridad.", st.CooldownHasta)
+	case st.TokenVigente:
+		st.Estado = "SESION_ACTIVA"
+		st.Mensaje = fmt.Sprintf("Sesión Portal SOL activa (válida hasta %s, ~%d min restantes).", st.ExpiraEn, st.MinutosRestantes)
+	default:
+		st.Estado = "LISTO"
+		st.Mensaje = "Navegador local detectado. La sesión SOL se abrirá automáticamente al descargar un comprobante o al probar aquí."
+	}
+	return st
 }
 
 // GetToken retorna un JWT Bearer válido para api-cpe.sunat.gob.pe (reutilizando caché si está vigente).

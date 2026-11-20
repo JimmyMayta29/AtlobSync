@@ -196,6 +196,8 @@ func TestRoutesContract_AllFrontendRoutesExistInBackend(t *testing.T) {
 		{"Salud de la App", "GET", "/api/salud"},
 		{"Constancia Recepción SIRE", "GET", "/api/empresas/:ruc/sire/constancia"},
 		{"Listar Comprobantes CPE", "GET", "/api/empresas/:ruc/cpe"},
+		{"Estado Sesión SOL CPE", "GET", "/api/empresas/:ruc/cpe/estado-sol"},
+		{"Probar Sesión SOL CPE", "POST", "/api/empresas/:ruc/cpe/probar-sol"},
 		{"Sincronizar CPE desde SIRE", "POST", "/api/empresas/:ruc/cpe/sincronizar-sire"},
 		{"Registrar CPE Manual", "POST", "/api/empresas/:ruc/cpe/manual"},
 		{"Importar XML/PDF/CDR", "POST", "/api/empresas/:ruc/cpe/importar"},
