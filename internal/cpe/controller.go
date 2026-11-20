@@ -1,6 +1,7 @@
 package cpe
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -292,12 +293,14 @@ func (ctrl *Controller) DownloadSingleFromSUNAT(c *gin.Context) {
 
 	res, err := ctrl.service.DownloadSingleFromSUNAT(c.Request.Context(), id, ruc)
 	if err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{
-			"success":     false,
-			"error":       "No se pudo descargar el comprobante desde SUNAT SOL",
-			"detalle":     err.Error(),
-			"data":        res,
-			"codigo_http": http.StatusBadGateway,
+		status, errCode, errTitle := classifyCPEError(err, http.StatusBadGateway, "No se pudo descargar el comprobante desde SUNAT SOL")
+		c.JSON(status, gin.H{
+			"success":      false,
+			"error":        errTitle,
+			"detalle":      err.Error(),
+			"codigo_error": errCode,
+			"data":         res,
+			"codigo_http":  status,
 		})
 		return
 	}
@@ -461,11 +464,13 @@ func (ctrl *Controller) serveDownload(c *gin.Context, tipo string) {
 
 	data, filename, contentType, source, err := ctrl.service.GetDownloadFileWithContext(c.Request.Context(), id, ruc, tipo, autoFetch, allowFallback)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"success":     false,
-			"error":       err.Error(),
-			"detalle":     err.Error(),
-			"codigo_http": http.StatusNotFound,
+		status, errCode, errTitle := classifyCPEError(err, http.StatusNotFound, err.Error())
+		c.JSON(status, gin.H{
+			"success":      false,
+			"error":        errTitle,
+			"detalle":      err.Error(),
+			"codigo_error": errCode,
+			"codigo_http":  status,
 		})
 		return
 	}
@@ -473,4 +478,37 @@ func (ctrl *Controller) serveDownload(c *gin.Context, tipo string) {
 	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
 	c.Header("X-File-Source", source)
 	c.Data(http.StatusOK, contentType, data)
+}
+
+func classifyCPEError(err error, defaultStatus int, defaultTitle string) (int, string, string) {
+	switch {
+	case errors.Is(err, ErrSolCaptchaRequired):
+		return http.StatusTooManyRequests, "SOL_CAPTCHA_REQUERIDO",
+			"SUNAT solicitó un reto CAPTCHA en el acceso SOL. Inicie sesión manualmente una vez en el portal web de SUNAT para restablecerlo y vuelva a intentar."
+	case errors.Is(err, ErrSolCooldown):
+		return http.StatusTooManyRequests, "SOL_COOLDOWN",
+			"El acceso al Portal SOL está en pausa temporal por seguridad tras un error reciente. Verifique las credenciales SOL o pruebe la sesión SOL en Conexión."
+	case errors.Is(err, ErrSolAuthRejected):
+		return http.StatusUnauthorized, "SOL_CREDENCIALES_INVALIDAS",
+			"SUNAT rechazó el RUC, Usuario SOL o Clave SOL configurados para esta empresa."
+	case errors.Is(err, ErrSolTokenExpired):
+		return http.StatusUnauthorized, "SOL_TOKEN_EXPIRADO",
+			"La sesión SOL de SUNAT expiró (HTTP 401). Vuelva a intentar o renueve la sesión SOL desde Conexión."
+	case errors.Is(err, ErrSolBrowserMissing):
+		return http.StatusServiceUnavailable, "SOL_NAVEGADOR_NO_ENCONTRADO",
+			"No se detectó Microsoft Edge ni Google Chrome en el equipo para abrir sesión SOL (puede configurar CHROME_PATH)."
+	case errors.Is(err, ErrComprobanteNoDisponible):
+		return http.StatusNotFound, "CPE_NO_DISPONIBLE", err.Error()
+	case errors.Is(err, ErrSunatTransitorio):
+		return http.StatusBadGateway, "SUNAT_TRANSITORIO",
+			"SUNAT devolvió un error temporal de comunicación (HTTP 5xx/timeout) al consultar el comprobante. Intente nuevamente en unos segundos."
+	case errors.Is(err, ErrSunatSolicitudRechazada):
+		return http.StatusUnprocessableEntity, "SUNAT_SOLICITUD_RECHAZADA",
+			"SUNAT rechazó la consulta para este comprobante."
+	default:
+		if defaultTitle == "" {
+			defaultTitle = err.Error()
+		}
+		return defaultStatus, "CPE_ERROR", defaultTitle
+	}
 }

@@ -105,6 +105,7 @@ type BulkDownloadItemResult struct {
 	PDF         string `json:"pdf,omitempty"` // ok, generado_xml, omitido, no_disponible, error
 	CDR         string `json:"cdr,omitempty"` // ok, omitido, no_disponible, error
 	Error       string `json:"error,omitempty"`
+	rawErr      error
 }
 
 // BulkDownloadJob estado en vivo y resultado de un lote de descarga masiva

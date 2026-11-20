@@ -35,7 +35,17 @@ var (
 	ErrSolAuthRejected = errors.New("SUNAT rechazó las credenciales SOL proporcionadas")
 	// ErrSolBrowserMissing indica que no se encontró Edge ni Chrome instalado en el equipo.
 	ErrSolBrowserMissing = errors.New("no se encontró Microsoft Edge ni Google Chrome en el equipo (puede definir la variable CHROME_PATH)")
+	// ErrSolCooldown indica que el acceso SOL está en pausa temporal por seguridad tras un error de credenciales o CAPTCHA.
+	ErrSolCooldown = errors.New("acceso SOL en pausa temporal por seguridad")
 )
+
+func maskRUCForLog(ruc string) string {
+	r := strings.TrimSpace(ruc)
+	if len(r) <= 4 {
+		return "****"
+	}
+	return strings.Repeat("*", len(r)-4) + r[len(r)-4:]
+}
 
 // SolTokenProvider abstrae la obtención del token Bearer de sesión SOL (permite mocks en tests).
 type SolTokenProvider interface {
@@ -141,7 +151,7 @@ func (m *SolTokenManager) GetToken(ctx context.Context, ruc, usuarioSOL, claveSO
 		remaining := time.Until(cd.Until).Round(time.Second)
 		reason := cd.Reason
 		m.mu.RUnlock()
-		return "", fmt.Errorf("acceso SOL en pausa temporal (%s restantes) para RUC %s: %s", remaining, ruc, reason)
+		return "", fmt.Errorf("%w (%s restantes): %s", ErrSolCooldown, remaining, reason)
 	}
 	m.mu.RUnlock()
 
@@ -174,7 +184,7 @@ func (m *SolTokenManager) GetToken(ctx context.Context, ruc, usuarioSOL, claveSO
 	}
 	m.mu.Unlock()
 
-	log.Printf("[CPE-SOL-AUTH] Token SUNAT.token obtenido para RUC %s (válido hasta %s)", ruc, exp.Format("15:04:05"))
+	log.Printf("[CPE-SOL-AUTH] Token SUNAT.token obtenido para RUC %s (válido hasta %s)", maskRUCForLog(ruc), exp.Format("15:04:05"))
 	return tok, nil
 }
 
@@ -254,7 +264,7 @@ func (m *SolTokenManager) loginAndCaptureToken(parentCtx context.Context, ruc, u
 		return "", fmt.Errorf("no se pudo inicializar el navegador headless (%s): %w", filepath.Base(execPath), err)
 	}
 
-	log.Printf("[CPE-SOL-AUTH] Iniciando sesión SOL para RUC %s (navegador: %s)", ruc, filepath.Base(execPath))
+	log.Printf("[CPE-SOL-AUTH] Iniciando sesión SOL para RUC %s (navegador: %s)", maskRUCForLog(ruc), filepath.Base(execPath))
 
 	// 1. Habilitar red, abrir formulario de login SOL y esperar campos visibles
 	if _, err := chromedp.Call(timeoutCtx, network.Enable, network.EnableParams{}); err != nil {

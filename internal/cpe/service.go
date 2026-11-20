@@ -555,7 +555,9 @@ func (s *Service) GetDownloadFileWithContext(ctx context.Context, id int64, ruc,
 
 	tipoLower := strings.ToLower(strings.TrimSpace(tipo))
 
-	// Si se solicita descarga real automática y aún falta el archivo en disco, consultar directo en SUNAT SOL
+	// Si se solicita descarga real automática y aún falta el archivo en disco, consultar en SUNAT SOL
+	// únicamente el formato solicitado (evitando descargar XML+PDF+CDR+SOAP innecesariamente).
+	var fetchErr error
 	if autoFetchSunat {
 		needFetch := false
 		switch tipoLower {
@@ -569,7 +571,7 @@ func (s *Service) GetDownloadFileWithContext(ctx context.Context, id int64, ruc,
 			needFetch = !s.safeFileExists(comp.RutaXML)
 		}
 		if needFetch {
-			_, _ = s.DownloadSingleFromSUNAT(ctx, id, ruc)
+			_, fetchErr = s.DownloadFormatFromSUNAT(ctx, id, ruc, tipoLower)
 			if refreshed, rErr := s.repo.GetByID(id, ruc); rErr == nil && refreshed != nil {
 				comp = refreshed
 			}
@@ -594,8 +596,11 @@ func (s *Service) GetDownloadFileWithContext(ctx context.Context, id int64, ruc,
 			}
 		}
 		if !allowSireFallback {
-			return nil, "", "", "", fmt.Errorf("SUNAT no dispone del PDF ni del XML original para %s-%s-%s en el portal Consulta CPE (frecuente en Boletas 03 enviadas por Resumen Diario). Si desea solo una ficha resumen del SIRE, agregue ?fallback=sire",
-				comp.TipoCP, comp.Serie, comp.Numero)
+			if fetchErr != nil && !errors.Is(fetchErr, ErrComprobanteNoDisponible) {
+				return nil, "", "", "", fetchErr
+			}
+			return nil, "", "", "", fmt.Errorf("%w: SUNAT no dispone del PDF ni del XML original para %s-%s-%s en el portal Consulta CPE (frecuente en Boletas 03 enviadas por Resumen Diario). Si desea solo una ficha resumen del SIRE, agregue ?fallback=sire",
+				ErrComprobanteNoDisponible, comp.TipoCP, comp.Serie, comp.Numero)
 		}
 		// Respaldo explícito: ficha PDF generada desde el registro SIRE
 		pdfBytes := GenerateComprobantePDF(comp, razon)
@@ -603,8 +608,11 @@ func (s *Service) GetDownloadFileWithContext(ctx context.Context, id int64, ruc,
 
 	case "xml":
 		if comp.RutaXML == "" {
-			return nil, "", "", "", fmt.Errorf("SUNAT no devolvió el XML original para %s-%s-%s (en Boletas 03 por Resumen Diario SUNAT no expone XML individual)",
-				comp.TipoCP, comp.Serie, comp.Numero)
+			if fetchErr != nil && !errors.Is(fetchErr, ErrComprobanteNoDisponible) {
+				return nil, "", "", "", fetchErr
+			}
+			return nil, "", "", "", fmt.Errorf("%w: SUNAT no devolvió el XML original para %s-%s-%s (en Boletas 03 por Resumen Diario SUNAT no expone XML individual)",
+				ErrComprobanteNoDisponible, comp.TipoCP, comp.Serie, comp.Numero)
 		}
 		raw, rErr := s.readSafeFile(comp.RutaXML)
 		if rErr != nil {
@@ -614,7 +622,11 @@ func (s *Service) GetDownloadFileWithContext(ctx context.Context, id int64, ruc,
 
 	case "cdr":
 		if comp.RutaCDR == "" {
-			return nil, "", "", "", fmt.Errorf("SUNAT no devolvió el CDR oficial para %s-%s-%s", comp.TipoCP, comp.Serie, comp.Numero)
+			if fetchErr != nil && !errors.Is(fetchErr, ErrComprobanteNoDisponible) {
+				return nil, "", "", "", fetchErr
+			}
+			return nil, "", "", "", fmt.Errorf("%w: SUNAT no devolvió el CDR oficial para %s-%s-%s",
+				ErrComprobanteNoDisponible, comp.TipoCP, comp.Serie, comp.Numero)
 		}
 		raw, rErr := s.readSafeFile(comp.RutaCDR)
 		if rErr != nil {
@@ -660,7 +672,7 @@ func (s *Service) GetDetalleComprobante(ctx context.Context, id int64, ruc strin
 
 	var syncAdvertencia string
 	if autoSync && !s.safeFileExists(comp.RutaXML) {
-		if dlRes, dlErr := s.DownloadSingleFromSUNAT(ctx, id, ruc); dlErr != nil {
+		if dlRes, dlErr := s.DownloadFormatFromSUNAT(ctx, id, ruc, "xml"); dlErr != nil {
 			syncAdvertencia = dlErr.Error()
 		} else if dlRes != nil && len(dlRes.Advertencias) > 0 {
 			syncAdvertencia = strings.Join(dlRes.Advertencias, " | ")
@@ -706,6 +718,16 @@ func (s *Service) GetDetalleComprobante(ctx context.Context, id int64, ruc strin
 
 // DownloadSingleFromSUNAT descarga XML (/02), PDF (/01) y CDR (/03 o SOAP) de un comprobante individual directo desde SUNAT SOL.
 func (s *Service) DownloadSingleFromSUNAT(ctx context.Context, id int64, ruc string) (*SunatSingleDownloadResult, error) {
+	return s.DownloadFormatFromSUNAT(ctx, id, ruc, "todos")
+}
+
+// DownloadFormatFromSUNAT descarga bajo demanda únicamente el formato solicitado ("pdf", "xml", "cdr", "json" o "todos")
+// usando reintentos acotados para evitar bloqueos largos en peticiones interactivas:
+//   - "pdf": consulta primero solo /01 (PDF); solo si no está disponible en SUNAT, consulta /02 (XML) para generar PDF+QR (nunca bloquea en CDR/SOAP).
+//   - "xml" / "json": consulta solo /02 (XML) (conservando CDR embebido si viene en el mismo ZIP).
+//   - "cdr": consulta solo /03 (+ respaldo SOAP si /03 falla).
+//   - "todos": descarga XML + PDF + CDR con reintentos acotados.
+func (s *Service) DownloadFormatFromSUNAT(ctx context.Context, id int64, ruc, tipo string) (*SunatSingleDownloadResult, error) {
 	if s.creds == nil {
 		return nil, errors.New("proveedor de credenciales no configurado")
 	}
@@ -736,7 +758,42 @@ func (s *Service) DownloadSingleFromSUNAT(ctx context.Context, id int64, ruc str
 		return nt, nil
 	}
 
-	itemRes := s.bulk.processOneItem(ctx, comp, razonEmpresa, usuarioSOL, claveSOL, true, true, true, false, true, getTok, refreshTok)
+	const interactiveMaxAttempts = 2
+	tipoLower := strings.ToLower(strings.TrimSpace(tipo))
+	var itemRes BulkDownloadItemResult
+
+	switch tipoLower {
+	case "pdf":
+		// 1. Intentar solo PDF oficial (/01) sin tocar XML ni CDR/SOAP
+		itemRes = s.bulk.processOneItemWithAttempts(ctx, comp, razonEmpresa, usuarioSOL, claveSOL, false, true, false, false, false, interactiveMaxAttempts, getTok, refreshTok)
+		// 2. Solo si SUNAT no entregó el PDF y no fue un error fatal de sesión SOL, intentar XML (/02) para generar PDF+QR
+		if itemRes.PDF != "ok" && !isFatalSolAuthError(itemRes.rawErr) && !s.safeFileExists(comp.RutaXML) {
+			xmlRes := s.bulk.processOneItemWithAttempts(ctx, comp, razonEmpresa, usuarioSOL, claveSOL, true, false, false, true, false, interactiveMaxAttempts, getTok, refreshTok)
+			itemRes.XML = xmlRes.XML
+			if xmlRes.CDR != "" {
+				itemRes.CDR = xmlRes.CDR
+			}
+			if xmlRes.XML == "ok" {
+				// Ya tenemos el XML real en disco: GetDownloadFileWithContext generará el PDF+QR (source="xml-ubl")
+				// sin sobrescribir RutaPDF con un PDF generado localmente ni llamar a CDR/SOAP.
+				itemRes.rawErr = nil
+				itemRes.Error = ""
+				itemRes.PDF = "generado_xml"
+			} else {
+				if xmlRes.Error != "" {
+					itemRes.Error = appendErr(itemRes.Error, xmlRes.Error)
+				}
+				itemRes.rawErr = mergeItemError(itemRes.rawErr, xmlRes.rawErr)
+			}
+		}
+	case "xml", "json":
+		itemRes = s.bulk.processOneItemWithAttempts(ctx, comp, razonEmpresa, usuarioSOL, claveSOL, true, false, false, false, false, interactiveMaxAttempts, getTok, refreshTok)
+	case "cdr":
+		itemRes = s.bulk.processOneItemWithAttempts(ctx, comp, razonEmpresa, usuarioSOL, claveSOL, false, false, true, false, false, interactiveMaxAttempts, getTok, refreshTok)
+	default:
+		itemRes = s.bulk.processOneItemWithAttempts(ctx, comp, razonEmpresa, usuarioSOL, claveSOL, true, true, true, false, true, interactiveMaxAttempts, getTok, refreshTok)
+	}
+
 	updated, _ := s.repo.GetByID(comp.ID, ruc)
 	if updated == nil {
 		updated = comp
@@ -752,8 +809,13 @@ func (s *Service) DownloadSingleFromSUNAT(ctx context.Context, id int64, ruc str
 	if itemRes.Error != "" {
 		out.Advertencias = append(out.Advertencias, itemRes.Error)
 	}
-	if !out.XmlDescargado && !out.PdfDescargado && !out.PdfGeneradoXML && !out.CdrDescargado && itemRes.Error != "" {
-		return out, errors.New(itemRes.Error)
+	if !out.XmlDescargado && !out.PdfDescargado && !out.PdfGeneradoXML && !out.CdrDescargado {
+		if itemRes.rawErr != nil {
+			return out, itemRes.rawErr
+		}
+		if itemRes.Error != "" {
+			return out, errors.New(itemRes.Error)
+		}
 	}
 	return out, nil
 }

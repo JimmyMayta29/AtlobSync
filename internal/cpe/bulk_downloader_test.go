@@ -464,3 +464,191 @@ func TestBulkDownloader_EndToEnd_WithTokenRefresh_PDFFallback_ZIP_AndItemsCSV(t 
 		t.Fatalf("filtro soloVigentes falló: %+v", onlyVig)
 	}
 }
+
+type failingSolTokenProvider struct {
+	err error
+}
+
+func (f *failingSolTokenProvider) GetToken(ctx context.Context, ruc, usuarioSOL, claveSOL string, forceRefresh bool) (string, error) {
+	return "", f.err
+}
+
+func (f *failingSolTokenProvider) Invalidate(ruc string) {}
+
+func TestTargetedSingleFormatDownload_PDFXMLCDR_BoundedRetriesAndErrorClassification(t *testing.T) {
+	db, err := database.InitDB(":memory:")
+	if err != nil {
+		t.Fatalf("error init db: %v", err)
+	}
+	defer db.Close()
+
+	repo := NewRepository(db)
+	svc := NewService(repo, &mockCreds{}, nil, t.TempDir())
+	svc.SetBulkDelays(0, 0, 5*time.Millisecond)
+
+	seed := []ComprobanteCPE{
+		{
+			EmpresaRUC: "20000000001", Origen: "COMPRAS", Periodo: "202610",
+			TipoCP: "01", Serie: "F001", Numero: "101", FechaEmision: "15/10/2026",
+			RucContraparte: "20000000003", RazonContraparte: "PROVEEDOR UNO S.A.C.",
+			BaseImponible: 100, IGV: 18, MontoTotal: 118, Moneda: "PEN",
+		},
+		{
+			EmpresaRUC: "20000000001", Origen: "COMPRAS", Periodo: "202610",
+			TipoCP: "01", Serie: "F001", Numero: "102", FechaEmision: "16/10/2026",
+			RucContraparte: "20000000003", RazonContraparte: "PROVEEDOR UNO S.A.C.",
+			BaseImponible: 100, IGV: 18, MontoTotal: 118, Moneda: "PEN",
+		},
+		{
+			EmpresaRUC: "20000000001", Origen: "COMPRAS", Periodo: "202610",
+			TipoCP: "01", Serie: "F001", Numero: "103", FechaEmision: "17/10/2026",
+			RucContraparte: "20000000003", RazonContraparte: "PROVEEDOR UNO S.A.C.",
+			BaseImponible: 100, IGV: 18, MontoTotal: 118, Moneda: "PEN",
+		},
+		{
+			EmpresaRUC: "20000000001", Origen: "COMPRAS", Periodo: "202610",
+			TipoCP: "01", Serie: "F001", Numero: "104", FechaEmision: "18/10/2026",
+			RucContraparte: "20000000003", RazonContraparte: "PROVEEDOR UNO S.A.C.",
+			BaseImponible: 100, IGV: 18, MontoTotal: 118, Moneda: "PEN",
+		},
+	}
+	if _, err := repo.UpsertBatch(seed); err != nil {
+		t.Fatalf("error UpsertBatch: %v", err)
+	}
+	all, _ := repo.List("20000000001", "COMPRAS", "202610", "")
+	byNum := map[string]ComprobanteCPE{}
+	for _, it := range all {
+		byNum[it.Numero] = it
+	}
+
+	var pdfHits, xmlHits, cdrHits, soapHits int32
+	fakePDF := []byte("%PDF-1.4\n%official\n%%EOF\n")
+	xml102 := buildFullSampleInvoiceXML("20000000003", "PROVEEDOR UNO S.A.C.", "F001", "102", 1)
+	xml103 := buildFullSampleInvoiceXML("20000000003", "PROVEEDOR UNO S.A.C.", "F001", "103", 1)
+	cdrZip := []byte("PK\x03\x04mock-cdr-rest")
+
+	cpeMock := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasSuffix(r.URL.Path, "/01"):
+			atomic.AddInt32(&pdfHits, 1)
+		case strings.HasSuffix(r.URL.Path, "/02"):
+			atomic.AddInt32(&xmlHits, 1)
+		case strings.HasSuffix(r.URL.Path, "/03"):
+			atomic.AddInt32(&cdrHits, 1)
+		}
+
+		switch r.URL.Path {
+		case "/20000000003-01-F001-101-2/01":
+			_ = json.NewEncoder(w).Encode(map[string]string{
+				"nomArchivo": "20000000003-01-F001-101.pdf",
+				"valArchivo": base64.StdEncoding.EncodeToString(fakePDF),
+			})
+		case "/20000000003-01-F001-102-2/01":
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			_, _ = w.Write([]byte(`{"errors":[{"codError":"113","desError":"PDF no disponible"}]}`))
+		case "/20000000003-01-F001-102-2/02":
+			_ = json.NewEncoder(w).Encode(map[string]string{
+				"nomArchivo": "20000000003-01-F001-102.zip",
+				"valArchivo": makeZipBase64(map[string][]byte{"20000000003-01-F001-102.xml": xml102}),
+			})
+		case "/20000000003-01-F001-103-2/02":
+			_ = json.NewEncoder(w).Encode(map[string]string{
+				"nomArchivo": "20000000003-01-F001-103.zip",
+				"valArchivo": makeZipBase64(map[string][]byte{"20000000003-01-F001-103.xml": xml103}),
+			})
+		case "/20000000003-01-F001-103-2/03":
+			_ = json.NewEncoder(w).Encode(map[string]string{
+				"nomArchivo": "R-20000000003-01-F001-103.zip",
+				"valArchivo": base64.StdEncoding.EncodeToString(cdrZip),
+			})
+		case "/20000000003-01-F001-104-2/01", "/20000000003-01-F001-104-2/02":
+			w.WriteHeader(http.StatusInternalServerError)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer cpeMock.Close()
+
+	soapMock := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&soapHits, 1)
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer soapMock.Close()
+
+	svc.SetSolTokenProvider(&mockSolTokenProvider{tok1: "VALID_TOK", tok2: "VALID_TOK"})
+	svc.SetSunatCPEBaseURL(cpeMock.URL)
+	svc.SetSoapEndpoint(soapMock.URL)
+
+	// 1. PDF disponible -> SOLO llama /01 (cero llamadas a /02, /03 o SOAP)
+	pdfBytes, _, _, src, err := svc.GetDownloadFileWithContext(context.Background(), byNum["101"].ID, "20000000001", "pdf", true, false)
+	if err != nil || !bytes.HasPrefix(pdfBytes, []byte("%PDF-1.4")) || src != "original" {
+		t.Fatalf("PDF directo falló: err=%v src=%s", err, src)
+	}
+	if atomic.LoadInt32(&pdfHits) != 1 || atomic.LoadInt32(&xmlHits) != 0 || atomic.LoadInt32(&cdrHits) != 0 || atomic.LoadInt32(&soapHits) != 0 {
+		t.Fatalf("PDF directo hizo llamadas de más: pdf=%d xml=%d cdr=%d soap=%d", pdfHits, xmlHits, cdrHits, soapHits)
+	}
+
+	// 2. PDF 113 -> cae a XML /02 y genera PDF+QR (source="xml-ubl"), NUNCA llama CDR ni SOAP
+	atomic.StoreInt32(&pdfHits, 0)
+	pdfBytes2, _, _, src2, err := svc.GetDownloadFileWithContext(context.Background(), byNum["102"].ID, "20000000001", "pdf", true, false)
+	if err != nil || !bytes.HasPrefix(pdfBytes2, []byte("%PDF-1.4")) || src2 != "xml-ubl" {
+		t.Fatalf("PDF fallback XML falló: err=%v src=%s", err, src2)
+	}
+	if atomic.LoadInt32(&pdfHits) != 1 || atomic.LoadInt32(&xmlHits) != 1 || atomic.LoadInt32(&cdrHits) != 0 || atomic.LoadInt32(&soapHits) != 0 {
+		t.Fatalf("PDF fallback hizo llamadas inesperadas: pdf=%d xml=%d cdr=%d soap=%d", pdfHits, xmlHits, cdrHits, soapHits)
+	}
+
+	// 3. XML solo -> llama SOLO /02; CDR solo -> llama SOLO /03 (sin SOAP)
+	atomic.StoreInt32(&pdfHits, 0)
+	atomic.StoreInt32(&xmlHits, 0)
+	atomic.StoreInt32(&cdrHits, 0)
+	if _, _, _, _, err := svc.GetDownloadFileWithContext(context.Background(), byNum["103"].ID, "20000000001", "xml", true, false); err != nil {
+		t.Fatalf("XML directo falló: %v", err)
+	}
+	if atomic.LoadInt32(&xmlHits) != 1 || atomic.LoadInt32(&pdfHits) != 0 || atomic.LoadInt32(&cdrHits) != 0 {
+		t.Fatalf("XML directo hizo llamadas inesperadas: xml=%d pdf=%d cdr=%d", xmlHits, pdfHits, cdrHits)
+	}
+	if _, _, _, _, err := svc.GetDownloadFileWithContext(context.Background(), byNum["103"].ID, "20000000001", "cdr", true, false); err != nil {
+		t.Fatalf("CDR directo falló: %v", err)
+	}
+	if atomic.LoadInt32(&cdrHits) != 1 || atomic.LoadInt32(&soapHits) != 0 {
+		t.Fatalf("CDR directo hizo llamadas inesperadas: cdr=%d soap=%d", cdrHits, soapHits)
+	}
+
+	// 4. HTTP 500 persistente -> reintentos acotados a 2 (no 5) y error ErrSunatTransitorio
+	atomic.StoreInt32(&pdfHits, 0)
+	atomic.StoreInt32(&xmlHits, 0)
+	_, _, _, _, err = svc.GetDownloadFileWithContext(context.Background(), byNum["104"].ID, "20000000001", "pdf", true, false)
+	if !errors.Is(err, ErrSunatTransitorio) {
+		t.Fatalf("se esperaba ErrSunatTransitorio ante HTTP 500, obtenido: %v", err)
+	}
+	if atomic.LoadInt32(&pdfHits) != 2 || atomic.LoadInt32(&xmlHits) != 2 {
+		t.Fatalf("reintentos interactivos no acotados a 2: pdf=%d xml=%d", pdfHits, xmlHits)
+	}
+	if st, code, _ := classifyCPEError(err, http.StatusNotFound, ""); st != http.StatusBadGateway || code != "SUNAT_TRANSITORIO" {
+		t.Fatalf("clasificación SUNAT_TRANSITORIO incorrecta: status=%d code=%s", st, code)
+	}
+
+	// 5. Propagación fiel de errores SOL (CAPTCHA, credenciales inválidas, cooldown) sin ocultarlos como "Boletas 03"
+	cases := []struct {
+		err        error
+		wantStatus int
+		wantCode   string
+	}{
+		{ErrSolCaptchaRequired, http.StatusTooManyRequests, "SOL_CAPTCHA_REQUERIDO"},
+		{ErrSolAuthRejected, http.StatusUnauthorized, "SOL_CREDENCIALES_INVALIDAS"},
+		{fmt.Errorf("%w (5m restantes)", ErrSolCooldown), http.StatusTooManyRequests, "SOL_COOLDOWN"},
+		{ErrSolBrowserMissing, http.StatusServiceUnavailable, "SOL_NAVEGADOR_NO_ENCONTRADO"},
+	}
+	for _, tc := range cases {
+		svc.SetSolTokenProvider(&failingSolTokenProvider{err: tc.err})
+		_, _, _, _, gotErr := svc.GetDownloadFileWithContext(context.Background(), byNum["104"].ID, "20000000001", "pdf", true, false)
+		if !errors.Is(gotErr, tc.err) {
+			t.Fatalf("se esperaba error %v propagado, obtenido: %v", tc.err, gotErr)
+		}
+		st, code, _ := classifyCPEError(gotErr, http.StatusNotFound, "")
+		if st != tc.wantStatus || code != tc.wantCode {
+			t.Fatalf("classifyCPEError(%v) = (%d, %s), esperado (%d, %s)", tc.err, st, code, tc.wantStatus, tc.wantCode)
+		}
+	}
+}

@@ -429,6 +429,49 @@ func (b *BulkDownloader) processOneItem(
 	getToken func() string,
 	refreshToken func() (string, error),
 ) BulkDownloadItemResult {
+	return b.processOneItemWithAttempts(ctx, item, razonEmpresa, usuarioSOL, claveSOL, wantXML, wantPDF, wantCDR, soloPendientes, genPDF, 5, getToken, refreshToken)
+}
+
+func isFatalSolAuthError(err error) bool {
+	if err == nil {
+		return false
+	}
+	return errors.Is(err, ErrSolCaptchaRequired) ||
+		errors.Is(err, ErrSolAuthRejected) ||
+		errors.Is(err, ErrSolCooldown) ||
+		errors.Is(err, ErrSolBrowserMissing) ||
+		errors.Is(err, context.Canceled) ||
+		errors.Is(err, context.DeadlineExceeded)
+}
+
+func mergeItemError(current, next error) error {
+	if next == nil {
+		return current
+	}
+	if current == nil {
+		return next
+	}
+	if isFatalSolAuthError(next) && !isFatalSolAuthError(current) {
+		return next
+	}
+	if errors.Is(current, ErrComprobanteNoDisponible) && !errors.Is(next, ErrComprobanteNoDisponible) {
+		return next
+	}
+	return current
+}
+
+func (b *BulkDownloader) processOneItemWithAttempts(
+	ctx context.Context,
+	item *ComprobanteCPE,
+	razonEmpresa, usuarioSOL, claveSOL string,
+	wantXML, wantPDF, wantCDR, soloPendientes, genPDF bool,
+	maxAttempts int,
+	getToken func() string,
+	refreshToken func() (string, error),
+) BulkDownloadItemResult {
+	if maxAttempts <= 0 {
+		maxAttempts = 5
+	}
 	rucEmisor := item.EmpresaRUC
 	if strings.ToUpper(item.Origen) == "COMPRAS" && len(item.RucContraparte) == 11 {
 		rucEmisor = item.RucContraparte
@@ -451,7 +494,7 @@ func (b *BulkDownloader) processOneItem(
 		if soloPendientes && len(xmlBytes) > 0 {
 			res.XML = "omitido"
 		} else {
-			dlRes, err := b.downloadWithRetry(ctx, "xml", item.EmpresaRUC, rucEmisor, item.TipoCP, item.Serie, item.Numero, getToken, refreshToken)
+			dlRes, err := b.downloadWithRetryAttempts(ctx, "xml", item.EmpresaRUC, rucEmisor, item.TipoCP, item.Serie, item.Numero, maxAttempts, getToken, refreshToken)
 			if err == nil && dlRes != nil && len(dlRes.Data) > 0 {
 				xmlName := fmt.Sprintf("%s-%s-%s-%s.xml", rucEmisor, padTipoCP(item.TipoCP), item.Serie, item.Numero)
 				if path, hashHex, wErr := b.svc.saveFile(item.EmpresaRUC, item.Origen, xmlName, dlRes.Data); wErr == nil {
@@ -471,6 +514,7 @@ func (b *BulkDownloader) processOneItem(
 				} else {
 					res.XML = "error"
 					res.Error = appendErr(res.Error, "XML disco: "+wErr.Error())
+					res.rawErr = mergeItemError(res.rawErr, wErr)
 				}
 				// Bonus: si el ZIP de SUNAT ya traía el CDR embebido, guardarlo también
 				if len(dlRes.EmbeddedCDR) > 0 && (!item.TieneCDR || !b.svc.safeFileExists(item.RutaCDR)) {
@@ -488,10 +532,15 @@ func (b *BulkDownloader) processOneItem(
 			} else if errors.Is(err, ErrComprobanteNoDisponible) {
 				res.XML = "no_disponible"
 				res.Error = appendErr(res.Error, "XML: "+err.Error())
+				res.rawErr = mergeItemError(res.rawErr, err)
 				_ = b.svc.repo.UpdateConcordancia(item.ID, item.EmpresaRUC, "NO_EN_SUNAT", "SUNAT no expone XML individual en Consulta CPE (común en Boletas 03 por Resumen Diario)", "")
 			} else if err != nil {
 				res.XML = "error"
 				res.Error = appendErr(res.Error, "XML: "+err.Error())
+				res.rawErr = mergeItemError(res.rawErr, err)
+				if isFatalSolAuthError(err) {
+					return res
+				}
 			}
 		}
 	}
@@ -501,7 +550,7 @@ func (b *BulkDownloader) processOneItem(
 		if soloPendientes && item.TienePDF && b.svc.safeFileExists(item.RutaPDF) {
 			res.PDF = "omitido"
 		} else {
-			dlRes, err := b.downloadWithRetry(ctx, "pdf", item.EmpresaRUC, rucEmisor, item.TipoCP, item.Serie, item.Numero, getToken, refreshToken)
+			dlRes, err := b.downloadWithRetryAttempts(ctx, "pdf", item.EmpresaRUC, rucEmisor, item.TipoCP, item.Serie, item.Numero, maxAttempts, getToken, refreshToken)
 			if err == nil && dlRes != nil && len(dlRes.Data) > 0 {
 				pdfName := fmt.Sprintf("%s-%s-%s-%s.pdf", rucEmisor, padTipoCP(item.TipoCP), item.Serie, item.Numero)
 				if path, hashHex, wErr := b.svc.saveFile(item.EmpresaRUC, item.Origen, pdfName, dlRes.Data); wErr == nil {
@@ -512,6 +561,7 @@ func (b *BulkDownloader) processOneItem(
 				} else {
 					res.PDF = "error"
 					res.Error = appendErr(res.Error, "PDF disco: "+wErr.Error())
+					res.rawErr = mergeItemError(res.rawErr, wErr)
 				}
 			} else if genPDF && len(xmlBytes) > 0 {
 				// Respaldo profesional costo 0: generar PDF UBL 2.1 con QR SUNAT y detalle de ítems desde el XML real
@@ -527,9 +577,14 @@ func (b *BulkDownloader) processOneItem(
 				}
 			} else if errors.Is(err, ErrComprobanteNoDisponible) {
 				res.PDF = "no_disponible"
+				res.rawErr = mergeItemError(res.rawErr, err)
 			} else if err != nil {
 				res.PDF = "error"
 				res.Error = appendErr(res.Error, "PDF: "+err.Error())
+				res.rawErr = mergeItemError(res.rawErr, err)
+				if isFatalSolAuthError(err) {
+					return res
+				}
 			}
 		}
 	}
@@ -540,8 +595,9 @@ func (b *BulkDownloader) processOneItem(
 			res.CDR = "omitido"
 		} else {
 			cdrSaved := false
+			var cdrRestErr error
 			if getToken != nil && getToken() != "" {
-				if dlCdr, cErr := b.downloadWithRetry(ctx, "cdr", item.EmpresaRUC, rucEmisor, item.TipoCP, item.Serie, item.Numero, getToken, refreshToken); cErr == nil && dlCdr != nil && len(dlCdr.Data) > 0 {
+				if dlCdr, cErr := b.downloadWithRetryAttempts(ctx, "cdr", item.EmpresaRUC, rucEmisor, item.TipoCP, item.Serie, item.Numero, maxAttempts, getToken, refreshToken); cErr == nil && dlCdr != nil && len(dlCdr.Data) > 0 {
 					ext := ".zip"
 					if !isZipBytes(dlCdr.Data) {
 						ext = ".xml"
@@ -554,9 +610,11 @@ func (b *BulkDownloader) processOneItem(
 						res.CDR = "ok"
 						cdrSaved = true
 					}
+				} else if cErr != nil {
+					cdrRestErr = cErr
 				}
 			}
-			if !cdrSaved {
+			if !cdrSaved && !errors.Is(cdrRestErr, ErrSolAuthRejected) && ctx.Err() == nil {
 				cdrBytes, statusCode, _, cdrErr := ConsultarCdrSOAP(
 					b.svc.soapEndpoint,
 					item.EmpresaRUC,
@@ -582,10 +640,21 @@ func (b *BulkDownloader) processOneItem(
 						res.CDR = "ok"
 						cdrSaved = true
 					}
+				} else if cdrErr != nil && cdrRestErr == nil {
+					cdrRestErr = cdrErr
 				}
 			}
 			if !cdrSaved {
-				res.CDR = "no_disponible"
+				if isFatalSolAuthError(cdrRestErr) || errors.Is(cdrRestErr, ErrSunatTransitorio) {
+					res.CDR = "error"
+					res.Error = appendErr(res.Error, "CDR: "+cdrRestErr.Error())
+					res.rawErr = mergeItemError(res.rawErr, cdrRestErr)
+				} else {
+					res.CDR = "no_disponible"
+					if cdrRestErr != nil {
+						res.rawErr = mergeItemError(res.rawErr, cdrRestErr)
+					}
+				}
 			}
 		}
 	}
@@ -600,8 +669,22 @@ func (b *BulkDownloader) downloadWithRetry(
 	getToken func() string,
 	refreshToken func() (string, error),
 ) (*SunatCPEDownloadResult, error) {
-	// SUNAT devuelve HTTP 500 intermitentes en api-cpe; hasta 5 intentos con backoff resuelven ~95% de ellos
-	const maxAttempts = 5
+	return b.downloadWithRetryAttempts(ctx, kind, rucAuth, rucEmisor, tipoCP, serie, numero, 5, getToken, refreshToken)
+}
+
+func (b *BulkDownloader) downloadWithRetryAttempts(
+	ctx context.Context,
+	kind string, // "xml", "pdf" o "cdr"
+	rucAuth, rucEmisor, tipoCP, serie, numero string,
+	maxAttempts int,
+	getToken func() string,
+	refreshToken func() (string, error),
+) (*SunatCPEDownloadResult, error) {
+	// En lote masivo: hasta 5 intentos para absorber HTTP 500 intermitentes de api-cpe.
+	// En descarga individual interactiva: acotado (ej. 2) para evitar bloqueos largos.
+	if maxAttempts <= 0 {
+		maxAttempts = 5
+	}
 	refreshed := false
 
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
@@ -626,7 +709,10 @@ func (b *BulkDownloader) downloadWithRetry(
 		}
 
 		// Token expirado -> renovar 1 vez y reintentar de inmediato
-		if errors.Is(err, ErrSolTokenExpired) && !refreshed {
+		if errors.Is(err, ErrSolTokenExpired) {
+			if refreshed {
+				return nil, err
+			}
 			refreshed = true
 			if _, rErr := refreshToken(); rErr != nil {
 				return nil, fmt.Errorf("error renovando token SOL: %w", rErr)
@@ -634,14 +720,19 @@ func (b *BulkDownloader) downloadWithRetry(
 			continue
 		}
 
-		// Errores permanentes -> no reintentar
-		if errors.Is(err, ErrComprobanteNoDisponible) || errors.Is(err, ErrSunatSolicitudRechazada) {
+		// Errores permanentes o de sesión SOL -> no reintentar
+		if errors.Is(err, ErrComprobanteNoDisponible) ||
+			errors.Is(err, ErrSunatSolicitudRechazada) ||
+			isFatalSolAuthError(err) {
 			return nil, err
 		}
 
-		// Error transitorio (HTTP 500/502/503/429 o red) -> backoff exponencial
+		// Error transitorio (HTTP 500/502/503/429 o red) -> backoff acotado
 		if attempt < maxAttempts && b.retryDelay > 0 {
 			backoff := b.retryDelay * time.Duration(attempt)
+			if maxAttempts <= 2 && backoff > 600*time.Millisecond {
+				backoff = 600 * time.Millisecond
+			}
 			select {
 			case <-ctx.Done():
 				return nil, ctx.Err()

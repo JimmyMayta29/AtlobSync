@@ -47,7 +47,7 @@ func NewSunatCPEClient() *SunatCPEClient {
 	return &SunatCPEClient{
 		baseURL: DefaultSunatCPEBaseURL,
 		httpClient: &http.Client{
-			Timeout: 35 * time.Second,
+			Timeout: 20 * time.Second,
 		},
 	}
 }
@@ -115,6 +115,9 @@ func (c *SunatCPEClient) download(ctx context.Context, token, rucAuth, rucEmisor
 
 		resp, err := c.httpClient.Do(req)
 		if err != nil {
+			if ctx.Err() != nil {
+				return nil, ctx.Err()
+			}
 			return nil, fmt.Errorf("%w: %v", ErrSunatTransitorio, err)
 		}
 		body, readErr := io.ReadAll(resp.Body)
