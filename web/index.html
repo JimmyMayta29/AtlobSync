@@ -9,38 +9,38 @@
   <meta name="session-token" content="{{LOCAL_SESSION_TOKEN}}">
   <style>
     :root {
-      /* Paleta Oficial ATLOB Consultores — Claro, luminoso con acentos Navy, Azul Cerúleo y Ámbar Dorado */
-      --bg-app: #f2f7fb;
+      /* Identidad Visual Oficial Atlob Consultores — ATLOB Sync */
+      --bg-app: #f3f7fb;
       --bg-surface: #ffffff;
-      --bg-subtle: #edf4fa;
-      --bg-hover: #e2eef8;
+      --bg-subtle: #edf3f9;
+      --bg-hover: #e3edf7;
 
-      --navy: #06233e;
-      --navy-mid: #0b273f;
-      --navy-soft: #133b5c;
+      --navy: #0b2545;
+      --navy-mid: #0b2545;
+      --navy-soft: #14365f;
 
-      --primary: #1e6fa0;
-      --primary-hover: #15567e;
-      --primary-soft: #e7f3fb;
-      --primary-border: #b6d6ec;
+      --primary: #2f6fa3;
+      --primary-hover: #255c8a;
+      --primary-soft: #e9f2f9;
+      --primary-border: #b8c6d8;
 
-      --gold: #e0a718;
-      --gold-bright: #f0b822;
+      --gold: #e8a91b;
+      --gold-bright: #f2b932;
       --gold-text: #8c6000;
-      --gold-soft: #fff8e6;
-      --gold-border: #f2d37c;
+      --gold-soft: #fef6df;
+      --gold-border: #f2d482;
 
       --sidebar-bg: #ffffff;
-      --sidebar-surface: #f4f9fd;
-      --sidebar-border: #d9e6f2;
-      --sidebar-text: #2c4761;
-      --sidebar-muted: #5d768e;
+      --sidebar-surface: #f4f8fc;
+      --sidebar-border: #d9e4f0;
+      --sidebar-text: #2c435e;
+      --sidebar-muted: #51627a;
 
-      --text-main: #06233e;
-      --text-secondary: #2b455e;
-      --text-muted: #5b748c;
-      --border: #dce8f3;
-      --border-strong: #bad0e4;
+      --text-main: #0b2545;
+      --text-secondary: #2b415c;
+      --text-muted: #51627a;
+      --border: #dce5f0;
+      --border-strong: #b8c6d8;
 
       --success: #0d7a5f;
       --success-bg: #eafaf5;
@@ -119,7 +119,7 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-app);
       color: var(--text-main);
       line-height: 1.5;
@@ -158,164 +158,365 @@
     }
 
     /* =======================================================
-       PANTALLA 1: LOGIN MULTIEMPRESA (CLARO + ACENTOS ATLOB)
+       PANTALLA 0: LOGIN DE ACCESO (REFERENCIA 1)
+       ======================================================= */
+    #auth-screen {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(360px, 1fr) minmax(380px, 1fr);
+      background: #f3f7fb;
+    }
+    .auth-left {
+      background: #0b2545;
+      color: #ffffff;
+      padding: clamp(2.25rem, 4.8vw, 4.25rem);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100vh;
+    }
+    .auth-brand-top {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .auth-brand-logo {
+      height: 46px;
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+    .auth-copy {
+      max-width: 500px;
+      margin: auto 0;
+      padding: 2rem 0;
+    }
+    .auth-headline {
+      font-size: clamp(2.05rem, 3.2vw, 2.85rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      color: #ffffff;
+    }
+    .auth-desc {
+      margin-top: 1.15rem;
+      font-size: 1.02rem;
+      line-height: 1.6;
+      color: #b8c6d8;
+      max-width: 450px;
+      font-weight: 400;
+    }
+    .auth-gold-bar {
+      width: 56px;
+      height: 4px;
+      border-radius: 999px;
+      background: #e8a91b;
+      margin-top: 1.75rem;
+    }
+    .auth-footer-version {
+      font-size: 0.84rem;
+      color: #8da2bc;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+    .auth-right {
+      background: #f3f7fb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(1.5rem, 4vw, 3rem);
+    }
+    .auth-card {
+      background: #ffffff;
+      border: 1px solid #e1eaf3;
+      border-radius: 18px;
+      box-shadow: 0 20px 44px -14px rgba(11, 37, 69, 0.12), 0 4px 12px rgba(11, 37, 69, 0.04);
+      padding: 2.5rem 2.35rem;
+      width: 100%;
+      max-width: 440px;
+    }
+    .auth-card-title {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: #0b2545;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .auth-card-subtitle {
+      font-size: 0.92rem;
+      color: #51627a;
+      margin-top: 0.35rem;
+      margin-bottom: 1.75rem;
+    }
+    .auth-field {
+      margin-bottom: 1.15rem;
+    }
+    .auth-label {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #0b2545;
+      margin-bottom: 0.42rem;
+    }
+    .auth-input {
+      width: 100%;
+      min-height: 46px;
+      padding: 0.65rem 0.95rem;
+      font-size: 0.94rem;
+      color: #0b2545;
+      background: #ffffff;
+      border: 1.5px solid #b8c6d8;
+      border-radius: 10px;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+    }
+    .auth-input::placeholder {
+      color: #8899ae;
+    }
+    .auth-input:hover:not(:disabled) {
+      border-color: #2f6fa3;
+    }
+    .auth-input:focus:not(:disabled) {
+      border-color: #2f6fa3;
+      box-shadow: 0 0 0 3px rgba(47, 111, 163, 0.18);
+    }
+    .auth-input:disabled,
+    .auth-input-disabled {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      color: #94a3b8;
+      cursor: not-allowed;
+      opacity: 0.88;
+    }
+    .auth-field-note {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.42rem;
+      font-size: 0.78rem;
+      color: #51627a;
+      font-weight: 500;
+    }
+    .auth-field-note svg {
+      width: 14px;
+      height: 14px;
+      color: #2f6fa3;
+      flex-shrink: 0;
+    }
+    .auth-remember-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-size: 0.88rem;
+      color: #51627a;
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      margin: 0.2rem 0 1.45rem;
+    }
+    .auth-remember-row input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      accent-color: #2f6fa3;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .auth-submit-btn {
+      width: 100%;
+      min-height: 46px;
+      padding: 0.7rem 1.25rem;
+      border: none;
+      border-radius: 10px;
+      background: #2f6fa3;
+      color: #ffffff;
+      font-size: 0.96rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(47, 111, 163, 0.25);
+      transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
+    }
+    .auth-submit-btn:hover {
+      background: #255c8a;
+      box-shadow: 0 6px 16px rgba(47, 111, 163, 0.32);
+    }
+    .auth-submit-btn:focus-visible {
+      outline: 2px solid #0b2545;
+      outline-offset: 2px;
+    }
+    .auth-submit-btn:disabled {
+      background: #94aec7;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .user-session-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 0.28rem 0.65rem;
+      border-radius: 999px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+    }
+    .user-session-pill strong {
+      color: var(--text-main);
+    }
+    @media (max-width: 880px) {
+      #auth-screen {
+        grid-template-columns: 1fr;
+      }
+      .auth-left {
+        min-height: auto;
+        padding: 2rem 1.5rem;
+      }
+      .auth-copy {
+        padding: 1.5rem 0 1rem;
+      }
+    }
+
+    /* =======================================================
+       PANTALLA 1: SELECTOR DE EMPRESA (REFERENCIA 2)
        ======================================================= */
     #login-screen {
       min-height: 100vh;
-      display: flex;
+      display: none;
       flex-direction: column;
-      background:
-        radial-gradient(circle at 8% 0%, rgba(30, 111, 160, 0.11) 0%, transparent 42%),
-        radial-gradient(circle at 92% 4%, rgba(224, 167, 24, 0.13) 0%, transparent 38%),
-        var(--bg-app);
-      padding: 1.75rem 1.5rem 3rem;
-    }
-    body.dark #login-screen {
-      background:
-        radial-gradient(circle at 10% 0%, rgba(56, 152, 212, 0.16) 0%, transparent 44%),
-        radial-gradient(circle at 92% 6%, rgba(240, 184, 34, 0.12) 0%, transparent 36%),
-        var(--bg-app);
+      background: #f3f7fb;
+      padding: 2rem clamp(1.5rem, 5vw, 4rem) 3.5rem;
     }
     .login-container {
-      max-width: 1160px;
+      max-width: 1180px;
       width: 100%;
       margin: 0 auto;
     }
-    .login-hero {
-      position: relative;
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-md);
-      padding: 1.55rem 1.8rem;
+    .selector-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-      margin-bottom: 1.35rem;
-      overflow: hidden;
-    }
-    .login-hero::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: var(--brand-gradient);
-    }
-    .login-brand {
-      display: flex;
-      align-items: center;
       gap: 1rem;
       flex-wrap: wrap;
-      margin-bottom: 0.65rem;
+      margin-bottom: 2.1rem;
     }
-    .login-logo-img {
-      height: 48px;
+    .selector-logo-img {
+      height: 42px;
       width: auto;
       object-fit: contain;
+      display: block;
     }
-    .login-brand-divider {
-      width: 1px;
-      height: 36px;
-      background: var(--border-strong);
-    }
-    .product-title-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.12rem;
-    }
-    .product-title-row {
+    .selector-header-right {
       display: flex;
       align-items: center;
-      gap: 0.55rem;
+      gap: 0.9rem;
       flex-wrap: wrap;
     }
-    .login-brand h1 {
-      font-size: 1.45rem;
-      font-weight: 800;
-      letter-spacing: -0.025em;
-      color: var(--text-main);
-      line-height: 1.1;
-    }
-    .brand-sync-accent {
-      color: var(--primary);
-    }
-    .pill-version {
-      background: var(--gold-soft);
-      border: 1px solid var(--gold-border);
-      color: var(--gold-text);
-      font-size: 0.7rem;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      padding: 0.16rem 0.6rem;
-      border-radius: 999px;
-    }
-    .pill-suite {
-      background: var(--primary-soft);
-      border: 1px solid var(--primary-border);
-      color: var(--primary);
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 0.15rem 0.55rem;
-      border-radius: 999px;
-    }
-    .login-subtitle {
-      color: var(--text-muted);
+    .selector-user-text {
       font-size: 0.9rem;
-      max-width: 680px;
+      color: #51627a;
+      font-weight: 500;
     }
-    .login-toolbar {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 0.85rem 1.15rem;
-      box-shadow: var(--shadow-sm);
-      display: flex;
-      justify-content: space-between;
+    .selector-user-text strong {
+      color: #0b2545;
+      font-weight: 700;
+    }
+    .selector-logout-btn {
+      min-height: 44px;
+      padding: 0.45rem 0.95rem;
+      border-radius: 10px;
+      border: 1px solid #b8c6d8;
+      background: #ffffff;
+      color: #0b2545;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
       align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
+      gap: 0.4rem;
+      transition: border-color var(--transition), background var(--transition), color var(--transition);
+    }
+    .selector-logout-btn:hover {
+      border-color: #2f6fa3;
+      background: #e9f2f9;
+      color: #2f6fa3;
+    }
+    .selector-logout-btn:focus-visible {
+      outline: 2px solid #2f6fa3;
+      outline-offset: 2px;
+    }
+    .selector-heading {
       margin-bottom: 1.35rem;
     }
-    .search-wrap {
+    .selector-title {
+      font-size: clamp(1.75rem, 2.5vw, 2.2rem);
+      font-weight: 800;
+      color: #0b2545;
+      letter-spacing: -0.025em;
+      line-height: 1.18;
+    }
+    .selector-subtitle {
+      font-size: 0.96rem;
+      color: #51627a;
+      margin-top: 0.32rem;
+    }
+    .selector-search-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.65rem;
+    }
+    .selector-search-wrap {
       position: relative;
-      flex: 1;
-      min-width: 240px;
-      max-width: 440px;
+      width: 100%;
+      max-width: 380px;
     }
-    .search-wrap svg.icon {
-      position: absolute;
-      left: 11px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      pointer-events: none;
+    .selector-search-input {
+      width: 100%;
+      min-height: 46px;
+      padding: 0.65rem 1rem;
+      font-size: 0.92rem;
+      color: #0b2545;
+      background: #ffffff;
+      border: 1.5px solid #b8c6d8;
+      border-radius: 10px;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
     }
-    .search-wrap input {
-      padding-left: 2.25rem;
+    .selector-search-input::placeholder {
+      color: #8496ad;
+    }
+    .selector-search-input:hover {
+      border-color: #2f6fa3;
+    }
+    .selector-search-input:focus {
+      border-color: #2f6fa3;
+      box-shadow: 0 0 0 3px rgba(47, 111, 163, 0.16);
+    }
+    .selector-count-meta {
+      font-size: 0.84rem;
+      color: #51627a;
+      font-weight: 500;
     }
     .company-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(335px, 1fr));
-      gap: 1.15rem;
-      margin-bottom: 1.5rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.4rem;
+      margin-bottom: 1.65rem;
     }
     .company-card {
       position: relative;
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-xs);
-      padding: 1.25rem;
+      background: #ffffff;
+      border: 1px solid #e2eaf3;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px -14px rgba(11, 37, 69, 0.12), 0 2px 6px rgba(11, 37, 69, 0.04);
+      padding: 1.55rem 1.45rem 1.4rem;
       display: flex;
       flex-direction: column;
-      gap: 0.95rem;
+      align-items: flex-start;
       overflow: hidden;
-      transition: border-color var(--transition), box-shadow var(--transition);
+      transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
     }
     .company-card::before {
       content: "";
@@ -323,66 +524,144 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--primary), var(--gold));
-      opacity: 0.35;
-      transition: opacity var(--transition);
+      height: 5px;
+      background: #b8c6d8;
+    }
+    .company-card.card-vigente::before {
+      background: #e8a91b;
     }
     .company-card:hover {
-      border-color: var(--primary);
-      box-shadow: var(--shadow-md);
-    }
-    .company-card:hover::before {
-      opacity: 1;
-    }
-    .company-card-head {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.85rem;
-    }
-    .avatar-initials {
-      width: 44px;
-      height: 44px;
-      border-radius: 11px;
-      background: linear-gradient(135deg, #0b273f 0%, #1e6fa0 100%);
-      color: #ffffff;
-      border: 2px solid var(--gold-border);
-      font-weight: 800;
-      font-size: 0.92rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      box-shadow: 0 3px 8px rgba(6, 35, 62, 0.14);
-    }
-    .company-ruc {
-      font-size: 0.75rem;
-      font-weight: 800;
-      color: var(--primary);
-      letter-spacing: 0.04em;
+      border-color: #b8c6d8;
+      box-shadow: 0 18px 36px -14px rgba(11, 37, 69, 0.17), 0 4px 10px rgba(11, 37, 69, 0.06);
     }
     .company-name {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text-main);
+      font-size: 1.06rem;
+      font-weight: 800;
+      color: #0b2545;
       line-height: 1.3;
-      margin-top: 0.1rem;
+      word-break: break-word;
     }
-    .company-meta-box {
-      background: var(--bg-subtle);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 0.7rem 0.85rem;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      display: grid;
-      gap: 0.3rem;
+    .company-ruc {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #51627a;
+      margin-top: 0.25rem;
     }
-    .company-meta-box strong { color: var(--text-secondary); }
-    .company-card-actions {
-      display: flex;
-      gap: 0.5rem;
+    .company-status-pill {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 0.95rem;
+      margin-bottom: 1.25rem;
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .company-status-pill.vigente {
+      background: #dcf3e5;
+      color: #166534;
+    }
+    .company-status-pill.validar {
+      background: #fdeab8;
+      color: #8a5a00;
+    }
+    .company-status-pill.invalida {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .company-enter-btn {
+      width: 100%;
+      min-height: 44px;
       margin-top: auto;
+      padding: 0.62rem 1rem;
+      border: none;
+      border-radius: 10px;
+      background: #0b2545;
+      color: #ffffff;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background var(--transition), box-shadow var(--transition);
+    }
+    .company-enter-btn:hover {
+      background: #143866;
+      box-shadow: 0 4px 12px rgba(11, 37, 69, 0.22);
+    }
+    .company-enter-btn:focus-visible {
+      outline: 2px solid #2f6fa3;
+      outline-offset: 2px;
+    }
+    .company-enter-btn:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .selector-add-btn {
+      min-height: 44px;
+      padding: 0.6rem 1.35rem;
+      border: 1.5px dashed #2f6fa3;
+      border-radius: 10px;
+      background: transparent;
+      color: #2f6fa3;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: background var(--transition), border-color var(--transition), color var(--transition);
+    }
+    .selector-add-btn:hover {
+      background: #e9f2f9;
+      border-color: #0b2545;
+      color: #0b2545;
+    }
+    .selector-add-btn:focus-visible {
+      outline: 2px solid #2f6fa3;
+      outline-offset: 2px;
+    }
+    .selector-state-box {
+      grid-column: 1 / -1;
+      background: #ffffff;
+      border: 1px solid #dce5f0;
+      border-radius: 16px;
+      padding: 2.6rem 1.5rem;
+      text-align: center;
+      box-shadow: 0 8px 24px -14px rgba(11, 37, 69, 0.08);
+    }
+    .selector-state-box.error {
+      border-color: #fecaca;
+      background: #fffafb;
+    }
+    .selector-state-title {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: #0b2545;
+      margin-bottom: 0.35rem;
+    }
+    .selector-state-desc {
+      font-size: 0.9rem;
+      color: #51627a;
+      margin-bottom: 1.2rem;
+    }
+    .selector-spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid #dce5f0;
+      border-top-color: #2f6fa3;
+      border-radius: 50%;
+      margin: 0 auto 0.85rem;
+      animation: atlobSpin 0.8s linear infinite;
+    }
+    @keyframes atlobSpin {
+      to { transform: rotate(360deg); }
+    }
+    @media (max-width: 980px) {
+      .company-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .company-grid { grid-template-columns: 1fr; }
     }
 
     /* =======================================================
@@ -1615,76 +1894,97 @@
 <body>
 
   <!-- =========================================================
-       PANTALLA 1: PANEL DE ACCESO / LOGIN MULTIEMPRESA
+       PANTALLA 0: LOGIN DE ACCESO (ATLOB SYNC)
        ========================================================= -->
-  <section id="login-screen">
-    <div class="login-container">
-      <div class="login-hero">
-        <div style="flex:1; min-width: 280px;">
-          <div class="login-brand">
-            <img src="/assets/atlob-logo-horizontal.png" alt="ATLOB Consultores" class="login-logo-img brand-img-light">
-            <img src="/assets/atlob-logo-horizontal-dark.png" alt="ATLOB Consultores" class="login-logo-img brand-img-dark">
-            <span class="login-brand-divider" aria-hidden="true"></span>
-            <div class="product-title-group">
-              <div class="product-title-row">
-                <h1>ATLOB <span class="brand-sync-accent">Sync</span></h1>
-                <span class="pill-version">SUNAT · SIRE</span>
-                <span class="pill-suite">Suite ATLOB</span>
-              </div>
-              <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted);">Sincronizador Tributario Multiempresa · RVIE, RCE &amp; Comprobantes CPE</span>
-            </div>
-          </div>
-          <p class="login-subtitle">
-            Selecciona una empresa de tu cartera contable para conectarte a SUNAT, consultar propuestas vigentes RVIE/RCE, descargar paquetes ZIP, constancias CDR y comprobantes originales (PDF / XML / CDR).
-          </p>
-        </div>
-        <div style="display: flex; gap: 0.55rem; align-items: center; flex-wrap: wrap;">
-          <button class="btn btn-secondary btn-sm" onclick="toggleTheme()" title="Cambiar tema claro/oscuro">
-            <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-            Tema
-          </button>
-          <button class="btn btn-navy" onclick="openNewCompanyModal()">
-            <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-            Nueva Empresa
-          </button>
-        </div>
+  <section id="auth-screen" aria-label="Inicio de sesión">
+    <div class="auth-left">
+      <div class="auth-brand-top">
+        <img src="/assets/atlob-logo-horizontal-dark.png" alt="ATLOB Consultores" class="auth-brand-logo">
       </div>
 
-      <div class="login-toolbar">
-        <div class="search-wrap">
-          <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
-          <input type="text" id="login-search-input" class="form-control" placeholder="Buscar por RUC o Razón Social..." oninput="renderLoginCards()">
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <span id="login-count-label" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">Cargando...</span>
-          <button class="btn btn-secondary btn-sm" onclick="cargarEmpresas()">
-            <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
-            Actualizar
+      <div class="auth-copy">
+        <h1 class="auth-headline">Propuestas y comprobantes SUNAT, en un solo lugar</h1>
+        <p class="auth-desc">Descarga propuestas de compras y ventas, y el PDF, XML y CDR de cada comprobante.</p>
+        <div class="auth-gold-bar" aria-hidden="true"></div>
+      </div>
+
+      <div class="auth-footer-version">
+        Atlob Consultores &middot; <span id="auth-app-version">ATLOB Sync v2.0.0</span>
+      </div>
+    </div>
+
+    <div class="auth-right">
+      <div class="auth-card">
+        <h2 class="auth-card-title">Iniciar sesión</h2>
+        <p class="auth-card-subtitle">Ingresa con tu usuario del sistema</p>
+
+        <form id="form-auth-login" onsubmit="handleAuthLogin(event)" novalidate>
+          <div class="auth-field">
+            <label class="auth-label" for="auth-username">Usuario</label>
+            <input type="text" id="auth-username" class="auth-input" placeholder="usuario" autocomplete="username" maxlength="80">
+          </div>
+
+          <div class="auth-field">
+            <label class="auth-label" for="auth-password">Contraseña</label>
+            <input type="password" id="auth-password" class="auth-input auth-input-disabled" placeholder="contraseña" disabled aria-disabled="true" tabindex="-1" value="">
+            <div class="auth-field-note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span>Acceso local protegido por el equipo</span>
+            </div>
+          </div>
+
+          <label class="auth-remember-row" for="auth-remember">
+            <input type="checkbox" id="auth-remember">
+            <span>Recordar sesión</span>
+          </label>
+
+          <button type="submit" id="btn-auth-ingresar" class="auth-submit-btn">Ingresar</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       PANTALLA 1: SELECTOR DE EMPRESA (REFERENCIA 2)
+       ========================================================= -->
+  <section id="login-screen" aria-label="Selector de empresa">
+    <div class="login-container">
+      <header class="selector-header">
+        <img src="/assets/atlob-logo-horizontal.png" alt="ATLOB Consultores" class="selector-logo-img">
+        <div class="selector-header-right">
+          <span class="selector-user-text">Usuario: <strong id="selector-user-display">Usuario local</strong></span>
+          <button type="button" class="selector-logout-btn" onclick="cerrarSesionUI()" title="Cerrar sesión y volver al acceso">
+            <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Cerrar sesión
           </button>
         </div>
+      </header>
+
+      <div class="selector-heading">
+        <h1 class="selector-title">Selecciona la empresa</h1>
+        <p class="selector-subtitle">Elige con qué empresa deseas trabajar.</p>
+      </div>
+
+      <div class="selector-search-row">
+        <div class="selector-search-wrap">
+          <input type="text" id="login-search-input" class="selector-search-input" aria-label="Buscar por razón social o RUC" placeholder="Buscar por razón social o RUC" oninput="renderLoginCards()">
+        </div>
+        <span id="login-count-label" class="selector-count-meta" aria-live="polite"></span>
       </div>
 
       <div id="login-company-grid" class="company-grid">
-        <div class="card" style="grid-column: 1 / -1;"><div class="card-body" style="text-align: center; color: var(--text-muted);">Cargando empresas configuradas...</div></div>
+        <div class="selector-state-box">
+          <div class="selector-spinner" aria-hidden="true"></div>
+          <div class="selector-state-title">Cargando empresas...</div>
+          <div class="selector-state-desc" style="margin-bottom:0;">Obteniendo las empresas configuradas en el sistema.</div>
+        </div>
       </div>
 
-      <details class="accordion">
-        <summary>
-          <span style="display:flex; align-items:center; gap:0.5rem;">
-            <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            Guía exacta para configurar Credenciales API SUNAT en Portal SOL (Alcance Desktop y URL)
-          </span>
-          <span style="font-size:0.76rem; color: var(--text-muted); font-weight: 500;">Mostrar / Ocultar</span>
-        </summary>
-        <div class="acc-body">
-          <ul class="guide-list">
-            <li>Ingresa con Clave SOL a <strong>Empresas &gt; Credenciales de API SUNAT &gt; Gestión Credenciales de API SUNAT</strong>.</li>
-            <li>En <strong>URL de la aplicación</strong> coloca la web de tu empresa (ej. <code>https://www.tuempresa.com.pe</code>) o <code>http://localhost</code> <strong>sin barra "/" al final</strong>.</li>
-            <li>En <strong>Tipo de alcance (Scope)</strong> selecciona obligatoriamente <strong>Desktop</strong> (si se registró como "Web", genera nuevas credenciales en Desktop).</li>
-            <li>Marca el servicio <strong>MIGE RCE y RVIE – SIRE</strong> (recomendado: <em>Seleccionar Todos</em>) y verifica que el Usuario SOL tenga acceso a SIRE.</li>
-          </ul>
-        </div>
-      </details>
+      <div>
+        <button type="button" id="btn-selector-add-company" class="selector-add-btn" onclick="openNewCompanyModal()">
+          + Agregar empresa
+        </button>
+      </div>
     </div>
   </section>
 
@@ -1795,6 +2095,7 @@
             </div>
           </div>
           <div class="topbar-right">
+            <span class="user-session-pill">Usuario: <strong id="topbar-user-display">Usuario local</strong></span>
             <span id="credentials-traffic-badge" class="badge pendiente">
               <span class="badge-dot"></span>
               <span id="credentials-status-text">SIN VERIFICAR</span>
@@ -1802,6 +2103,9 @@
             <button class="btn btn-secondary btn-sm" onclick="toggleTheme()" title="Cambiar tema claro/oscuro">
               <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
               Tema
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="cerrarSesionUI()" title="Cerrar sesión">
+              Cerrar sesión
             </button>
           </div>
         </header>
@@ -3203,7 +3507,109 @@
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-    // --- NAVEGACIÓN LOGIN <-> WORKSPACE ---
+    // --- NAVEGACIÓN LOGIN <-> SELECTOR <-> WORKSPACE ---
+    const AUTH_USER_KEY = 'atlob_sync_user_name';
+    const AUTH_REMEMBER_KEY = 'atlob_sync_remember';
+    const AUTH_SESSION_ACTIVE_KEY = 'atlob_sync_session_active';
+    const AUTH_SESSION_FLAG = 'atlob_sync_logged_in';
+
+    function getActiveDisplayUser() {
+      return (
+        sessionStorage.getItem(AUTH_USER_KEY) ||
+        localStorage.getItem(AUTH_USER_KEY) ||
+        'Usuario local'
+      );
+    }
+
+    function updateAuthUserDisplays() {
+      const name = getActiveDisplayUser();
+      const selEl = document.getElementById('selector-user-display');
+      const topEl = document.getElementById('topbar-user-display');
+      if (selEl) selEl.textContent = name;
+      if (topEl) topEl.textContent = name;
+    }
+
+    function isUiSessionActive() {
+      if (sessionStorage.getItem(AUTH_SESSION_FLAG) === '1') return true;
+      return (
+        localStorage.getItem(AUTH_REMEMBER_KEY) === '1' &&
+        localStorage.getItem(AUTH_SESSION_ACTIVE_KEY) === '1'
+      );
+    }
+
+    function showAuthScreen() {
+      toggleMobileSidebar(false);
+      const authEl = document.getElementById('auth-screen');
+      const selEl = document.getElementById('login-screen');
+      const wsEl = document.getElementById('workspace-screen');
+      if (wsEl) wsEl.style.display = 'none';
+      if (selEl) selEl.style.display = 'none';
+      if (authEl) authEl.style.display = 'grid';
+
+      const remembered = localStorage.getItem(AUTH_REMEMBER_KEY) === '1';
+      const userInput = document.getElementById('auth-username');
+      const rememberChk = document.getElementById('auth-remember');
+      const passInput = document.getElementById('auth-password');
+      if (passInput) passInput.value = '';
+      if (rememberChk) rememberChk.checked = remembered;
+      if (userInput) {
+        userInput.value = remembered ? (localStorage.getItem(AUTH_USER_KEY) || '') : '';
+      }
+    }
+
+    function initAuthFlow() {
+      updateAuthUserDisplays();
+      if (isUiSessionActive()) {
+        sessionStorage.setItem(AUTH_SESSION_FLAG, '1');
+        const authEl = document.getElementById('auth-screen');
+        const selEl = document.getElementById('login-screen');
+        if (authEl) authEl.style.display = 'none';
+        if (selEl) selEl.style.display = 'flex';
+      } else {
+        showAuthScreen();
+      }
+    }
+
+    function handleAuthLogin(e) {
+      if (e) e.preventDefault();
+      if (!SESSION_TOKEN) {
+        showToast('Token de sesión local no disponible. Recarga la página.', 'danger');
+        return;
+      }
+      const rawUser = (document.getElementById('auth-username')?.value || '').trim();
+      const displayUser = rawUser || 'Usuario local';
+      const remember = Boolean(document.getElementById('auth-remember')?.checked);
+
+      // Solo se guarda el nombre para mostrar en interfaz (nunca contraseñas)
+      sessionStorage.setItem(AUTH_SESSION_FLAG, '1');
+      sessionStorage.setItem(AUTH_USER_KEY, displayUser);
+      if (remember) {
+        localStorage.setItem(AUTH_USER_KEY, displayUser);
+        localStorage.setItem(AUTH_REMEMBER_KEY, '1');
+        localStorage.setItem(AUTH_SESSION_ACTIVE_KEY, '1');
+      } else {
+        localStorage.removeItem(AUTH_USER_KEY);
+        localStorage.removeItem(AUTH_REMEMBER_KEY);
+        localStorage.removeItem(AUTH_SESSION_ACTIVE_KEY);
+      }
+
+      updateAuthUserDisplays();
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('workspace-screen').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
+      renderLoginCards();
+    }
+
+    function cerrarSesionUI() {
+      sessionStorage.removeItem(AUTH_SESSION_FLAG);
+      sessionStorage.removeItem(AUTH_USER_KEY);
+      sessionStorage.removeItem('sire_session_ruc');
+      localStorage.removeItem(AUTH_SESSION_ACTIVE_KEY);
+      activeRUC = '';
+      showAuthScreen();
+      showToast('Sesión cerrada', 'info');
+    }
+
     function ingresarAEmpresa(ruc) {
       const emp = currentEmpresas.find(e => e.ruc === ruc);
       if (!emp) return;
@@ -3212,12 +3618,14 @@
       sessionStorage.setItem('sire_session_ruc', ruc);
       localStorage.setItem('sire_active_ruc', ruc);
 
+      document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('workspace-screen').style.display = 'block';
 
       const sel = document.getElementById('global-company-select');
       if (sel) sel.value = ruc;
 
+      updateAuthUserDisplays();
       actualizarContextoEmpresaActiva();
       resetPeriodoResultsForCompanySwitch();
       refreshLocalCounters();
@@ -3227,6 +3635,7 @@
     function salirAlLogin() {
       sessionStorage.removeItem('sire_session_ruc');
       toggleMobileSidebar(false);
+      document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('workspace-screen').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
       renderLoginCards();
@@ -3261,6 +3670,7 @@
       if (localStorage.getItem('sire_theme') === 'dark') {
         document.body.classList.add('dark');
       }
+      initAuthFlow();
       initPeriodoControls('ventas');
       initPeriodoControls('compras');
       setupDropzone();
@@ -3295,12 +3705,22 @@
       });
     }
 
+    let empresasLoading = false;
+    let empresasLoadError = '';
+
     async function cargarEmpresas() {
+      empresasLoading = true;
+      empresasLoadError = '';
+      renderLoginCards();
       try {
         const res = await apiFetch('/api/empresas');
-        if (!res.ok) throw new Error('Error al cargar empresas');
+        if (!res.ok) {
+          const errJson = await res.json().catch(() => ({}));
+          throw new Error(errJson.detalle || errJson.error || 'No se pudieron cargar las empresas configuradas.');
+        }
         const json = await res.json();
         currentEmpresas = json.data || [];
+        empresasLoading = false;
 
         renderLoginCards();
         renderCompanySelector();
@@ -3313,7 +3733,10 @@
           actualizarContextoEmpresaActiva();
         }
       } catch (err) {
-        showToast(err.message, 'danger');
+        empresasLoading = false;
+        empresasLoadError = err.message || 'Error al cargar empresas';
+        renderLoginCards();
+        showToast(empresasLoadError, 'danger');
       }
     }
 
@@ -3352,59 +3775,108 @@
       return { cls: 'pendiente', label: 'SIN VERIFICAR' };
     }
 
+    function getSelectorEstadoMeta(emp) {
+      const est = (emp?.estado_credenciales || '').toUpperCase().trim();
+      if (est === 'VALIDO') {
+        return { cardCls: 'card-vigente', pillCls: 'vigente', label: 'Credenciales SOL vigentes' };
+      }
+      if (est === 'SIN_PERMISO_SIRE') {
+        return { cardCls: '', pillCls: 'validar', label: 'Sin permiso SIRE' };
+      }
+      if (est === 'INVALIDAS') {
+        return { cardCls: '', pillCls: 'invalida', label: emp?.bloqueado_hasta ? 'Bloqueado (SOL)' : 'Credenciales inválidas' };
+      }
+      if (est === 'PENDIENTE') {
+        return { cardCls: '', pillCls: 'validar', label: 'Credenciales por validar' };
+      }
+      return null;
+    }
+
+    function limpiarBusquedaEmpresas() {
+      const inp = document.getElementById('login-search-input');
+      if (inp) {
+        inp.value = '';
+        inp.focus();
+      }
+      renderLoginCards();
+    }
+
     function renderLoginCards() {
       const grid = document.getElementById('login-company-grid');
       const countLbl = document.getElementById('login-count-label');
-      const q = (document.getElementById('login-search-input')?.value || '').trim().toLowerCase();
+      if (!grid) return;
+
+      if (empresasLoading) {
+        if (countLbl) countLbl.textContent = '';
+        grid.innerHTML = `
+          <div class="selector-state-box">
+            <div class="selector-spinner" aria-hidden="true"></div>
+            <div class="selector-state-title">Cargando empresas...</div>
+            <div class="selector-state-desc" style="margin-bottom:0;">Obteniendo las empresas configuradas en el sistema.</div>
+          </div>
+        `;
+        return;
+      }
+
+      if (empresasLoadError) {
+        if (countLbl) countLbl.textContent = '';
+        grid.innerHTML = `
+          <div class="selector-state-box error" role="alert">
+            <div class="selector-state-title">No se pudieron cargar las empresas</div>
+            <div class="selector-state-desc">${escapeHtml(empresasLoadError)}</div>
+            <button type="button" class="btn btn-primary" style="min-height:44px; padding:0.6rem 1.4rem;" onclick="cargarEmpresas()">Reintentar</button>
+          </div>
+        `;
+        return;
+      }
+
+      const qRaw = (document.getElementById('login-search-input')?.value || '').trim();
+      const q = qRaw.toLowerCase();
 
       const filtered = currentEmpresas.filter(e =>
-        !q || e.ruc.toLowerCase().includes(q) || (e.razon_social || '').toLowerCase().includes(q)
+        !q || String(e.ruc || '').toLowerCase().includes(q) || String(e.razon_social || '').toLowerCase().includes(q)
       );
 
-      countLbl.textContent = `${filtered.length} de ${currentEmpresas.length} empresa(s)`;
+      if (countLbl) {
+        countLbl.textContent = q
+          ? `${filtered.length} de ${currentEmpresas.length} empresa(s)`
+          : (currentEmpresas.length > 0 ? `${currentEmpresas.length} empresa(s) disponible(s)` : '');
+      }
+
+      if (currentEmpresas.length === 0) {
+        grid.innerHTML = `
+          <div class="selector-state-box">
+            <div class="selector-state-title">Aún no hay empresas registradas</div>
+            <div class="selector-state-desc">Agrega tu primera empresa con sus credenciales SOL y API SUNAT para comenzar.</div>
+            <button type="button" class="btn btn-navy" style="min-height:44px; padding:0.6rem 1.4rem;" onclick="openNewCompanyModal()">+ Agregar empresa</button>
+          </div>
+        `;
+        return;
+      }
 
       if (filtered.length === 0) {
         grid.innerHTML = `
-          <div class="card" style="grid-column: 1 / -1;">
-            <div class="card-body" style="text-align: center; padding: 2.5rem 1rem;">
-              <p style="color: var(--text-muted); margin-bottom: 1rem;">
-                ${currentEmpresas.length === 0 ? 'Aún no hay empresas registradas.' : 'No hay coincidencias con tu búsqueda.'}
-              </p>
-              <button class="btn btn-primary" onclick="openNewCompanyModal()">+ Registrar Empresa</button>
-            </div>
+          <div class="selector-state-box">
+            <div class="selector-state-title">No se encontraron empresas</div>
+            <div class="selector-state-desc">No hay coincidencias para «${escapeHtml(qRaw)}».</div>
+            <button type="button" class="btn btn-secondary" style="min-height:44px; padding:0.6rem 1.4rem;" onclick="limpiarBusquedaEmpresas()">Limpiar búsqueda</button>
           </div>
         `;
         return;
       }
 
       grid.innerHTML = filtered.map(emp => {
-        const st = getEstadoMeta(emp);
+        const st = getSelectorEstadoMeta(emp);
+        const pillHtml = st
+          ? `<span class="company-status-pill ${st.pillCls}">${escapeHtml(st.label)}</span>`
+          : '';
         return `
-          <div class="company-card">
-            <div class="company-card-head">
-              <span class="avatar-initials">${escapeHtml(getInitials(emp.razon_social))}</span>
-              <div style="flex:1; min-width:0;">
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; flex-wrap:wrap;">
-                  <span class="company-ruc">RUC ${escapeHtml(emp.ruc)}</span>
-                  <span class="badge ${st.cls}"><span class="badge-dot"></span>${st.label}</span>
-                </div>
-                <div class="company-name">${escapeHtml(emp.razon_social)}</div>
-              </div>
-            </div>
-            <div class="company-meta-box">
-              <div><strong>Usuario SOL:</strong> <code>${escapeHtml(emp.usuario_sol)}</code></div>
-              <div><strong>Client ID:</strong> <code>${escapeHtml(emp.client_id ? (emp.client_id.length > 26 ? emp.client_id.slice(0, 26) + '...' : emp.client_id) : '-')}</code></div>
-              ${emp.mensaje_auth ? `<div style="margin-top:0.15rem; font-size:0.75rem;">${escapeHtml(emp.mensaje_auth.slice(0, 110))}</div>` : ''}
-            </div>
-            <div class="company-card-actions">
-              <button class="btn btn-primary" style="flex: 1;" onclick="ingresarAEmpresa('${emp.ruc}')">
-                Ingresar al Workspace
-                <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg>
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="solicitarPruebaConexion('${emp.ruc}')" title="Probar conexión SUNAT">Probar</button>
-              <button class="btn btn-secondary btn-sm" onclick="openEditCompanyModal('${emp.ruc}')" title="Editar credenciales">Editar</button>
-            </div>
-          </div>
+          <article class="company-card ${st ? st.cardCls : ''}">
+            <h2 class="company-name">${escapeHtml(emp.razon_social)}</h2>
+            <div class="company-ruc">RUC ${escapeHtml(emp.ruc)}</div>
+            ${pillHtml}
+            <button type="button" class="company-enter-btn" onclick="ingresarAEmpresa('${escapeHtml(emp.ruc)}')">Ingresar</button>
+          </article>
         `;
       }).join('');
     }
@@ -4596,6 +5068,8 @@
         document.getElementById('info-storage-dir').value = data.descargas_dir || '';
         document.getElementById('info-puerto').value = data.puerto || '8080';
         document.getElementById('info-key-source').value = data.key_source || '';
+        const authVer = document.getElementById('auth-app-version');
+        if (authVer && data.version) authVer.textContent = `ATLOB Sync v${data.version}`;
       } catch (_) {}
     }
 
