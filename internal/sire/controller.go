@@ -1,6 +1,7 @@
 package sire
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -23,6 +24,7 @@ func (ctrl *Controller) RegisterRoutes(apiGroup *gin.RouterGroup, empresaAuth gi
 	// Endpoints globales directos (usados por la interfaz web y clientes)
 	apiGroup.GET("/descargas", ctrl.ListarDescargasGlobal)
 	apiGroup.GET("/descargas/:id/archivo", ctrl.DescargarArchivoDirecto)
+	apiGroup.GET("/descargas/:id/propuesta-txt", ctrl.AnalizarPropuestaTXT)
 	apiGroup.POST("/descargas/:id/reintentar", ctrl.ReintentarDescarga)
 	apiGroup.POST("/sire/propuesta/exportar", ctrl.SolicitarExportacionGlobal)
 	apiGroup.GET("/sire/propuesta/detalle", ctrl.ConsultarDetallePropuestaGlobal)
@@ -399,4 +401,114 @@ func (ctrl *Controller) ConsultarTicket(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, descarga)
+}
+
+// AnalizarPropuestaTXT analiza en memoria el archivo TXT oficial dentro del ZIP de una descarga completada
+// y retorna resumen tributario + filas paginadas (sin exponer datos sensibles en errores ni duplicar sincronización CPE).
+func (ctrl *Controller) AnalizarPropuestaTXT(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success":     false,
+			"codigo":      "PARAMETRO_INVALIDO",
+			"error":       "ID de descarga inválido",
+			"codigo_http": http.StatusBadRequest,
+		})
+		return
+	}
+
+	limit := DefaultProposalPageLimit
+	if rawLimit := strings.TrimSpace(c.Query("limit")); rawLimit != "" {
+		v, convErr := strconv.Atoi(rawLimit)
+		if convErr != nil || v <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success":     false,
+				"codigo":      "PARAMETRO_INVALIDO",
+				"error":       "Parámetro limit inválido",
+				"detalle":     fmt.Sprintf("limit debe ser un entero positivo (máximo %d)", MaxProposalPageLimit),
+				"codigo_http": http.StatusBadRequest,
+			})
+			return
+		}
+		if v > MaxProposalPageLimit {
+			v = MaxProposalPageLimit
+		}
+		limit = v
+	}
+
+	offset := 0
+	if rawOffset := strings.TrimSpace(c.Query("offset")); rawOffset != "" {
+		v, convErr := strconv.Atoi(rawOffset)
+		if convErr != nil || v < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success":     false,
+				"codigo":      "PARAMETRO_INVALIDO",
+				"error":       "Parámetro offset inválido",
+				"detalle":     "offset debe ser un entero mayor o igual a 0",
+				"codigo_http": http.StatusBadRequest,
+			})
+			return
+		}
+		offset = v
+	}
+
+	estadoFilter := EstadoMarcaActivo
+	if rawEstado := strings.TrimSpace(c.Query("estado")); rawEstado != "" {
+		norm, ok := normalizeEstadoFilter(rawEstado)
+		if !ok {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success":     false,
+				"codigo":      "PARAMETRO_INVALIDO",
+				"error":       "Parámetro estado inválido",
+				"detalle":     "estado debe ser 'activo', 'anulado' o 'todos'",
+				"codigo_http": http.StatusBadRequest,
+			})
+			return
+		}
+		estadoFilter = norm
+	}
+
+	result, err := ctrl.service.AnalizarPropuestaTXT(id, ProposalQueryOptions{
+		Limit:  limit,
+		Offset: offset,
+		Estado: estadoFilter,
+	})
+	if err != nil {
+		var pErr *ProposalParseError
+		if errors.As(err, &pErr) {
+			status := pErr.HTTPStatus
+			if status == 0 {
+				status = http.StatusUnprocessableEntity
+			}
+			body := gin.H{
+				"success":     false,
+				"codigo":      pErr.Code,
+				"error":       pErr.Message,
+				"codigo_http": status,
+			}
+			if pErr.Detail != "" {
+				body["detalle"] = pErr.Detail
+			}
+			if pErr.FormatInfo != nil {
+				body["detalles"] = pErr.FormatInfo
+			}
+			c.JSON(status, body)
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":     false,
+			"codigo":      "ERROR_INTERNO",
+			"error":       "Error al analizar el archivo de propuesta",
+			"codigo_http": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success":    true,
+		"resumen":    result.Resumen,
+		"paginacion": result.Paginacion,
+		"filas":      result.Filas,
+		"anulados":   result.Anulados,
+	})
 }

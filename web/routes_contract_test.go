@@ -188,6 +188,7 @@ func TestRoutesContract_AllFrontendRoutesExistInBackend(t *testing.T) {
 		{"Consultar Ticket SIRE", "GET", "/api/sire/tickets/:ruc/:ticket"},
 		{"Listar Descargas Global", "GET", "/api/descargas"},
 		{"Descargar Archivo por ID", "GET", "/api/descargas/:id/archivo"},
+		{"Analizar Propuesta TXT por ID", "GET", "/api/descargas/:id/propuesta-txt"},
 		{"Info del Sistema", "GET", "/api/sistema/info"},
 		{"Abrir Carpeta", "POST", "/api/sistema/abrir-carpeta"},
 		{"Estado Worker", "GET", "/api/sistema/estado-worker"},

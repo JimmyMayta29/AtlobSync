@@ -3,6 +3,7 @@ package sire
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -12,10 +13,11 @@ import (
 var rePeriodo = regexp.MustCompile(`^\d{6}$`)
 
 type Service struct {
-	repo       *Repository
-	sireClient *SunatSireClient
-	worker     *Worker
-	storageDir string
+	repo                *Repository
+	sireClient          *SunatSireClient
+	worker              *Worker
+	storageDir          string
+	maxProposalTXTBytes int64
 }
 
 func NewService(repo *Repository, sireClient *SunatSireClient, worker *Worker, storageDir string) *Service {
@@ -218,4 +220,54 @@ func (s *Service) DescargarConstanciaRecepcion(ruc, libro, nomArchivo string) ([
 	}
 
 	return data, cleanName, contentType, nil
+}
+
+// AnalizarPropuestaTXT lee en memoria el archivo TXT oficial dentro del ZIP de una descarga COMPLETADA,
+// valida ruta dentro de storageDir, valida layout/cabeceras y devuelve resumen + filas paginadas
+// sin disparar sincronización con comprobantes_cpe ni escribir archivos en disco.
+func (s *Service) AnalizarPropuestaTXT(id int64, opts ProposalQueryOptions) (*ProposalAnalysisResponse, error) {
+	d, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, &ProposalParseError{
+			Code:       ErrCodeNoEncontrado,
+			HTTPStatus: http.StatusNotFound,
+			Message:    "descarga no encontrada",
+		}
+	}
+
+	if d.Estado != string(EstadoCompletado) {
+		return nil, &ProposalParseError{
+			Code:       ErrCodeNoCompletado,
+			HTTPStatus: http.StatusConflict,
+			Message:    "la descarga aún no está completada",
+			Detail:     fmt.Sprintf("estado actual: %s", d.Estado),
+		}
+	}
+
+	safePath, err := resolveSafeStoragePath(s.storageDir, d.RutaLocal)
+	if err != nil {
+		return nil, err
+	}
+
+	maxBytes := opts.MaxUncompressedBytes
+	if maxBytes <= 0 {
+		maxBytes = s.maxProposalTXTBytes
+	}
+	if maxBytes <= 0 {
+		maxBytes = DefaultMaxProposalTXTBytes
+	}
+
+	parsed, err := ParseProposalZIPFile(safePath, d.Libro, d.CodLibro, maxBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	parsed.Resumen.DescargaID = d.ID
+	if d.Periodo != "" {
+		parsed.Resumen.Periodo = d.Periodo
+	}
+	parsed.Resumen.NombreArchivoZIP = d.NombreArchivo
+	parsed.Resumen.Ticket = d.Ticket
+
+	return PaginateProposalResult(parsed, opts.Limit, opts.Offset, opts.Estado), nil
 }
