@@ -1135,6 +1135,544 @@
     .prop-phase-pill.ready { background: #dcf3e5; color: #166534; border-color: #9fe2ce; }
     .prop-phase-pill.error { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
 
+    /* =======================================================
+       DASHBOARD Y TABLA PAGINADA PROPUESTA SIRE (SUB-ETAPA 3D)
+       ======================================================= */
+    .prop-dash-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.2rem;
+      min-width: 0;
+      max-width: 100%;
+    }
+    .prop-sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .prop-loading-box {
+      background: #ffffff;
+      border: 1px solid #dce5f0;
+      border-radius: 12px;
+      padding: 2rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      text-align: center;
+      color: #0b2545;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .prop-dash-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      background: #ffffff;
+      border: 1px solid #dce5f0;
+      border-radius: 12px;
+      padding: 0.9rem 1.15rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .prop-dash-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0b2545;
+    }
+    .prop-dash-meta {
+      font-size: 0.78rem;
+      color: #51627a;
+      margin-top: 0.15rem;
+    }
+    .prop-counts-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+    .prop-count-card {
+      background: #ffffff;
+      border: 1px solid #dce5f0;
+      border-top: 3px solid #2f6fa3;
+      border-radius: 11px;
+      padding: 0.75rem 0.9rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .prop-count-card.accent-nc { border-top-color: #dc2626; }
+    .prop-count-card.accent-nd { border-top-color: #0d9488; }
+    .prop-count-card.accent-anulado { border-top-color: #64748b; }
+    .prop-count-card.accent-desconocido { border-top-color: #d97706; }
+    .prop-count-card.is-alert { background: #fffbeb; border-color: #f59e0b; }
+    .prop-count-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #51627a;
+    }
+    .prop-count-val {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #0b2545;
+      line-height: 1.2;
+      margin-top: 0.2rem;
+    }
+    .prop-count-hint {
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 0.15rem;
+    }
+    .prop-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    .prop-kpi-card {
+      background: #ffffff;
+      border: 1px solid #dce5f0;
+      border-left: 4px solid #2f6fa3;
+      border-radius: 12px;
+      padding: 0.95rem 1.05rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .prop-kpi-card.kpi-total {
+      border-left-color: #e8a91b;
+      background: linear-gradient(135deg, #ffffff 0%, #fffbf0 100%);
+    }
+    .prop-kpi-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #51627a;
+    }
+    .prop-kpi-val {
+      font-size: 1.38rem;
+      font-weight: 800;
+      color: #0b2545;
+      margin-top: 0.22rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .prop-kpi-card.kpi-total .prop-kpi-val {
+      color: #0b2545;
+    }
+    .prop-kpi-sub {
+      font-size: 0.74rem;
+      color: #64748b;
+      margin-top: 0.18rem;
+    }
+    .prop-formula-bar {
+      background: #ffffff;
+      border: 1px solid #dce5f0;
+      border-radius: 11px;
+      padding: 0.85rem 1.05rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.42rem;
+      font-size: 0.82rem;
+      color: #0b2545;
+    }
+    .prop-formula-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 0.9rem;
+    }
+    .prop-formula-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: #eef4fa;
+      border: 1px solid #c9d9ea;
+      border-radius: 8px;
+      padding: 0.22rem 0.6rem;
+      font-weight: 700;
+      font-size: 0.78rem;
+      color: #0b2545;
+      font-variant-numeric: tabular-nums;
+    }
+    .prop-formula-pill.neg { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+    .prop-formula-pill.pos { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+    .prop-formula-pill.net { background: #0b2545; border-color: #0b2545; color: #ffffff; }
+    .prop-exclusion-note {
+      font-size: 0.77rem;
+      color: #51627a;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .prop-rvie-discounts {
+      font-size: 0.77rem;
+      color: #475569;
+      padding-top: 0.35rem;
+      border-top: 1px dashed #dce5f0;
+    }
+    .prop-warn-box {
+      background: #fffbeb;
+      border: 1px solid #f59e0b;
+      border-left: 4px solid #d97706;
+      border-radius: 11px;
+      padding: 0.85rem 1.05rem;
+      color: #92400e;
+      font-size: 0.82rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .prop-warn-title {
+      font-weight: 800;
+      color: #78350f;
+    }
+    .prop-warn-list {
+      margin: 0;
+      padding-left: 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .prop-viz-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+    .prop-viz-card {
+      background: #ffffff;
+      border: 1px solid #dce5f0;
+      border-radius: 12px;
+      padding: 0.95rem 1.05rem;
+      box-shadow: var(--shadow-sm);
+      min-width: 0;
+    }
+    .prop-viz-card.prop-viz-full {
+      grid-column: 1 / -1;
+    }
+    .prop-bar-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .prop-bar-val {
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .prop-viz-title {
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: #0b2545;
+      margin-bottom: 0.65rem;
+    }
+    .prop-bar-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.48rem;
+    }
+    .prop-bar-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      font-size: 0.77rem;
+    }
+    .prop-bar-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      color: #0b2545;
+      font-weight: 600;
+    }
+    .prop-bar-track {
+      height: 7px;
+      background: #edf2f7;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .prop-bar-fill {
+      height: 100%;
+      background: #2f6fa3;
+      border-radius: 999px;
+    }
+    .prop-bar-fill.nc { background: #dc2626; }
+    .prop-bar-fill.nd { background: #0d9488; }
+    .prop-bar-fill.gold { background: #e8a91b; }
+    .prop-svg-chart {
+      width: 100%;
+      height: 155px;
+      display: block;
+    }
+    .prop-table-card {
+      background: #ffffff;
+      border: 1px solid #dce5f0;
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      min-width: 0;
+      max-width: 100%;
+    }
+    .prop-cell-sub {
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 0.1rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .prop-tipo-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.28rem;
+      padding: 0.14rem 0.48rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: #eef4fa;
+      color: #0b2545;
+      white-space: nowrap;
+    }
+    .prop-tipo-chip.nc { background: #fee2e2; color: #991b1b; }
+    .prop-tipo-chip.nd { background: #ccfbf1; color: #115e59; }
+    .prop-pag-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+    .prop-table-toolbar {
+      padding: 0.85rem 1.05rem;
+      border-bottom: 1px solid #dce5f0;
+      background: #f8fbff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .prop-state-tabs {
+      display: inline-flex;
+      background: #e9f0f7;
+      border-radius: 10px;
+      padding: 3px;
+      gap: 3px;
+      flex-wrap: wrap;
+    }
+    .prop-state-tab {
+      min-height: 38px;
+      padding: 0.35rem 0.78rem;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: #51627a;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: background var(--transition), color var(--transition);
+    }
+    .prop-state-tab:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.7);
+      color: #0b2545;
+    }
+    .prop-state-tab.active {
+      background: #0b2545;
+      color: #ffffff;
+    }
+    .prop-state-tab:focus-visible {
+      outline: 2px solid #2f6fa3;
+      outline-offset: 2px;
+    }
+    .prop-tab-pill {
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 0.08rem 0.42rem;
+      border-radius: 999px;
+      background: rgba(11, 37, 69, 0.12);
+      color: #0b2545;
+    }
+    .prop-state-tab.active .prop-tab-pill {
+      background: #e8a91b;
+      color: #0b2545;
+    }
+    .prop-filter-inputs {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+    }
+    .prop-filter-select {
+      min-height: 40px;
+      min-width: 175px;
+      border: 1px solid #b8c6d8;
+      border-radius: 9px;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #0b2545;
+      background: #ffffff;
+    }
+    .prop-search-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+    .prop-search-input {
+      min-height: 40px;
+      width: 245px;
+      border: 1px solid #b8c6d8;
+      border-radius: 9px;
+      padding: 0.35rem 2rem 0.35rem 0.72rem;
+      font-size: 0.82rem;
+      color: #0b2545;
+      background: #ffffff;
+    }
+    .prop-search-input:focus {
+      outline: none;
+      border-color: #2f6fa3;
+      box-shadow: 0 0 0 3px rgba(47, 111, 163, 0.16);
+    }
+    .prop-search-clear {
+      position: absolute;
+      right: 6px;
+      width: 26px;
+      height: 26px;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: #64748b;
+      font-size: 1rem;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .prop-search-clear.visible { display: inline-flex; }
+    .prop-table-scroll {
+      max-height: 560px;
+      overflow: auto;
+      width: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+    .prop-data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      min-width: 980px;
+    }
+    .prop-data-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #eef3f8;
+      color: #0b2545;
+      font-weight: 800;
+      font-size: 0.73rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 0.65rem 0.65rem;
+      border-bottom: 2px solid #cbd5e1;
+      white-space: nowrap;
+      text-align: left;
+    }
+    .prop-data-table thead th.num,
+    .prop-data-table tbody td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .prop-data-table tbody td {
+      padding: 0.56rem 0.65rem;
+      border-bottom: 1px solid #e6edf5;
+      color: #0b2545;
+      vertical-align: middle;
+    }
+    .prop-data-table tbody tr:hover {
+      background: #f5f9fd;
+    }
+    .prop-data-table tbody tr.prop-row-anulado {
+      background: #f8fafc;
+      color: #64748b;
+      opacity: 0.68;
+    }
+    .prop-data-table tbody tr.prop-row-anulado td {
+      color: #64748b;
+    }
+    .prop-data-table tbody tr.prop-row-desconocido {
+      background: #fffbeb;
+    }
+    .prop-amt-neg {
+      color: #b91c1c !important;
+      font-weight: 800;
+    }
+    .prop-row-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.14rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.69rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .prop-row-badge.activo { background: #dcfce7; color: #166534; }
+    .prop-row-badge.anulado { background: #e2e8f0; color: #475569; }
+    .prop-row-badge.desconocido { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+    .prop-pag-bar {
+      padding: 0.75rem 1.05rem;
+      border-top: 1px solid #dce5f0;
+      background: #f8fbff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+      color: #51627a;
+    }
+    .prop-state-empty {
+      padding: 2.2rem 1.25rem;
+      text-align: center;
+      color: #51627a;
+      font-size: 0.88rem;
+    }
+    .prop-error-card {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-left: 4px solid #dc2626;
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      color: #991b1b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.85rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .prop-error-card.session-expired {
+      background: #fffbeb;
+      border-color: #fcd34d;
+      border-left-color: #d97706;
+      color: #92400e;
+    }
+    @media (max-width: 1100px) {
+      .prop-counts-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .prop-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .prop-viz-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .prop-counts-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .prop-kpi-grid { grid-template-columns: 1fr; }
+      .prop-search-input { width: 100%; }
+    }
+
     main.ws-content {
       flex: 1;
       padding: 1.35rem 1.5rem 2.5rem;
@@ -3191,6 +3729,12 @@
     let activePropLibro = 'VENTAS';
     let activePropSavedDownload = null;
     let activePropPollInterval = null;
+    let activePropPollController = null;
+    let activePropAnalysisController = null;
+    let propPollRunId = 0;
+    let propAnalysisRunId = 0;
+    let propSearchDebounceTimer = null;
+    let propAnalysisState = null; // estado del análisis TXT únicamente en memoria RAM (nunca storage/console)
     let empresaEnEdicion = null;
     let rucParaProbar = '';
     let cpeFilterOrigen = '';
@@ -3464,10 +4008,44 @@
       syncSelectsFromPeriodo(resolved);
     }
 
+    function cancelPropuestaActiveWork(opts = {}) {
+      propPollRunId++;
+      propAnalysisRunId++;
+      if (activePropPollInterval) {
+        clearInterval(activePropPollInterval);
+        activePropPollInterval = null;
+      }
+      if (activePropPollController) {
+        try { activePropPollController.abort(); } catch (_) {}
+        activePropPollController = null;
+      }
+      if (activePropAnalysisController) {
+        try { activePropAnalysisController.abort(); } catch (_) {}
+        activePropAnalysisController = null;
+      }
+      if (propSearchDebounceTimer) {
+        clearTimeout(propSearchDebounceTimer);
+        propSearchDebounceTimer = null;
+      }
+      if (!opts.keepProgress) {
+        const prog = document.getElementById('prop-progress');
+        if (prog) prog.style.display = 'none';
+      }
+      if (opts.clearResult) {
+        propAnalysisState = null;
+        const box = document.getElementById('prop-resultado-box');
+        if (box) box.replaceChildren();
+        setPropPhase('', '');
+      }
+    }
+
     function setPeriodoQuick(prefix, per) {
       const resolved = resolvePeriodoPrefix(prefix);
       const clean = normalizePeriodoYYYYMM(per);
       if (!clean || isFuturePeriodo(clean)) return;
+      if (resolved === 'prop') {
+        cancelPropuestaActiveWork({ clearResult: true });
+      }
       const input = document.getElementById(`${resolved}-periodo`);
       if (input) input.value = formatPeriodoDash(clean);
       const anioEl = document.getElementById(`${resolved}-anio`);
@@ -3601,46 +4179,18 @@
 
     function usarDescargaGuardadaPropuesta() {
       const saved = activePropSavedDownload;
-      const per = getPeriodoYYYYMM('prop');
-      if (!saved) {
+      if (!saved || !saved.id) {
         showToast('No hay descarga guardada para este libro y periodo.', 'warning');
         return;
       }
-      const bookName = activePropLibro === 'COMPRAS' ? 'Compras (RCE)' : 'Ventas (RVIE)';
-      const fname = saved.nombre_archivo || `propuesta_${per}.zip`;
-      const kb = saved.tamano_bytes ? `${(saved.tamano_bytes / 1024).toFixed(1)} KB` : '—';
-      const fecha = String(saved.created_at || '—').replace('T', ' ').slice(0, 16);
-      setPropPhase('ready', 'Listo');
-      const box = document.getElementById('prop-resultado-box');
-      if (box) {
-        box.innerHTML = `
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">
-                Descarga guardada lista · ${escapeHtml(bookName)}
-                <span class="badge navy">${escapeHtml(formatPeriodoLabel(per))} (${escapeHtml(formatPeriodoDash(per))})</span>
-              </div>
-              <span class="badge valido">COMPLETADO</span>
-            </div>
-            <div class="card-body">
-              <div class="info-grid" style="margin-bottom:0.85rem;">
-                <div class="info-box"><div class="info-label">Archivo ZIP</div><div class="info-value mono">${escapeHtml(fname)}</div></div>
-                <div class="info-box"><div class="info-label">Ticket SUNAT</div><div class="info-value mono">${escapeHtml(saved.ticket || '—')}</div></div>
-                <div class="info-box"><div class="info-label">Tamaño / Fecha</div><div class="info-value">${escapeHtml(kb)} · ${escapeHtml(fecha)}</div></div>
-              </div>
-              <div style="display:flex; gap:0.55rem; flex-wrap:wrap; align-items:center;">
-                <button type="button" class="btn btn-gold" style="min-height:44px;" onclick="descargarArchivoSeguro('/api/descargas/${saved.id}/archivo', '${escapeHtml(fname)}')">Descargar ZIP guardado</button>
-                <button type="button" class="btn btn-primary" style="min-height:44px;" onclick="consultarPropuestaActiva(1)">Ver detalle en línea (SUNAT)</button>
-                <button type="button" class="btn btn-secondary" style="min-height:44px;" onclick="abrirComprobantesPropuestaActiva()">Comprobantes del periodo</button>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-      showToast(`Descarga guardada seleccionada (${fname})`, 'success');
+      analizarPropuestaGuardada(saved.id, {
+        fname: saved.nombre_archivo || '',
+        ticket: saved.ticket || ''
+      });
     }
 
     function setPropuestaLibro(libro) {
+      cancelPropuestaActiveWork({ clearResult: true });
       const next = String(libro || 'VENTAS').toUpperCase() === 'COMPRAS' ? 'COMPRAS' : 'VENTAS';
       activePropLibro = next;
       const isCompras = next === 'COMPRAS';
@@ -3748,10 +4298,7 @@
     }
 
     function resetPeriodoResultsForCompanySwitch() {
-      if (activePropPollInterval) {
-        clearInterval(activePropPollInterval);
-        activePropPollInterval = null;
-      }
+      cancelPropuestaActiveWork({ clearResult: true });
       sunatPeriodosMap.ventas = {};
       sunatPeriodosMap.compras = {};
       sunatPeriodosRaw.ventas = null;
@@ -3760,14 +4307,9 @@
       if (sp) sp.innerHTML = '';
       const raw = document.getElementById('prop-periodos-raw');
       if (raw) raw.innerHTML = '';
-      const box = document.getElementById('prop-resultado-box');
-      if (box) box.innerHTML = '';
-      const prog = document.getElementById('prop-progress');
-      if (prog) prog.style.display = 'none';
       const banner = document.getElementById('prop-saved-banner');
       if (banner) banner.classList.remove('visible', 'show');
       activePropSavedDownload = null;
-      setPropPhase('', '');
       updatePeriodoUI('prop');
     }
 
@@ -3796,9 +4338,17 @@
       try {
         rawRes = await fetch(url, options);
       } catch (networkErr) {
+        if (networkErr && networkErr.name === 'AbortError') {
+          return {
+            ok: false, aborted: true, status: 0, statusText: 'Aborted', headers: new Headers(),
+            text: async () => '',
+            json: async () => ({ success: false, aborted: true, codigo_http: 0 }),
+            isJson: false
+          };
+        }
         const errorMsg = `Error de conexión (${networkErr.message}) al contactar ${method} ${url}`;
         return {
-          ok: false, status: 0, statusText: 'Network Error', headers: new Headers(),
+          ok: false, aborted: false, status: 0, statusText: 'Network Error', headers: new Headers(),
           text: async () => errorMsg,
           json: async () => ({ success: false, error: errorMsg, detalle: networkErr.message, codigo_http: 0 }),
           isJson: false
@@ -3985,6 +4535,7 @@
     }
 
     function cerrarSesionUI() {
+      cancelPropuestaActiveWork({ clearResult: true });
       sessionStorage.removeItem(AUTH_SESSION_FLAG);
       sessionStorage.removeItem(AUTH_USER_KEY);
       sessionStorage.removeItem('sire_session_ruc');
@@ -4017,6 +4568,7 @@
     }
 
     function salirAlLogin() {
+      cancelPropuestaActiveWork({ clearResult: true });
       sessionStorage.removeItem('sire_session_ruc');
       toggleMobileSidebar(false);
       document.getElementById('auth-screen').style.display = 'none';
@@ -4032,6 +4584,13 @@
       } else if (tabId === 'tab-compras') {
         setPropuestaLibro('COMPRAS');
         tabId = 'tab-propuesta';
+      }
+      if (tabId !== 'tab-propuesta') {
+        cancelPropuestaActiveWork({ clearResult: false });
+        const pill = document.getElementById('prop-phase-pill');
+        if (pill && (pill.classList.contains('downloading') || pill.classList.contains('reading'))) {
+          setPropPhase('', '');
+        }
       }
       document.querySelectorAll('.nav-item').forEach(b => {
         b.classList.toggle('active', b.getAttribute('data-tab') === tabId);
@@ -4701,18 +5260,1011 @@
       return solicitarExportacionLibro('080000', 'prop');
     }
 
+    // --- SUB-ETAPA 3D: HELPERS DOM-SAFE (SIN innerHTML), FORMATO es-PE, POLLING CANCELABLE Y DASHBOARD TXT ---
+    const PROP_MONEY_FMT = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const PROP_INT_FMT = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 });
+    const PROP_TIPO_CP_LABELS = {
+      '00': 'Otros',
+      '01': 'Factura',
+      '02': 'Recibo por Honorarios',
+      '03': 'Boleta de Venta',
+      '04': 'Liquidación de Compra',
+      '05': 'Boleto Transporte Aéreo',
+      '06': 'Carta de Porte Aéreo',
+      '07': 'Nota de Crédito',
+      '08': 'Nota de Débito',
+      '10': 'Recibo Arrendamiento',
+      '12': 'Ticket Máq. Registradora',
+      '13': 'Doc. Bancos / Seguros',
+      '14': 'Recibo Servicios Públicos',
+      '15': 'Boleto Transporte Urbano',
+      '16': 'Boleto Viaje Interprov.',
+      '50': 'DUA / DAM',
+      '87': 'Nota de Crédito Especial',
+      '88': 'Nota de Débito Especial',
+      '91': 'Comprobante No Domiciliado',
+      '97': 'Nota de Crédito No Domic.',
+      '98': 'Nota de Débito No Domic.'
+    };
+
+    function createDomEl(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined && text !== null) node.textContent = String(text);
+      return node;
+    }
+
+    function formatMoneyPE(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n) || Math.abs(n) < 0.0005) return PROP_MONEY_FMT.format(0);
+      return PROP_MONEY_FMT.format(n);
+    }
+
+    function formatSolesPE(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n) || Math.abs(n) < 0.0005) return 'S/ ' + PROP_MONEY_FMT.format(0);
+      return n < 0 ? `-S/ ${PROP_MONEY_FMT.format(Math.abs(n))}` : `S/ ${PROP_MONEY_FMT.format(n)}`;
+    }
+
+    function formatIntPE(value) {
+      const n = Number(value);
+      return PROP_INT_FMT.format(Number.isFinite(n) ? Math.trunc(n) : 0);
+    }
+
+    function isPropNotaCredito(tipoCP) {
+      const t = String(tipoCP || '').trim();
+      return t === '07' || t === '87' || t === '97';
+    }
+
+    function isPropNotaDebito(tipoCP) {
+      const t = String(tipoCP || '').trim();
+      return t === '08' || t === '88' || t === '98';
+    }
+
+    function getPropTipoLabel(tipoCP) {
+      const code = String(tipoCP || '').trim();
+      if (!code) return 'Sin tipo';
+      return PROP_TIPO_CP_LABELS[code] ? `${code} · ${PROP_TIPO_CP_LABELS[code]}` : `Tipo ${code}`;
+    }
+
+    function abortableSleep(ms, signal) {
+      return new Promise(resolve => {
+        if (signal && signal.aborted) {
+          resolve(false);
+          return;
+        }
+        const onAbort = () => {
+          clearTimeout(timer);
+          resolve(false);
+        };
+        const timer = setTimeout(() => {
+          if (signal) signal.removeEventListener('abort', onAbort);
+          resolve(true);
+        }, ms);
+        if (signal) signal.addEventListener('abort', onAbort, { once: true });
+      });
+    }
+
+    function isExpiredTokenResponse(res, data) {
+      const status = Number(res?.status || data?.codigo_http || 0);
+      if (status === 401) return true;
+      const code = String(data?.codigo || '').toUpperCase();
+      if (code === 'TOKEN_EXPIRADO' || code === 'SESION_EXPIRADA' || code === 'UNAUTHORIZED') return true;
+      const msg = `${data?.error || ''} ${data?.mensaje_sunat || ''}`;
+      return /token\s+(de\s+acceso\s+)?expirad|sesi[oó]n\s+expirad|token\s+inv[aá]lid/i.test(msg);
+    }
+
+    function mapProposalErrorMessage(status, data) {
+      const httpCode = Number(status || data?.codigo_http || 0);
+      const code = String(data?.codigo || '').toUpperCase();
+      if (isExpiredTokenResponse({ status: httpCode }, data)) {
+        return 'Sesión expirada, vuelve a conectar';
+      }
+      if (code === 'FORMATO_INESPERADO') {
+        return 'El archivo TXT de la propuesta no coincide con la estructura oficial de SUNAT SIRE (RVIE/RCE). Descarga nuevamente la propuesta en formato TXT oficial.';
+      }
+      if (code === 'ZIP_INESPERADO') {
+        return 'El archivo ZIP guardado está dañado o no contiene un archivo TXT válido de propuesta SIRE. Intenta descargarlo nuevamente.';
+      }
+      if (code === 'ZIP_DEMASIADO_GRANDE') {
+        return 'El archivo descomprimido de la propuesta excede el límite seguro permitido (50 MB) para mostrarse en pantalla. Puedes descargar el ZIP directamente.';
+      }
+      if (httpCode === 403 || code === 'RUTA_FUERA_DE_STORAGE') {
+        return 'Acceso denegado (403): la ubicación del archivo no está autorizada dentro de la carpeta segura de descargas.';
+      }
+      if (httpCode === 404 || code === 'DESCARGA_NO_ENCONTRADA') {
+        return 'No se encontró la descarga o el archivo ZIP solicitado (404). Descarga nuevamente la propuesta para este periodo.';
+      }
+      if (httpCode === 409 || code === 'DESCARGA_NO_COMPLETADA') {
+        return 'La descarga todavía no está en estado completado (409). Espera a que termine el ticket o inicia una nueva descarga.';
+      }
+      if (httpCode === 413) {
+        return 'El archivo de la propuesta supera el límite máximo de tamaño admitido por el servidor (413). Descarga el ZIP para abrirlo localmente.';
+      }
+      if (httpCode === 422) {
+        return 'El archivo de la propuesta no pudo validarse por inconsistencias en su formato oficial SIRE (422). Verifica libro y formato TXT.';
+      }
+      if (httpCode === 400 || code === 'PARAMETRO_INVALIDO') {
+        return 'Los filtros o parámetros de paginación no son válidos. La búsqueda admite un máximo de 40 caracteres.';
+      }
+      return 'No fue posible procesar la propuesta en este momento. Intenta nuevamente.';
+    }
+
+    function renderProposalLoadingBox(box, text) {
+      if (!box) return;
+      box.replaceChildren();
+      const wrap = createDomEl('div', 'prop-loading-box');
+      wrap.setAttribute('role', 'status');
+      wrap.setAttribute('aria-live', 'polite');
+      const spin = createDomEl('div', 'selector-spinner');
+      spin.setAttribute('aria-hidden', 'true');
+      const title = createDomEl('div', 'prop-dash-title', text || 'Leyendo archivo oficial TXT de la propuesta...');
+      const sub = createDomEl('div', 'prop-dash-meta', 'Validando estructura SIRE y calculando totales en memoria sin modificar tus comprobantes.');
+      wrap.append(spin, title, sub);
+      box.appendChild(wrap);
+    }
+
+    function renderProposalErrorBox(box, message, opts = {}) {
+      if (!box) return;
+      box.replaceChildren();
+      const card = createDomEl('div', opts.sessionExpired ? 'prop-error-card session-expired' : 'prop-error-card');
+      card.setAttribute('role', 'alert');
+
+      const left = createDomEl('div');
+      const title = createDomEl('div', 'prop-dash-title', opts.sessionExpired ? 'Sesión expirada, vuelve a conectar' : (opts.title || 'No se pudo cargar la propuesta'));
+      title.style.color = 'inherit';
+      left.appendChild(title);
+
+      const descText = opts.sessionExpired
+        ? `Tu selección actual (${activePropLibro === 'COMPRAS' ? 'Compras RCE' : 'Ventas RVIE'} · ${formatPeriodoLabel(getPeriodoYYYYMM('prop'))}) se mantiene intacta. Vuelve a validar la conexión con SUNAT para continuar.`
+        : message;
+      const desc = createDomEl('div', '', descText);
+      desc.style.fontSize = '0.84rem';
+      desc.style.marginTop = '0.2rem';
+      left.appendChild(desc);
+
+      const actions = createDomEl('div');
+      actions.style.display = 'flex';
+      actions.style.gap = '0.5rem';
+      actions.style.flexWrap = 'wrap';
+
+      if (opts.sessionExpired) {
+        const btnConn = createDomEl('button', 'btn btn-navy', 'Ir a Conexión');
+        btnConn.type = 'button';
+        btnConn.style.minHeight = '44px';
+        btnConn.addEventListener('click', () => switchTab('tab-conexion'));
+        actions.appendChild(btnConn);
+      } else if (typeof opts.onRetry === 'function') {
+        const btnRetry = createDomEl('button', 'btn btn-primary', 'Reintentar');
+        btnRetry.type = 'button';
+        btnRetry.style.minHeight = '44px';
+        btnRetry.addEventListener('click', opts.onRetry);
+        actions.appendChild(btnRetry);
+      }
+
+      card.append(left, actions);
+      box.appendChild(card);
+    }
+
+    async function analizarPropuestaGuardada(descargaId, meta = {}) {
+      const id = Number(descargaId || 0);
+      if (!id) {
+        showToast('No se identificó la descarga a analizar.', 'warning');
+        return;
+      }
+      cancelPropuestaActiveWork({ clearResult: false });
+
+      propAnalysisState = {
+        descargaId: id,
+        libro: activePropLibro,
+        periodo: getPeriodoYYYYMM('prop'),
+        estado: 'activo',
+        tipo_cp: '',
+        q: '',
+        limit: 50,
+        offset: 0,
+        resumen: null,
+        total_filtrado: 0,
+        paginacion: null,
+        filas: [],
+        fname: meta.fname || activePropSavedDownload?.nombre_archivo || '',
+        ticket: meta.ticket || activePropSavedDownload?.ticket || '',
+        shellRendered: false
+      };
+
+      setPropPhase('reading', 'Leyendo archivo');
+      const box = document.getElementById('prop-resultado-box');
+      renderProposalLoadingBox(box, 'Leyendo archivo oficial TXT de la propuesta...');
+      await cargarPaginaPropuestaTXT({ initial: true });
+    }
+
+    async function cargarPaginaPropuestaTXT(opts = {}) {
+      const st = propAnalysisState;
+      if (!st || !st.descargaId) return;
+
+      if (activePropAnalysisController) {
+        try { activePropAnalysisController.abort(); } catch (_) {}
+      }
+      const controller = new AbortController();
+      activePropAnalysisController = controller;
+      const myRunId = ++propAnalysisRunId;
+
+      if (!opts.initial && st.shellRendered) {
+        renderProposalTableLoading();
+      } else {
+        setPropPhase('reading', 'Leyendo archivo');
+      }
+
+      const params = new URLSearchParams();
+      params.set('estado', st.estado || 'activo');
+      params.set('limit', String(st.limit || 50));
+      params.set('offset', String(st.offset || 0));
+      if (st.tipo_cp) params.set('tipo_cp', st.tipo_cp);
+      if (st.q) params.set('q', st.q.slice(0, 40));
+
+      const res = await apiFetch(`/api/descargas/${st.descargaId}/propuesta-txt?${params.toString()}`, {
+        signal: controller.signal
+      });
+      if (res.aborted || controller.signal.aborted || myRunId !== propAnalysisRunId) return;
+
+      const data = await res.json();
+      if (controller.signal.aborted || myRunId !== propAnalysisRunId) return;
+
+      if (activePropAnalysisController === controller) {
+        activePropAnalysisController = null;
+      }
+
+      const box = document.getElementById('prop-resultado-box');
+      if (!res.ok || data?.success === false) {
+        setPropPhase('error', 'Error');
+        if (isExpiredTokenResponse(res, data)) {
+          renderProposalErrorBox(box, 'Sesión expirada, vuelve a conectar', { sessionExpired: true });
+          return;
+        }
+        const errMsg = mapProposalErrorMessage(res.status, data);
+        if (!opts.initial && st.shellRendered) {
+          renderProposalTableError(errMsg);
+        } else {
+          renderProposalErrorBox(box, errMsg, {
+            onRetry: () => analizarPropuestaGuardada(st.descargaId, { fname: st.fname, ticket: st.ticket })
+          });
+        }
+        return;
+      }
+
+      st.resumen = data.resumen || {};
+      st.paginacion = data.paginacion || {};
+      st.total_filtrado = Number(
+        data.total_filtrado !== undefined ? data.total_filtrado : (st.paginacion.total_filtrado || 0)
+      );
+      st.filas = Array.isArray(data.filas) ? data.filas : [];
+
+      setPropPhase('ready', 'Listo');
+      if (!st.shellRendered) {
+        renderProposalShell(box, st);
+        st.shellRendered = true;
+      }
+      renderProposalTableContent(st);
+    }
+
+    function renderProposalShell(box, st) {
+      if (!box) return;
+      box.replaceChildren();
+
+      const resumen = st.resumen || {};
+      const conteos = resumen.conteos || {};
+      const totales = resumen.totales || {};
+      const isCompras = String(resumen.libro || st.libro || '').toUpperCase() === 'COMPRAS';
+      const bookTitle = isCompras ? 'Compras (RCE)' : 'Ventas (RVIE)';
+      const periodoCode = normalizePeriodoYYYYMM(resumen.periodo || st.periodo);
+      const zipName = resumen.nombre_archivo_zip || st.fname || `propuesta_${periodoCode || 'sire'}.zip`;
+      const txtName = resumen.nombre_archivo_txt || '';
+      const ticketTxt = resumen.ticket || st.ticket || '';
+
+      const wrap = createDomEl('div', 'prop-dash-wrap');
+      wrap.id = 'prop-dash-root';
+
+      // 1. Cabecera del análisis
+      const header = createDomEl('div', 'prop-dash-header');
+      const hLeft = createDomEl('div');
+      const hTitle = createDomEl('div', 'prop-dash-title',
+        `Resumen Propuesta SIRE · ${bookTitle} · ${periodoCode ? formatPeriodoLabel(periodoCode) + ' (' + formatPeriodoDash(periodoCode) + ')' : ''}`);
+      const metaParts = [];
+      if (txtName) metaParts.push(`TXT: ${txtName}`);
+      if (resumen.codificacion) metaParts.push(resumen.codificacion);
+      if (resumen.columnas) metaParts.push(`${resumen.columnas} col.`);
+      if (ticketTxt) metaParts.push(`Ticket ${ticketTxt}`);
+      metaParts.push(`${formatIntPE(conteos.total_filas || 0)} filas totales`);
+      const hMeta = createDomEl('div', 'prop-dash-meta', metaParts.join(' · '));
+      hLeft.append(hTitle, hMeta);
+
+      const hActions = createDomEl('div');
+      hActions.style.display = 'flex';
+      hActions.style.gap = '0.5rem';
+      hActions.style.flexWrap = 'wrap';
+
+      const btnZip = createDomEl('button', 'btn btn-gold', 'Descargar ZIP');
+      btnZip.type = 'button';
+      btnZip.style.minHeight = '42px';
+      btnZip.addEventListener('click', () => descargarArchivoSeguro(`/api/descargas/${st.descargaId}/archivo`, zipName));
+
+      const btnCpe = createDomEl('button', 'btn btn-secondary', 'Comprobantes del periodo');
+      btnCpe.type = 'button';
+      btnCpe.style.minHeight = '42px';
+      btnCpe.addEventListener('click', () => abrirComprobantesPropuestaActiva());
+
+      hActions.append(btnZip, btnCpe);
+      header.append(hLeft, hActions);
+      wrap.appendChild(header);
+
+      // 2. Aviso destacado si hay estado_desconocido > 0, filas_no_pen > 0 o advertencias[]
+      const warnItems = [];
+      const desconocidos = Number(conteos.estado_desconocido || 0);
+      const noPen = Number(resumen.filas_no_pen || 0);
+      if (desconocidos > 0) {
+        warnItems.push(`Se detectaron ${formatIntPE(desconocidos)} registro(s) con código de estado distinto a '1' (activo) y '2' (anulado). Fueron excluidos de todos los totales.`);
+      }
+      if (noPen > 0) {
+        warnItems.push(`Se detectaron ${formatIntPE(noPen)} registro(s) en moneda distinta a PEN. Los importes se muestran tal como figuran en el archivo TXT, sin conversión de moneda.`);
+      }
+      if (Array.isArray(resumen.advertencias)) {
+        resumen.advertencias.forEach(w => {
+          const cleanW = String(w || '').trim();
+          if (cleanW && !warnItems.includes(cleanW)) warnItems.push(cleanW);
+        });
+      }
+      if (warnItems.length > 0) {
+        const warnBox = createDomEl('div', 'prop-warn-box');
+        warnBox.setAttribute('role', 'alert');
+        warnBox.appendChild(createDomEl('div', 'prop-warn-title', 'Advertencias del análisis de propuesta'));
+        const ul = createDomEl('ul', 'prop-warn-list');
+        warnItems.forEach(item => ul.appendChild(createDomEl('li', '', item)));
+        warnBox.appendChild(ul);
+        wrap.appendChild(warnBox);
+      }
+
+      // 3. Tarjetas de conteos (Comprobantes, NC, ND, Anulados, Desconocidos)
+      const countsGrid = createDomEl('div', 'prop-counts-grid');
+      const countDefs = [
+        { label: 'Comprobantes', val: conteos.comprobantes || 0, hint: 'Activos (estado 1)', cls: '' },
+        { label: 'Notas de Crédito', val: conteos.nc || 0, hint: 'Tipos 07, 87, 97 (restan)', cls: 'accent-nc' },
+        { label: 'Notas de Débito', val: conteos.nd || 0, hint: 'Tipos 08, 88, 98 (suman)', cls: 'accent-nd' },
+        { label: 'Anulados', val: conteos.anulados || 0, hint: 'Estado 2 (fuera de totales)', cls: 'accent-anulado' },
+        { label: 'Desconocidos', val: desconocidos, hint: 'Otros códigos (excluidos)', cls: desconocidos > 0 ? 'accent-desconocido is-alert' : 'accent-desconocido' }
+      ];
+      countDefs.forEach(c => {
+        const card = createDomEl('div', `prop-count-card ${c.cls}`.trim());
+        card.append(
+          createDomEl('div', 'prop-count-label', c.label),
+          createDomEl('div', 'prop-count-val', formatIntPE(c.val)),
+          createDomEl('div', 'prop-count-hint', c.hint)
+        );
+        countsGrid.appendChild(card);
+      });
+      wrap.appendChild(countsGrid);
+
+      // 4. Tarjetas KPI (Base, IGV, No gravado, Total)
+      const kpiGrid = createDomEl('div', 'prop-kpi-grid');
+      const noGravVal = isCompras
+        ? Number(totales.no_gravado || 0)
+        : (Number(totales.no_gravado || 0) + Number(totales.exonerado || 0) + Number(totales.inafecto || 0));
+      const noGravSub = isCompras
+        ? 'Valor Adq. No Gravado (RCE)'
+        : `Exon.: ${formatSolesPE(totales.exonerado || 0)} · Inaf.: ${formatSolesPE(totales.inafecto || 0)}`;
+
+      const kpiDefs = [
+        { label: 'Base Imponible', val: formatSolesPE(totales.base_imponible || 0), sub: isCompras ? 'BI Gravada DG + DGNG + DNG' : 'BI Gravada según SUNAT', cls: '' },
+        { label: 'IGV / IPM', val: formatSolesPE(totales.igv || 0), sub: isCompras ? 'IGV DG + DGNG + DNG' : 'IGV / IPM según SUNAT', cls: '' },
+        { label: 'No gravado', val: formatSolesPE(noGravVal), sub: noGravSub, cls: '' },
+        { label: 'Total', val: formatSolesPE(totales.total_cp || 0), sub: `${formatIntPE(conteos.activos || 0)} registros activos`, cls: 'kpi-total' }
+      ];
+      kpiDefs.forEach(k => {
+        const card = createDomEl('div', `prop-kpi-card ${k.cls}`.trim());
+        card.append(
+          createDomEl('div', 'prop-kpi-label', k.label),
+          createDomEl('div', 'prop-kpi-val', k.val),
+          createDomEl('div', 'prop-kpi-sub', k.sub)
+        );
+        kpiGrid.appendChild(card);
+      });
+      wrap.appendChild(kpiGrid);
+
+      // 5. Barra de fórmula, desglose, nota de exclusión de anulados y descuentos RVIE informativos
+      const formulaBar = createDomEl('div', 'prop-formula-bar');
+      const fTop = createDomEl('div', 'prop-formula-row');
+      const fLabel = createDomEl('strong', '', 'Fórmula de totales: ');
+      const fExpr = createDomEl('span', '', resumen.formula_totales || 'Total = total_comprobantes + total_nd - total_nc');
+      fTop.append(fLabel, fExpr);
+
+      const fPills = createDomEl('div', 'prop-formula-row');
+      fPills.append(
+        createDomEl('span', 'prop-formula-pill', `Comprobantes: ${formatSolesPE(totales.total_comprobantes || 0)}`),
+        createDomEl('span', 'prop-formula-pill pos', `+ ND: ${formatSolesPE(totales.total_nd || 0)}`),
+        createDomEl('span', 'prop-formula-pill neg', `− NC: ${formatSolesPE(totales.total_nc || 0)}`),
+        createDomEl('span', 'prop-formula-pill net', `= Total: ${formatSolesPE(totales.total_cp || 0)}`)
+      );
+
+      const anuladosCount = Number(conteos.anulados || 0);
+      const exclNote = createDomEl('div', 'prop-exclusion-note',
+        `Importante: los comprobantes anulados (estado 2) no están incluidos en los totales${anuladosCount > 0 ? ` (${formatIntPE(anuladosCount)} anulado(s) excluidos del cálculo)` : ''}. Tampoco se suman registros con estado desconocido.`);
+
+      formulaBar.append(fTop, fPills, exclNote);
+
+      const hasRvieDiscounts = !isCompras || Math.abs(Number(totales.descuento_bi || 0)) > 0.0005 || Math.abs(Number(totales.descuento_igv || 0)) > 0.0005;
+      if (hasRvieDiscounts) {
+        const discLine = createDomEl('div', 'prop-rvie-discounts',
+          `Descuentos RVIE (informativos aparte; Base e IGV conservan los valores reportados por SUNAT): Dscto. BI: ${formatSolesPE(totales.descuento_bi || 0)} · Dscto. IGV / IPM: ${formatSolesPE(totales.descuento_igv || 0)}`);
+        formulaBar.appendChild(discLine);
+      }
+      wrap.appendChild(formulaBar);
+
+      // 6. Visualizaciones offline (por_tipo, top_contrapartes, por_dia)
+      const porTipo = Array.isArray(resumen.por_tipo) ? resumen.por_tipo : [];
+      const topCP = Array.isArray(resumen.top_contrapartes) ? resumen.top_contrapartes : [];
+      const porDia = Array.isArray(resumen.por_dia) ? resumen.por_dia : [];
+
+      if (porTipo.length > 0 || topCP.length > 0 || porDia.length > 0) {
+        const vizGrid = createDomEl('div', 'prop-viz-grid');
+
+        // Card Por Tipo
+        const cTipo = createDomEl('div', 'prop-viz-card');
+        cTipo.appendChild(createDomEl('div', 'prop-viz-title', 'Subtotales por tipo de comprobante (activos)'));
+        if (porTipo.length === 0) {
+          cTipo.appendChild(createDomEl('div', 'prop-dash-meta', 'Sin registros activos.'));
+        } else {
+          const list = createDomEl('div', 'prop-bar-list');
+          const maxAbs = Math.max(1, ...porTipo.map(t => Math.abs(Number(t.total_cp || 0))));
+          porTipo.forEach(item => {
+            const row = createDomEl('div', 'prop-bar-row');
+            const top = createDomEl('div', 'prop-bar-top');
+            top.append(
+              createDomEl('span', 'prop-bar-label', `${getPropTipoLabel(item.tipo_cp)} (${formatIntPE(item.cantidad)})`),
+              createDomEl('span', 'prop-bar-val', formatSolesPE(item.total_cp))
+            );
+            const track = createDomEl('div', 'prop-bar-track');
+            const pct = Math.max(3, Math.round((Math.abs(Number(item.total_cp || 0)) / maxAbs) * 100));
+            const fillCls = item.categoria === 'nc' ? 'prop-bar-fill nc' : (item.categoria === 'nd' ? 'prop-bar-fill nd' : 'prop-bar-fill');
+            const fill = createDomEl('div', fillCls);
+            fill.style.width = `${pct}%`;
+            track.appendChild(fill);
+            row.append(top, track);
+            list.appendChild(row);
+          });
+          cTipo.appendChild(list);
+        }
+        vizGrid.appendChild(cTipo);
+
+        // Card Top Contrapartes
+        const cTop = createDomEl('div', 'prop-viz-card');
+        cTop.appendChild(createDomEl('div', 'prop-viz-title',
+          isCompras
+            ? `Principales proveedores · Top ${topCP.length} (${formatIntPE(resumen.contrapartes_unicas || 0)} únicos)`
+            : `Principales clientes · Top ${topCP.length} (${formatIntPE(resumen.contrapartes_unicas || 0)} únicos)`));
+        if (topCP.length === 0) {
+          cTop.appendChild(createDomEl('div', 'prop-dash-meta', 'Sin contrapartes registradas.'));
+        } else {
+          const list = createDomEl('div', 'prop-bar-list');
+          const maxAbs = Math.max(1, ...topCP.map(t => Math.abs(Number(t.total_cp || 0))));
+          topCP.forEach(cp => {
+            const row = createDomEl('div', 'prop-bar-row');
+            const top = createDomEl('div', 'prop-bar-top');
+            const nameLbl = cp.razon_social ? `${cp.razon_social} (${cp.nro_doc || '—'})` : (cp.nro_doc || 'Sin documento');
+            const lblSpan = createDomEl('span', 'prop-bar-label', nameLbl);
+            lblSpan.title = `${nameLbl} · ${formatIntPE(cp.cantidad)} comp.`;
+            top.append(lblSpan, createDomEl('span', 'prop-bar-val', formatSolesPE(cp.total_cp)));
+            const track = createDomEl('div', 'prop-bar-track');
+            const pct = Math.max(3, Math.round((Math.abs(Number(cp.total_cp || 0)) / maxAbs) * 100));
+            const fill = createDomEl('div', 'prop-bar-fill gold');
+            fill.style.width = `${pct}%`;
+            track.appendChild(fill);
+            row.append(top, track);
+            list.appendChild(row);
+          });
+          cTop.appendChild(list);
+        }
+        vizGrid.appendChild(cTop);
+
+        // Card Evolución diaria SVG offline
+        if (porDia.length > 0) {
+          const cDia = createDomEl('div', 'prop-viz-card prop-viz-full');
+          cDia.appendChild(createDomEl('div', 'prop-viz-title', `Evolución por fecha de emisión (${porDia.length} día(s) con actividad)`));
+          cDia.appendChild(renderProposalDailySvg(porDia));
+          vizGrid.appendChild(cDia);
+        }
+
+        wrap.appendChild(vizGrid);
+      }
+
+      // 7. Tarjeta de tabla paginada desde el servidor (50 filas/página)
+      const tableCard = createDomEl('div', 'prop-table-card');
+      const toolbar = createDomEl('div', 'prop-table-toolbar');
+
+      // Tabs de estado (Activos por defecto, Anulados con insignia del conteo, Todos)
+      const tabsWrap = createDomEl('div', 'prop-state-tabs');
+      tabsWrap.id = 'prop-table-state-tabs';
+      tabsWrap.setAttribute('role', 'group');
+      tabsWrap.setAttribute('aria-label', 'Filtrar registros por estado');
+
+      const tabDefs = [
+        { key: 'activo', label: 'Activos', count: conteos.activos || 0 },
+        { key: 'anulado', label: 'Anulados', count: conteos.anulados || 0 },
+        { key: 'todos', label: 'Todos', count: conteos.total_filas || 0 }
+      ];
+      tabDefs.forEach(td => {
+        const btn = createDomEl('button', `prop-state-tab ${st.estado === td.key ? 'active' : ''}`.trim());
+        btn.type = 'button';
+        btn.dataset.estado = td.key;
+        btn.setAttribute('aria-pressed', st.estado === td.key ? 'true' : 'false');
+        btn.append(
+          createDomEl('span', '', td.label),
+          createDomEl('span', 'prop-tab-pill', formatIntPE(td.count))
+        );
+        btn.addEventListener('click', () => {
+          if (!propAnalysisState || propAnalysisState.estado === td.key) return;
+          propAnalysisState.estado = td.key;
+          propAnalysisState.offset = 0;
+          syncPropStateTabsUI(td.key);
+          cargarPaginaPropuestaTXT();
+        });
+        tabsWrap.appendChild(btn);
+      });
+
+      // Controles de filtro: tipo_cp + búsqueda q (debounce 400ms, máx 40 chars)
+      const inputsWrap = createDomEl('div', 'prop-filter-inputs');
+
+      const tipoSelect = createDomEl('select', 'prop-filter-select');
+      tipoSelect.id = 'prop-filter-tipo';
+      tipoSelect.setAttribute('aria-label', 'Filtrar por tipo de comprobante');
+      const optAll = createDomEl('option', '', 'Todos los tipos');
+      optAll.value = '';
+      tipoSelect.appendChild(optAll);
+
+      const tipoSet = new Set(['01', '03', '07', '08', '14', '87', '88', '97', '98']);
+      porTipo.forEach(t => { if (t.tipo_cp) tipoSet.add(String(t.tipo_cp)); });
+      Array.from(tipoSet).sort().forEach(code => {
+        const found = porTipo.find(t => String(t.tipo_cp) === code);
+        const label = found ? `${getPropTipoLabel(code)} (${formatIntPE(found.cantidad)})` : getPropTipoLabel(code);
+        const opt = createDomEl('option', '', label);
+        opt.value = code;
+        tipoSelect.appendChild(opt);
+      });
+      tipoSelect.value = st.tipo_cp || '';
+      tipoSelect.addEventListener('change', () => {
+        if (!propAnalysisState) return;
+        propAnalysisState.tipo_cp = tipoSelect.value;
+        propAnalysisState.offset = 0;
+        cargarPaginaPropuestaTXT();
+      });
+
+      const searchWrap = createDomEl('div', 'prop-search-wrap');
+      const searchInput = createDomEl('input', 'prop-search-input');
+      searchInput.id = 'prop-filter-q';
+      searchInput.type = 'search';
+      searchInput.maxLength = 40;
+      searchInput.placeholder = 'Buscar serie, número o RUC/DNI...';
+      searchInput.setAttribute('aria-label', 'Buscar por serie, número o documento (máximo 40 caracteres)');
+      searchInput.value = st.q || '';
+
+      const clearBtn = createDomEl('button', 'prop-search-clear', '×');
+      clearBtn.id = 'prop-filter-q-clear';
+      clearBtn.type = 'button';
+      clearBtn.setAttribute('aria-label', 'Limpiar búsqueda');
+      if (st.q) clearBtn.classList.add('visible');
+
+      searchInput.addEventListener('input', () => {
+        const val = searchInput.value.trim().slice(0, 40);
+        clearBtn.classList.toggle('visible', val.length > 0);
+        if (propSearchDebounceTimer) clearTimeout(propSearchDebounceTimer);
+        propSearchDebounceTimer = setTimeout(() => {
+          propSearchDebounceTimer = null;
+          if (!propAnalysisState) return;
+          if (propAnalysisState.q === val) return;
+          propAnalysisState.q = val;
+          propAnalysisState.offset = 0;
+          cargarPaginaPropuestaTXT();
+        }, 400);
+      });
+      searchInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (propSearchDebounceTimer) {
+            clearTimeout(propSearchDebounceTimer);
+            propSearchDebounceTimer = null;
+          }
+          if (!propAnalysisState) return;
+          propAnalysisState.q = searchInput.value.trim().slice(0, 40);
+          propAnalysisState.offset = 0;
+          cargarPaginaPropuestaTXT();
+        }
+      });
+      clearBtn.addEventListener('click', () => {
+        if (propSearchDebounceTimer) {
+          clearTimeout(propSearchDebounceTimer);
+          propSearchDebounceTimer = null;
+        }
+        searchInput.value = '';
+        clearBtn.classList.remove('visible');
+        searchInput.focus();
+        if (!propAnalysisState) return;
+        propAnalysisState.q = '';
+        propAnalysisState.offset = 0;
+        cargarPaginaPropuestaTXT();
+      });
+
+      searchWrap.append(searchInput, clearBtn);
+      inputsWrap.append(tipoSelect, searchWrap);
+      toolbar.append(tabsWrap, inputsWrap);
+      tableCard.appendChild(toolbar);
+
+      // Tabla con scroll horizontal contenido y cabeceras fijas
+      const scrollDiv = createDomEl('div', 'prop-table-scroll');
+      scrollDiv.setAttribute('tabindex', '0');
+      scrollDiv.setAttribute('aria-label', `Tabla de comprobantes de ${bookTitle}`);
+
+      const table = createDomEl('table', 'prop-data-table');
+      const thead = createDomEl('thead');
+      const headTr = createDomEl('tr');
+      const cols = isCompras
+        ? [
+            { label: 'Fecha', num: false },
+            { label: 'Tipo', num: false },
+            { label: 'Comprobante', num: false },
+            { label: 'Proveedor', num: false },
+            { label: 'BI Grav. DG', num: true },
+            { label: 'IGV DG', num: true },
+            { label: 'No Gravado', num: true },
+            { label: 'Total CP', num: true },
+            { label: 'Mon.', num: false },
+            { label: 'Estado', num: false }
+          ]
+        : [
+            { label: 'Fecha', num: false },
+            { label: 'Tipo', num: false },
+            { label: 'Comprobante', num: false },
+            { label: 'Cliente', num: false },
+            { label: 'Base Grav.', num: true },
+            { label: 'Exon. / Inaf.', num: true },
+            { label: 'IGV', num: true },
+            { label: 'Total CP', num: true },
+            { label: 'Mon.', num: false },
+            { label: 'Estado', num: false }
+          ];
+      cols.forEach(c => {
+        const th = createDomEl('th', c.num ? 'num' : '', c.label);
+        th.scope = 'col';
+        headTr.appendChild(th);
+      });
+      thead.appendChild(headTr);
+
+      const tbody = createDomEl('tbody');
+      tbody.id = 'prop-table-tbody';
+      table.append(thead, tbody);
+      scrollDiv.appendChild(table);
+      tableCard.appendChild(scrollDiv);
+
+      // Barra de paginación inferior
+      const pagBar = createDomEl('div', 'prop-pag-bar');
+      pagBar.id = 'prop-table-pagbar';
+      pagBar.setAttribute('aria-live', 'polite');
+      tableCard.appendChild(pagBar);
+
+      wrap.appendChild(tableCard);
+      box.appendChild(wrap);
+    }
+
+    function syncPropStateTabsUI(activeEstado) {
+      const container = document.getElementById('prop-table-state-tabs');
+      if (!container) return;
+      container.querySelectorAll('.prop-state-tab').forEach(btn => {
+        const match = btn.dataset.estado === activeEstado;
+        btn.classList.toggle('active', match);
+        btn.setAttribute('aria-pressed', match ? 'true' : 'false');
+      });
+    }
+
+    function renderProposalTableLoading() {
+      const tbody = document.getElementById('prop-table-tbody');
+      if (!tbody) return;
+      tbody.replaceChildren();
+      const tr = createDomEl('tr');
+      const td = createDomEl('td', 'prop-state-empty', 'Cargando registros de la propuesta...');
+      td.colSpan = 10;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+
+    function renderProposalTableError(message) {
+      const tbody = document.getElementById('prop-table-tbody');
+      if (!tbody) return;
+      tbody.replaceChildren();
+      const tr = createDomEl('tr');
+      const td = createDomEl('td', 'prop-state-empty');
+      td.colSpan = 10;
+      td.setAttribute('role', 'alert');
+      const msgDiv = createDomEl('div', '', message);
+      msgDiv.style.color = '#991b1b';
+      msgDiv.style.fontWeight = '700';
+      msgDiv.style.marginBottom = '0.6rem';
+      const btn = createDomEl('button', 'btn btn-primary btn-xs', 'Reintentar');
+      btn.type = 'button';
+      btn.addEventListener('click', () => cargarPaginaPropuestaTXT());
+      td.append(msgDiv, btn);
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+
+    function renderProposalTableContent(st) {
+      const tbody = document.getElementById('prop-table-tbody');
+      const pagBar = document.getElementById('prop-table-pagbar');
+      if (!tbody || !pagBar) return;
+
+      tbody.replaceChildren();
+      const resumen = st.resumen || {};
+      const isCompras = String(resumen.libro || st.libro || '').toUpperCase() === 'COMPRAS';
+      const rows = Array.isArray(st.filas) ? st.filas : [];
+
+      if (rows.length === 0) {
+        const tr = createDomEl('tr');
+        const td = createDomEl('td', 'prop-state-empty');
+        td.colSpan = 10;
+        td.appendChild(createDomEl('div', '', 'No se encontraron comprobantes que coincidan con los filtros seleccionados.'));
+        if (st.estado !== 'activo' || st.tipo_cp || st.q) {
+          const btnReset = createDomEl('button', 'btn btn-secondary btn-xs', 'Limpiar filtros');
+          btnReset.type = 'button';
+          btnReset.style.marginTop = '0.65rem';
+          btnReset.addEventListener('click', () => {
+            st.estado = 'activo';
+            st.tipo_cp = '';
+            st.q = '';
+            st.offset = 0;
+            syncPropStateTabsUI('activo');
+            const sel = document.getElementById('prop-filter-tipo');
+            if (sel) sel.value = '';
+            const inp = document.getElementById('prop-filter-q');
+            if (inp) inp.value = '';
+            const clr = document.getElementById('prop-filter-q-clear');
+            if (clr) clr.classList.remove('visible');
+            cargarPaginaPropuestaTXT();
+          });
+          td.appendChild(btnReset);
+        }
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      } else {
+        const frag = document.createDocumentFragment();
+        rows.forEach(row => {
+          const tr = createDomEl('tr');
+          const marca = String(row.estado_marca || (row.anulado ? 'anulado' : 'activo')).toLowerCase();
+          const isAnulado = marca === 'anulado' || row.anulado === true;
+          const isDesconocido = marca === 'desconocido';
+          const isNC = isPropNotaCredito(row.tipo_cp);
+          const isND = isPropNotaDebito(row.tipo_cp);
+
+          if (isAnulado) tr.classList.add('prop-row-anulado');
+          else if (isDesconocido) tr.classList.add('prop-row-desconocido');
+
+          // 1. Fecha emisión
+          const tdFecha = createDomEl('td', '', row.fecha_emision || '—');
+          tdFecha.style.whiteSpace = 'nowrap';
+
+          // 2. Tipo CP
+          const tdTipo = createDomEl('td');
+          const chipCls = isNC ? 'prop-tipo-chip nc' : (isND ? 'prop-tipo-chip nd' : 'prop-tipo-chip');
+          const tipoChip = createDomEl('span', chipCls, isNC ? `${row.tipo_cp || '07'} NC` : (isND ? `${row.tipo_cp || '08'} ND` : (row.tipo_cp || '—')));
+          tipoChip.title = getPropTipoLabel(row.tipo_cp);
+          tdTipo.appendChild(tipoChip);
+
+          // 3. Comprobante (serie-numero)
+          const compStr = row.serie
+            ? `${row.serie}-${row.numero || ''}${row.numero_final ? '..' + row.numero_final : ''}`
+            : (row.numero || '—');
+          const tdComp = createDomEl('td', '', compStr);
+          tdComp.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+          tdComp.style.fontWeight = '700';
+          tdComp.style.whiteSpace = 'nowrap';
+
+          // 4. Cliente / Proveedor (textContent estricto)
+          const tdCP = createDomEl('td');
+          const razonDiv = createDomEl('div', '', row.razon_social || '—');
+          razonDiv.style.fontWeight = '600';
+          tdCP.appendChild(razonDiv);
+          if (row.nro_doc_identidad) {
+            const docSub = createDomEl('div', 'prop-cell-sub', `${row.tipo_doc_identidad ? 'Doc ' + row.tipo_doc_identidad + ' · ' : ''}${row.nro_doc_identidad}`);
+            tdCP.appendChild(docSub);
+          }
+
+          // Helper celda numérica (NC en negativo y rojo)
+          const makeNumTd = (rawVal, bold) => {
+            let v = Number(rawVal || 0);
+            if (isNC && v > 0) v = -v;
+            const td = createDomEl('td', 'num', formatMoneyPE(v));
+            if (isNC) td.classList.add('prop-amt-neg');
+            if (bold) td.style.fontWeight = '800';
+            return td;
+          };
+
+          // 5..8 Columnas numéricas específicas según libro (Ventas vs Compras)
+          let numCells;
+          if (isCompras) {
+            const biDG = row.base_gravada_dg !== undefined && row.base_gravada_dg !== 0
+              ? row.base_gravada_dg
+              : (row.base_imponible || 0);
+            const igvDG = row.igv_dg !== undefined && row.igv_dg !== 0
+              ? row.igv_dg
+              : (row.igv || 0);
+            numCells = [
+              makeNumTd(biDG, false),
+              makeNumTd(igvDG, false),
+              makeNumTd(row.no_gravado || 0, false),
+              makeNumTd(row.total_cp || 0, true)
+            ];
+          } else {
+            const exonInaf = Number(row.exonerado || 0) + Number(row.inafecto || 0);
+            numCells = [
+              makeNumTd(row.base_imponible || 0, false),
+              makeNumTd(exonInaf, false),
+              makeNumTd(row.igv || 0, false),
+              makeNumTd(row.total_cp || 0, true)
+            ];
+          }
+
+          // 9. Moneda
+          const tdMon = createDomEl('td');
+          const monCode = (row.moneda || 'PEN').toUpperCase();
+          tdMon.appendChild(createDomEl('div', '', monCode));
+          if (monCode !== 'PEN' && row.tipo_cambio) {
+            tdMon.appendChild(createDomEl('div', 'prop-cell-sub', `TC ${row.tipo_cambio}`));
+          }
+
+          // 10. Estado
+          const tdEst = createDomEl('td');
+          if (isAnulado) {
+            tdEst.appendChild(createDomEl('span', 'prop-row-badge anulado', 'Anulado'));
+          } else if (isDesconocido) {
+            tdEst.appendChild(createDomEl('span', 'prop-row-badge desconocido', `Desconocido (${row.estado_comp || 'vacío'})`));
+          } else {
+            tdEst.appendChild(createDomEl('span', 'prop-row-badge activo', 'Activo'));
+          }
+
+          tr.append(tdFecha, tdTipo, tdComp, tdCP, ...numCells, tdMon, tdEst);
+          frag.appendChild(tr);
+        });
+        tbody.appendChild(frag);
+      }
+
+      // Barra de paginación
+      pagBar.replaceChildren();
+      const totalFiltrado = Number(st.total_filtrado || 0);
+      const limit = Number(st.limit || 50);
+      const offset = Number(st.offset || 0);
+      const totalPages = Math.max(1, Math.ceil(totalFiltrado / limit));
+      const currentPage = Math.min(totalPages, Math.floor(offset / limit) + 1);
+      const fromIdx = totalFiltrado === 0 ? 0 : offset + 1;
+      const toIdx = Math.min(totalFiltrado, offset + rows.length);
+
+      const infoSpan = createDomEl('div', '',
+        `Mostrando ${formatIntPE(fromIdx)}–${formatIntPE(toIdx)} de ${formatIntPE(totalFiltrado)} registros · Página ${formatIntPE(currentPage)} de ${formatIntPE(totalPages)}`);
+
+      const controls = createDomEl('div', 'prop-pag-controls');
+      const goPage = nextOffset => {
+        if (!propAnalysisState) return;
+        const clamped = Math.max(0, Math.min(nextOffset, (totalPages - 1) * limit));
+        if (clamped === propAnalysisState.offset) return;
+        propAnalysisState.offset = clamped;
+        cargarPaginaPropuestaTXT();
+      };
+
+      const makePagBtn = (label, targetOffset, disabled, ariaLabel) => {
+        const b = createDomEl('button', 'btn btn-secondary btn-xs', label);
+        b.type = 'button';
+        b.style.minHeight = '36px';
+        b.disabled = disabled;
+        if (ariaLabel) b.setAttribute('aria-label', ariaLabel);
+        b.addEventListener('click', () => goPage(targetOffset));
+        return b;
+      };
+
+      controls.append(
+        makePagBtn('« Primera', 0, currentPage <= 1, 'Primera página'),
+        makePagBtn('‹ Anterior', offset - limit, currentPage <= 1, 'Página anterior'),
+        makePagBtn('Siguiente ›', offset + limit, currentPage >= totalPages, 'Página siguiente'),
+        makePagBtn('Última »', (totalPages - 1) * limit, currentPage >= totalPages, 'Última página')
+      );
+
+      pagBar.append(infoSpan, controls);
+    }
+
+    function renderProposalDailySvg(porDia) {
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(svgNS, 'svg');
+      svg.setAttribute('viewBox', '0 0 720 155');
+      svg.setAttribute('class', 'prop-svg-chart');
+      svg.setAttribute('role', 'img');
+      svg.setAttribute('aria-label', 'Gráfico de montos diarios por fecha de emisión');
+
+      const padL = 14;
+      const padR = 14;
+      const padT = 18;
+      const padB = 28;
+      const chartW = 720 - padL - padR;
+      const chartH = 155 - padT - padB;
+
+      const baseLine = document.createElementNS(svgNS, 'line');
+      baseLine.setAttribute('x1', String(padL));
+      baseLine.setAttribute('x2', String(720 - padR));
+      baseLine.setAttribute('y1', String(padT + chartH));
+      baseLine.setAttribute('y2', String(padT + chartH));
+      baseLine.setAttribute('stroke', '#cbd5e1');
+      baseLine.setAttribute('stroke-width', '1');
+      svg.appendChild(baseLine);
+
+      const maxVal = Math.max(1, ...porDia.map(d => Math.abs(Number(d.total_cp || 0))));
+      const count = porDia.length;
+      const slotW = chartW / Math.max(1, count);
+      const barW = Math.max(6, Math.min(28, slotW * 0.72));
+      const labelStep = count > 16 ? Math.ceil(count / 10) : 1;
+
+      porDia.forEach((d, idx) => {
+        const val = Number(d.total_cp || 0);
+        const h = Math.max(3, Math.round((Math.abs(val) / maxVal) * (chartH - 6)));
+        const x = padL + idx * slotW + (slotW - barW) / 2;
+        const y = padT + chartH - h;
+
+        const rect = document.createElementNS(svgNS, 'rect');
+        rect.setAttribute('x', x.toFixed(1));
+        rect.setAttribute('y', y.toFixed(1));
+        rect.setAttribute('width', barW.toFixed(1));
+        rect.setAttribute('height', h.toFixed(1));
+        rect.setAttribute('rx', '3');
+        rect.setAttribute('fill', val < 0 ? '#dc2626' : '#2f6fa3');
+
+        const titleNode = document.createElementNS(svgNS, 'title');
+        titleNode.textContent = `${d.fecha || ''} · ${formatIntPE(d.cantidad)} comp. · ${formatSolesPE(val)}`;
+        rect.appendChild(titleNode);
+        svg.appendChild(rect);
+
+        if (idx % labelStep === 0 || idx === count - 1) {
+          const txt = document.createElementNS(svgNS, 'text');
+          txt.setAttribute('x', (x + barW / 2).toFixed(1));
+          txt.setAttribute('y', String(padT + chartH + 16));
+          txt.setAttribute('text-anchor', 'middle');
+          txt.setAttribute('font-size', '10');
+          txt.setAttribute('fill', '#51627a');
+          const dayShort = String(d.fecha || '').slice(0, 5);
+          txt.textContent = dayShort;
+          svg.appendChild(txt);
+        }
+      });
+
+      const peakLbl = document.createElementNS(svgNS, 'text');
+      peakLbl.setAttribute('x', String(720 - padR));
+      peakLbl.setAttribute('y', '12');
+      peakLbl.setAttribute('text-anchor', 'end');
+      peakLbl.setAttribute('font-size', '10');
+      peakLbl.setAttribute('font-weight', '700');
+      peakLbl.setAttribute('fill', '#0b2545');
+      peakLbl.textContent = `Máximo diario: ${formatSolesPE(maxVal)}`;
+      svg.appendChild(peakLbl);
+
+      return svg;
+    }
+
     async function solicitarExportacionLibro(codLibro, prefix, formatoOverride = '') {
       if (!activeRUC) return;
       const resolved = resolvePeriodoPrefix(prefix);
       const periodo = getPeriodoYYYYMM(resolved);
       if (!periodo) {
-        showToast('Selecciona un periodo tributario válido (formato AAAA-MM, ej. 2026-10) antes de descargar la propuesta.', 'danger');
+        showToast('Selecciona un periodo tributario válido antes de descargar la propuesta.', 'danger');
         return;
       }
-      if (activePropPollInterval) {
-        clearInterval(activePropPollInterval);
-        activePropPollInterval = null;
-      }
+
+      // Nunca más de un poller activo: cancelar cualquier polling o lectura previa
+      cancelPropuestaActiveWork({ clearResult: true });
+
+      const controller = new AbortController();
+      activePropPollController = controller;
+      const myRunId = ++propPollRunId;
+
       const formato = formatoOverride || document.getElementById(`${resolved}-formato`)?.value || '0';
       const progressBox = document.getElementById(`${resolved}-progress`);
       const progressBar = document.getElementById(`${resolved}-progress-bar`);
@@ -4720,7 +6272,6 @@
       const progressPct = document.getElementById(`${resolved}-progress-pct`);
       const resultBox = document.getElementById(`${resolved}-resultado-box`);
 
-      if (resultBox) resultBox.innerHTML = '';
       if (progressBox) progressBox.style.display = 'block';
       if (progressBar) progressBar.style.width = '12%';
       if (progressPct) progressPct.textContent = '12%';
@@ -4730,76 +6281,153 @@
       const payload = { ruc: activeRUC, cod_libro: codLibro, periodo, cod_tipo_archivo: formato };
       if (codLibro === '080000') payload.cod_origen_envio = '2';
 
-      const resExport = await apiFetch('/api/sire/propuesta/exportar', { method: 'POST', body: payload });
+      const resExport = await apiFetch('/api/sire/propuesta/exportar', {
+        method: 'POST',
+        body: payload,
+        signal: controller.signal
+      });
+      if (resExport.aborted || controller.signal.aborted || myRunId !== propPollRunId) return;
+
       const dataExport = await resExport.json();
+      if (controller.signal.aborted || myRunId !== propPollRunId) return;
+
       if (!resExport.ok) {
+        if (activePropPollController === controller) activePropPollController = null;
         if (progressBox) progressBox.style.display = 'none';
         setPropPhase('error', 'Error');
-        if (resultBox) resultBox.innerHTML = renderErrorAlert(dataExport, dataExport.detalle);
+        if (isExpiredTokenResponse(resExport, dataExport)) {
+          renderProposalErrorBox(resultBox, 'Sesión expirada, vuelve a conectar', { sessionExpired: true });
+          return;
+        }
+        renderProposalErrorBox(resultBox, mapProposalErrorMessage(resExport.status, dataExport), {
+          title: 'Error al solicitar exportación a SUNAT'
+        });
         return;
       }
 
       const ticket = dataExport.ticket;
-      if (progressBar) progressBar.style.width = '30%';
-      if (progressPct) progressPct.textContent = '30%';
+      if (progressBar) progressBar.style.width = '28%';
+      if (progressPct) progressPct.textContent = '28%';
       if (progressMsg) progressMsg.textContent = `Ticket ${ticket} (${formatPeriodoShort(periodo)}) en proceso en SUNAT...`;
 
-      let intentos = 0;
-      const maxIntentos = 35;
-      activePropPollInterval = setInterval(async () => {
-        intentos++;
-        const pct = Math.min(30 + intentos * 3, 92);
+      // Polling con intervalo inicial 2 s, backoff x1.5 hasta 10 s y timeout máximo 5 min
+      const MAX_POLL_MS = 5 * 60 * 1000;
+      const startedAt = Date.now();
+      let delayMs = 2000;
+      let pollCount = 0;
+      let consecutiveErrs = 0;
+      const targetRuc = activeRUC;
+
+      while (true) {
+        const slept = await abortableSleep(delayMs, controller.signal);
+        if (!slept || controller.signal.aborted || myRunId !== propPollRunId) return;
+
+        if (Date.now() - startedAt >= MAX_POLL_MS) {
+          if (activePropPollController === controller) activePropPollController = null;
+          if (progressBox) progressBox.style.display = 'none';
+          setPropPhase('error', 'Error');
+          renderProposalErrorBox(
+            resultBox,
+            'Se alcanzó el tiempo máximo de espera (5 minutos) mientras SUNAT generaba el archivo. Puedes verificar su estado más tarde en Historial de descargas.',
+            { title: 'Tiempo de espera agotado' }
+          );
+          return;
+        }
+
+        pollCount++;
+        const elapsedRatio = Math.min(1, (Date.now() - startedAt) / MAX_POLL_MS);
+        const pct = Math.min(92, Math.round(30 + pollCount * 4 + elapsedRatio * 30));
         if (progressBar) progressBar.style.width = pct + '%';
         if (progressPct) progressPct.textContent = pct + '%';
-        if (progressMsg) progressMsg.textContent = `Ticket ${ticket} (${formatPeriodoDash(periodo)}): esperando archivo SUNAT (${intentos}/${maxIntentos})...`;
+        if (progressMsg) progressMsg.textContent = `Ticket ${ticket} (${formatPeriodoDash(periodo)}): esperando archivo SUNAT (consulta ${pollCount})...`;
 
-        try {
-          const resStatus = await apiFetch(`/api/sire/tickets/${activeRUC}/${ticket}`);
-          const dataStatus = await resStatus.json();
-          if (dataStatus.estado === 'COMPLETADO') {
-            clearInterval(activePropPollInterval);
-            activePropPollInterval = null;
-            if (progressBar) progressBar.style.width = '100%';
-            if (progressPct) progressPct.textContent = '100%';
-            if (progressMsg) progressMsg.textContent = 'Archivo listo. Descargando ZIP de forma segura...';
-            const fname = dataStatus.nombre_archivo || `propuesta_${periodo}.zip`;
-            const kb = dataStatus.tamano_bytes ? (dataStatus.tamano_bytes / 1024).toFixed(1) + ' KB' : '';
-            const origenLibro = codLibro === '080000' ? 'COMPRAS' : 'VENTAS';
-            await descargarArchivoSeguro(`/api/descargas/${dataStatus.id}/archivo`, fname);
-            setPropPhase('ready', 'Listo');
-            if (resultBox) {
-              resultBox.innerHTML = `
-                <div class="banner banner-success" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                  <div>
-                    <strong>Descarga completada (${escapeHtml(formatPeriodoLabel(periodo))} · ${escapeHtml(formatPeriodoDash(periodo))}):</strong> <code>${escapeHtml(fname)}</code> ${kb ? `(${kb})` : ''} · Ticket <code>${escapeHtml(ticket)}</code>.
-                    <div style="font-size: 0.78rem; margin-top: 0.2rem;">Los comprobantes de esta propuesta se están indexando automáticamente en <strong>Comprobantes CPE</strong>.</div>
-                  </div>
-                  <div style="display:flex; gap:0.45rem; flex-wrap:wrap;">
-                    <button class="btn btn-primary btn-xs" onclick="descargarArchivoSeguro('/api/descargas/${dataStatus.id}/archivo', '${escapeHtml(fname)}')">Descargar ZIP</button>
-                    <button class="btn btn-secondary btn-xs" onclick="abrirComprobantesDelPeriodo('${origenLibro}', 'prop')">Ver Comprobantes (${escapeHtml(formatPeriodoDash(periodo))})</button>
-                  </div>
-                </div>
-              `;
-            }
-            await refreshLocalCounters();
-            cargarHistorialDescargas();
-            setTimeout(() => { if (progressBox) progressBox.style.display = 'none'; }, 2500);
-          } else if (dataStatus.estado === 'ERROR') {
-            clearInterval(activePropPollInterval);
-            activePropPollInterval = null;
+        const resStatus = await apiFetch(`/api/sire/tickets/${targetRuc}/${ticket}`, {
+          signal: controller.signal
+        });
+        if (resStatus.aborted || controller.signal.aborted || myRunId !== propPollRunId) return;
+
+        const dataStatus = await resStatus.json();
+        if (controller.signal.aborted || myRunId !== propPollRunId) return;
+
+        // Si el token expira, detener inmediatamente sin bucles de reintento conservando libro y periodo
+        if (isExpiredTokenResponse(resStatus, dataStatus)) {
+          if (activePropPollController === controller) activePropPollController = null;
+          if (progressBox) progressBox.style.display = 'none';
+          setPropPhase('error', 'Error');
+          renderProposalErrorBox(resultBox, 'Sesión expirada, vuelve a conectar', { sessionExpired: true });
+          return;
+        }
+
+        if (!resStatus.ok) {
+          consecutiveErrs++;
+          if (resStatus.status === 403 || resStatus.status === 404 || consecutiveErrs >= 5) {
+            if (activePropPollController === controller) activePropPollController = null;
             if (progressBox) progressBox.style.display = 'none';
             setPropPhase('error', 'Error');
-            if (resultBox) resultBox.innerHTML = renderErrorAlert(dataStatus.mensaje_sunat || 'Error procesando ticket en SUNAT');
-            refreshLocalCounters();
-            cargarHistorialDescargas();
-          } else if (intentos >= maxIntentos) {
-            clearInterval(activePropPollInterval);
-            activePropPollInterval = null;
-            setPropPhase('downloading', 'En proceso');
-            if (progressMsg) progressMsg.textContent = 'Ticket aún en proceso en SUNAT. Revísalo en Historial Descargas.';
+            renderProposalErrorBox(resultBox, mapProposalErrorMessage(resStatus.status, dataStatus), {
+              title: 'No se pudo consultar el estado del ticket'
+            });
+            return;
           }
-        } catch (_) {}
-      }, 2000);
+          delayMs = Math.min(Math.round(delayMs * 1.5), 10000);
+          continue;
+        }
+
+        consecutiveErrs = 0;
+        const estadoTicket = String(dataStatus.estado || '').toUpperCase();
+
+        if (estadoTicket === 'COMPLETADO') {
+          if (activePropPollController === controller) activePropPollController = null;
+          if (progressBar) progressBar.style.width = '100%';
+          if (progressPct) progressPct.textContent = '100%';
+          const fname = dataStatus.nombre_archivo || `propuesta_${periodo}.zip`;
+
+          await refreshLocalCounters();
+          if (controller.signal.aborted || myRunId !== propPollRunId) return;
+
+          if (formato === '0') {
+            if (progressBox) progressBox.style.display = 'none';
+            await analizarPropuestaGuardada(dataStatus.id, { fname, ticket });
+          } else {
+            if (progressMsg) progressMsg.textContent = 'Archivo CSV listo. Descargando ZIP de forma segura...';
+            await descargarArchivoSeguro(`/api/descargas/${dataStatus.id}/archivo`, fname);
+            if (progressBox) progressBox.style.display = 'none';
+            setPropPhase('ready', 'Listo');
+            if (resultBox) {
+              resultBox.replaceChildren();
+              const okCard = createDomEl('div', 'prop-dash-header');
+              const okLeft = createDomEl('div');
+              okLeft.append(
+                createDomEl('div', 'prop-dash-title', `Descarga CSV completada · ${formatPeriodoLabel(periodo)} (${formatPeriodoDash(periodo)})`),
+                createDomEl('div', 'prop-dash-meta', `Archivo: ${fname} · Ticket ${ticket}`)
+              );
+              const btnDl = createDomEl('button', 'btn btn-primary', 'Descargar ZIP nuevamente');
+              btnDl.type = 'button';
+              btnDl.style.minHeight = '42px';
+              btnDl.addEventListener('click', () => descargarArchivoSeguro(`/api/descargas/${dataStatus.id}/archivo`, fname));
+              okCard.append(okLeft, btnDl);
+              resultBox.appendChild(okCard);
+            }
+          }
+          return;
+        }
+
+        if (estadoTicket === 'ERROR') {
+          if (activePropPollController === controller) activePropPollController = null;
+          if (progressBox) progressBox.style.display = 'none';
+          setPropPhase('error', 'Error');
+          renderProposalErrorBox(
+            resultBox,
+            'SUNAT reportó un error al generar el archivo del ticket. Intenta nuevamente o revisa Historial de descargas.',
+            { title: 'Error al procesar ticket en SUNAT' }
+          );
+          refreshLocalCounters();
+          return;
+        }
+
+        // Siguiente espera con backoff x1.5 hasta tope de 10 s
+        delayMs = Math.min(Math.round(delayMs * 1.5), 10000);
+      }
     }
 
     async function descargarConstanciaLibro(libro) {
