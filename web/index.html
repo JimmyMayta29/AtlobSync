@@ -665,11 +665,12 @@
     }
 
     /* =======================================================
-       PANTALLA 2: WORKSPACE CON SIDEBAR CLARO + ACENTOS ATLOB
+       PANTALLA 2: WORKSPACE CON MENÚ LATERAL OSCURO (REFERENCIA 3)
        ======================================================= */
     #workspace-screen {
       display: none;
       min-height: 100vh;
+      background: #f3f7fb;
     }
     .ws-shell {
       display: flex;
@@ -677,13 +678,12 @@
       width: 100%;
     }
 
-    /* SIDEBAR LUMINOSO */
+    /* MENÚ LATERAL OSCURO #0B2545 (IMAGEN 3) */
     aside.ws-sidebar {
       width: var(--sidebar-width);
-      background: var(--sidebar-bg);
-      color: var(--sidebar-text);
-      border-right: 1px solid var(--sidebar-border);
-      box-shadow: 2px 0 12px rgba(6, 35, 62, 0.04);
+      background: #0b2545;
+      color: #dbe6f3;
+      border-right: 1px solid rgba(184, 198, 216, 0.14);
       display: flex;
       flex-direction: column;
       position: fixed;
@@ -694,36 +694,24 @@
       transition: transform var(--transition);
     }
     .sidebar-brand {
-      position: relative;
-      padding: 1rem 1.05rem;
-      border-bottom: 1px solid var(--sidebar-border);
+      padding: 1.35rem 1.25rem 1.15rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.6rem;
-      background: linear-gradient(135deg, rgba(30, 111, 160, 0.06) 0%, rgba(224, 167, 24, 0.07) 100%);
-    }
-    .sidebar-brand::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--brand-gradient);
+      gap: 0.65rem;
+      border-bottom: 1px solid rgba(184, 198, 216, 0.12);
     }
     .sidebar-brand-left {
       display: flex;
       align-items: center;
-      gap: 0.7rem;
+      gap: 0.72rem;
       min-width: 0;
     }
     .sidebar-brand-logo {
-      width: 38px;
-      height: 38px;
+      width: 36px;
+      height: 36px;
       object-fit: contain;
       flex-shrink: 0;
-      border-radius: 9px;
     }
     .sidebar-brand-title-row {
       display: flex;
@@ -731,88 +719,108 @@
       gap: 0.4rem;
     }
     .sidebar-brand-title {
-      font-size: 1.02rem;
+      font-size: 1.12rem;
       font-weight: 800;
-      color: var(--text-main);
+      color: #ffffff;
       line-height: 1.15;
-      letter-spacing: -0.02em;
+      letter-spacing: 0.02em;
     }
     .sidebar-brand-tag {
       font-size: 0.62rem;
       font-weight: 800;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      padding: 0.1rem 0.38rem;
+      padding: 0.1rem 0.42rem;
       border-radius: 5px;
-      background: var(--gold-soft);
-      color: var(--gold-text);
-      border: 1px solid var(--gold-border);
+      background: rgba(232, 169, 27, 0.18);
+      color: #e8a91b;
+      border: 1px solid rgba(232, 169, 27, 0.42);
     }
     .sidebar-brand-sub {
-      font-size: 0.71rem;
-      color: var(--sidebar-muted);
-      font-weight: 600;
-      margin-top: 0.08rem;
+      font-size: 0.72rem;
+      color: #93abc6;
+      font-weight: 500;
+      margin-top: 0.1rem;
     }
 
     .sidebar-nav {
       flex: 1;
       overflow-y: auto;
-      padding: 0.95rem 0.75rem;
+      padding: 1.1rem 0.85rem;
       display: flex;
       flex-direction: column;
-      gap: 1.15rem;
-    }
-    .nav-group-label {
-      font-size: 0.67rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--sidebar-muted);
-      padding: 0 0.65rem 0.4rem;
+      gap: 0.32rem;
     }
     .nav-item {
       position: relative;
       width: 100%;
+      min-height: 44px;
       background: transparent;
       border: 1px solid transparent;
-      border-radius: 9px;
-      color: var(--sidebar-text);
-      padding: 0.6rem 0.75rem;
-      font-size: 0.84rem;
-      font-weight: 600;
+      border-radius: 10px;
+      color: #d6e2f0;
+      padding: 0.62rem 0.88rem;
+      font-size: 0.88rem;
+      font-weight: 500;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.45rem;
+      gap: 0.5rem;
       text-align: left;
       transition: background var(--transition), color var(--transition), border-color var(--transition);
-      margin-bottom: 0.22rem;
     }
-    .nav-item:hover {
-      background: var(--bg-subtle);
-      color: var(--text-main);
+    .nav-item:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
     }
-    .nav-item.active {
-      background: var(--primary-soft);
-      border-color: var(--primary-border);
-      color: var(--text-main);
-      font-weight: 700;
-      box-shadow: var(--shadow-xs);
+    .nav-item:focus-visible {
+      outline: 2px solid #e8a91b;
+      outline-offset: 2px;
     }
-    .nav-item.active::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 6px;
-      bottom: 6px;
-      width: 3.5px;
-      border-radius: 0 4px 4px 0;
-      background: var(--gold);
+    .nav-item.active,
+    .nav-item.active:hover {
+      background: #e8a91b;
+      border-color: #e8a91b;
+      color: #0b2545;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(232, 169, 27, 0.25);
     }
     .nav-item.active svg.icon {
-      color: var(--primary);
+      color: #0b2545;
+    }
+    .nav-item:disabled,
+    .nav-item.nav-disabled {
+      opacity: 0.62;
+      cursor: not-allowed;
+      color: #a9bdd4;
+      flex-wrap: wrap;
+      row-gap: 0.28rem;
+    }
+    .nav-item.nav-disabled .nav-item-label {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      line-height: 1.25;
+    }
+    .nav-item.nav-disabled .nav-soon-badge {
+      margin-left: 1.72rem;
+    }
+    .nav-item:disabled:hover {
+      background: transparent;
+      color: #a9bdd4;
+    }
+    .nav-soon-badge {
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      background: rgba(184, 198, 216, 0.16);
+      border: 1px solid rgba(184, 198, 216, 0.28);
+      color: #b8c6d8;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     .nav-item-left {
       display: flex;
@@ -826,18 +834,16 @@
       white-space: nowrap;
     }
     .nav-counter {
-      font-size: 0.7rem;
+      font-size: 0.72rem;
       font-weight: 700;
-      padding: 0.08rem 0.48rem;
+      padding: 0.1rem 0.5rem;
       border-radius: 999px;
-      background: var(--bg-subtle);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.12);
+      color: #dbe6f3;
       flex-shrink: 0;
     }
     .nav-item.active .nav-counter {
-      background: var(--primary);
-      border-color: var(--primary);
+      background: #0b2545;
       color: #ffffff;
     }
     .nav-dot {
@@ -845,31 +851,32 @@
       height: 9px;
       border-radius: 50%;
       flex-shrink: 0;
-      background: var(--gold);
+      background: #e8a91b;
     }
-    .nav-dot.valido { background: #10b981; }
-    .nav-dot.invalidas { background: #ef4444; }
-    .nav-dot.pendiente { background: var(--gold); }
+    .nav-dot.valido { background: #22c55e; }
+    .nav-dot.invalidas { background: #f87171; }
+    .nav-dot.pendiente { background: #e8a91b; }
 
-    /* FOOTER DEL SIDEBAR: TARJETA CONTRASTE NAVY (GUIÑO AL APP ICON ATLOB) */
+    /* FOOTER DEL SIDEBAR OSCURO */
     .sidebar-footer {
-      padding: 0.85rem;
-      border-top: 1px solid var(--sidebar-border);
-      background: var(--sidebar-surface);
+      padding: 0.9rem;
+      border-top: 1px solid rgba(184, 198, 216, 0.14);
+      background: rgba(6, 22, 42, 0.45);
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
     }
     .sidebar-tenant {
-      background: linear-gradient(145deg, #06233e 0%, #0d3659 100%);
-      border: 1px solid rgba(224, 167, 24, 0.35);
-      border-radius: 11px;
-      padding: 0.75rem;
-      margin-bottom: 0.6rem;
-      box-shadow: 0 4px 12px rgba(6, 35, 62, 0.16);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(184, 198, 216, 0.18);
+      border-radius: 10px;
+      padding: 0.72rem;
     }
     .sidebar-tenant-ruc {
       font-size: 0.7rem;
       font-weight: 800;
-      color: #f0b822;
-      letter-spacing: 0.05em;
+      color: #e8a91b;
+      letter-spacing: 0.04em;
     }
     .sidebar-tenant-name {
       font-size: 0.83rem;
@@ -878,21 +885,48 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      margin-top: 0.12rem;
+      margin-top: 0.1rem;
     }
     .sidebar-select {
       width: 100%;
-      margin-top: 0.55rem;
+      min-height: 36px;
+      margin-top: 0.5rem;
       background: rgba(255, 255, 255, 0.1);
       color: #f8fafc;
-      border: 1px solid rgba(182, 214, 236, 0.28);
+      border: 1px solid rgba(184, 198, 216, 0.28);
       border-radius: 7px;
-      padding: 0.36rem 0.52rem;
+      padding: 0.34rem 0.52rem;
       font-size: 0.78rem;
       cursor: pointer;
     }
     .sidebar-select option {
-      background: #0b273f;
+      background: #0b2545;
+      color: #ffffff;
+    }
+    .sidebar-footer-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.45rem;
+    }
+    .btn-sidebar-dark {
+      min-height: 44px;
+      padding: 0.45rem 0.55rem;
+      border-radius: 9px;
+      border: 1px solid rgba(184, 198, 216, 0.24);
+      background: rgba(255, 255, 255, 0.07);
+      color: #e8f0f8;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      transition: background var(--transition), border-color var(--transition), color var(--transition);
+    }
+    .btn-sidebar-dark:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: #e8a91b;
       color: #ffffff;
     }
 
@@ -903,23 +937,22 @@
       display: flex;
       flex-direction: column;
       min-width: 0;
+      background: #f3f7fb;
     }
 
     header.ws-topbar {
-      height: 62px;
-      background: var(--bg-surface);
-      border-bottom: 1px solid var(--border);
-      border-top: 3px solid transparent;
-      border-image: var(--brand-gradient) 1 0 0 0;
-      padding: 0 1.5rem;
+      min-height: 70px;
+      background: #f3f7fb;
+      border-bottom: 1px solid #dce5f0;
+      padding: 0.75rem 1.75rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
+      flex-wrap: wrap;
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: var(--shadow-xs);
     }
     .topbar-left {
       display: flex;
@@ -929,46 +962,178 @@
     }
     .mobile-menu-btn {
       display: none;
-      background: var(--bg-subtle);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      border-radius: 8px;
-      padding: 0.4rem;
+      min-width: 44px;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      border: 1px solid #b8c6d8;
+      color: #0b2545;
+      border-radius: 10px;
       cursor: pointer;
     }
-    .breadcrumb {
+    .topbar-title-wrap {
       display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.88rem;
+      flex-direction: column;
       min-width: 0;
     }
-    .breadcrumb-company {
-      color: var(--text-muted);
-      font-weight: 600;
+    .topbar-page-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #0b2545;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 260px;
     }
-    .breadcrumb-sep {
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: var(--gold);
-      flex-shrink: 0;
-    }
-    .breadcrumb-section {
-      color: var(--text-main);
-      font-weight: 800;
-      white-space: nowrap;
+    .topbar-user-sub {
+      font-size: 0.78rem;
+      color: #51627a;
+      font-weight: 500;
     }
     .topbar-right {
       display: flex;
       align-items: center;
-      gap: 0.65rem;
+      gap: 0.6rem;
+      flex-wrap: wrap;
       flex-shrink: 0;
     }
+    .company-active-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-height: 44px;
+      padding: 0.45rem 1rem;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid #b8c6d8;
+      color: #0b2545;
+      font-size: 0.84rem;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(11, 37, 69, 0.04);
+      max-width: 390px;
+    }
+    .company-active-chip .chip-company-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .company-active-chip .chip-ruc-sep {
+      color: #b8c6d8;
+    }
+    .company-active-chip .chip-company-ruc {
+      color: #51627a;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .topbar-action-btn {
+      min-height: 44px;
+      padding: 0.45rem 0.9rem;
+      border-radius: 10px;
+      border: 1px solid #b8c6d8;
+      background: #ffffff;
+      color: #0b2545;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.38rem;
+      transition: border-color var(--transition), background var(--transition), color var(--transition);
+    }
+    .topbar-action-btn:hover {
+      border-color: #2f6fa3;
+      background: #e9f2f9;
+      color: #2f6fa3;
+    }
+
+    /* SELECTOR DE LIBRO PROPUESTA SIRE [ Ventas (RVIE) | Compras (RCE) ] */
+    .book-switcher {
+      display: inline-flex;
+      background: #ffffff;
+      border: 1.5px solid #b8c6d8;
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+      box-shadow: 0 2px 8px rgba(11, 37, 69, 0.05);
+    }
+    .book-switch-btn {
+      min-height: 44px;
+      padding: 0.55rem 1.25rem;
+      border: none;
+      border-radius: 9px;
+      background: transparent;
+      color: #51627a;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background var(--transition), color var(--transition), box-shadow var(--transition);
+    }
+    .book-switch-btn:hover:not(.active) {
+      background: #edf3f9;
+      color: #0b2545;
+    }
+    .book-switch-btn.active {
+      background: #0b2545;
+      color: #ffffff;
+      box-shadow: 0 3px 10px rgba(11, 37, 69, 0.22);
+    }
+    .book-switch-btn.active .book-code-tag {
+      background: rgba(232, 169, 27, 0.22);
+      color: #f2b932;
+    }
+    .book-code-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.12rem 0.45rem;
+      border-radius: 6px;
+      background: #edf3f9;
+      color: #51627a;
+    }
+    .prop-saved-banner {
+      display: none;
+      margin: 0.9rem 1.25rem 0;
+      padding: 0.9rem 1.1rem;
+      border-radius: 12px;
+      background: #fef6df;
+      border: 1px solid #f2d482;
+      color: #0b2545;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.9rem;
+      flex-wrap: wrap;
+    }
+    .prop-saved-banner.visible,
+    .prop-saved-banner.show {
+      display: flex;
+    }
+    .prop-btn-main {
+      min-height: 44px;
+      padding: 0.6rem 1.35rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border-radius: 10px;
+    }
+    .prop-phase-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.38rem;
+      padding: 0.24rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: #e9f2f9;
+      color: #2f6fa3;
+      border: 1px solid #b8c6d8;
+    }
+    .prop-phase-pill.downloading { background: #fef6df; color: #8c6000; border-color: #f2d482; }
+    .prop-phase-pill.reading { background: #e9f2f9; color: #2f6fa3; border-color: #9dc2e0; }
+    .prop-phase-pill.ready { background: #dcf3e5; color: #166534; border-color: #9fe2ce; }
+    .prop-phase-pill.error { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
 
     main.ws-content {
       flex: 1;
@@ -1995,75 +2160,68 @@
     <div id="sidebar-scrim" class="sidebar-scrim" onclick="toggleMobileSidebar(false)"></div>
     <div class="ws-shell">
 
-      <!-- SIDEBAR -->
+      <!-- SIDEBAR OSCURO #0B2545 (REFERENCIA 3) -->
       <aside id="ws-sidebar" class="ws-sidebar" aria-label="Navegación principal">
         <div class="sidebar-brand">
           <div class="sidebar-brand-left">
-            <img src="/assets/atlob-isotipo.png" alt="ATLOB" class="sidebar-brand-logo brand-img-light">
-            <img src="/assets/atlob-icon.png" alt="ATLOB" class="sidebar-brand-logo brand-img-dark">
+            <img src="/assets/atlob-isotipo.png" alt="ATLOB" class="sidebar-brand-logo">
             <div style="min-width: 0;">
               <div class="sidebar-brand-title-row">
-                <div class="sidebar-brand-title">ATLOB <span class="brand-sync-accent">Sync</span></div>
-                <span class="sidebar-brand-tag">SUNAT</span>
+                <div class="sidebar-brand-title">ATLOB</div>
+                <span class="sidebar-brand-tag">SYNC</span>
               </div>
-              <div class="sidebar-brand-sub">ATLOB Consultores · SIRE</div>
+              <div class="sidebar-brand-sub">Atlob Consultores</div>
             </div>
           </div>
         </div>
 
         <nav class="sidebar-nav">
-          <div>
-            <div class="nav-group-label">1. Configuración</div>
-            <button class="nav-item active" data-tab="tab-conexion" onclick="switchTab('tab-conexion')">
-              <span class="nav-item-left">
-                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                <span class="nav-item-label">Conexión y Credenciales</span>
-              </span>
-              <span id="sidebar-conn-dot" class="nav-dot pendiente" title="Estado conexión"></span>
-            </button>
-          </div>
+          <button type="button" class="nav-item active" data-tab="tab-conexion" onclick="switchTab('tab-conexion')">
+            <span class="nav-item-left">
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span class="nav-item-label">Conexión y Credenciales</span>
+            </span>
+            <span id="sidebar-conn-dot" class="nav-dot pendiente" title="Estado conexión"></span>
+          </button>
 
-          <div>
-            <div class="nav-group-label">2. Operaciones SIRE</div>
-            <button class="nav-item" data-tab="tab-ventas" onclick="switchTab('tab-ventas')">
-              <span class="nav-item-left">
-                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
-                <span class="nav-item-label">SIRE Ventas (RVIE)</span>
-              </span>
-              <span id="nav-count-ventas" class="nav-counter">0</span>
-            </button>
-            <button class="nav-item" data-tab="tab-compras" onclick="switchTab('tab-compras')">
-              <span class="nav-item-left">
-                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                <span class="nav-item-label">SIRE Compras (RCE)</span>
-              </span>
-              <span id="nav-count-compras" class="nav-counter">0</span>
-            </button>
-            <button class="nav-item" data-tab="tab-comprobantes" onclick="switchTab('tab-comprobantes')">
-              <span class="nav-item-left">
-                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>
-                <span class="nav-item-label">Comprobantes CPE</span>
-              </span>
-              <span id="nav-count-cpe" class="nav-counter">0</span>
-            </button>
-          </div>
+          <button type="button" class="nav-item" data-tab="tab-propuesta" onclick="switchTab('tab-propuesta')">
+            <span class="nav-item-left">
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+              <span class="nav-item-label">Propuesta SIRE</span>
+            </span>
+            <span id="nav-count-propuestas" class="nav-counter">0</span>
+          </button>
 
-          <div>
-            <div class="nav-group-label">3. Control y Sistema</div>
-            <button class="nav-item" data-tab="tab-descargas" onclick="switchTab('tab-descargas')">
-              <span class="nav-item-left">
-                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span class="nav-item-label">Historial Descargas</span>
-              </span>
-              <span id="nav-count-descargas" class="nav-counter">0</span>
-            </button>
-            <button class="nav-item" data-tab="tab-ajustes" onclick="switchTab('tab-ajustes')">
-              <span class="nav-item-left">
-                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                <span class="nav-item-label">Ajustes y Empresas</span>
-              </span>
-            </button>
-          </div>
+          <button type="button" class="nav-item" data-tab="tab-comprobantes" onclick="switchTab('tab-comprobantes')">
+            <span class="nav-item-left">
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>
+              <span class="nav-item-label">Comprobantes CPE</span>
+            </span>
+            <span id="nav-count-cpe" class="nav-counter">0</span>
+          </button>
+
+          <button type="button" class="nav-item" data-tab="tab-descargas" onclick="switchTab('tab-descargas')">
+            <span class="nav-item-left">
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span class="nav-item-label">Historial Descargas</span>
+            </span>
+            <span id="nav-count-descargas" class="nav-counter">0</span>
+          </button>
+
+          <button type="button" class="nav-item" data-tab="tab-ajustes" onclick="switchTab('tab-ajustes')">
+            <span class="nav-item-left">
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <span class="nav-item-label">Ajustes y Empresas</span>
+            </span>
+          </button>
+
+          <button type="button" class="nav-item nav-disabled" disabled aria-disabled="true" title="Registro de actividad aún no disponible">
+            <span class="nav-item-left">
+              <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <span class="nav-item-label">Registro de actividad</span>
+            </span>
+            <span class="nav-soon-badge">Próximamente</span>
+          </button>
         </nav>
 
         <div class="sidebar-footer">
@@ -2074,10 +2232,14 @@
               <option value="">Cargando...</option>
             </select>
           </div>
-          <button class="btn btn-sidebar" onclick="salirAlLogin()">
-            <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            Panel de Empresas
-          </button>
+          <div class="sidebar-footer-actions">
+            <button type="button" class="btn-sidebar-dark" onclick="salirAlLogin()" title="Ir al selector de empresa">
+              Cambiar empresa
+            </button>
+            <button type="button" class="btn-sidebar-dark" onclick="cerrarSesionUI()" title="Cerrar sesión">
+              Cerrar sesión
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -2085,26 +2247,28 @@
       <div class="ws-main-wrap">
         <header class="ws-topbar">
           <div class="topbar-left">
-            <button class="mobile-menu-btn" aria-label="Abrir menú" onclick="toggleMobileSidebar(true)">
+            <button type="button" class="mobile-menu-btn" aria-label="Abrir menú" onclick="toggleMobileSidebar(true)">
               <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
-            <div class="breadcrumb">
-              <span class="breadcrumb-company" id="topbar-company-name">Empresa</span>
-              <span class="breadcrumb-sep" aria-hidden="true"></span>
-              <span class="breadcrumb-section" id="topbar-section-name">Conexión y Credenciales</span>
+            <div class="topbar-title-wrap">
+              <span class="topbar-page-title" id="topbar-section-name">Conexión y Credenciales</span>
+              <span class="topbar-user-sub">Usuario: <strong id="topbar-user-display">Usuario local</strong></span>
             </div>
           </div>
           <div class="topbar-right">
-            <span class="user-session-pill">Usuario: <strong id="topbar-user-display">Usuario local</strong></span>
+            <div class="company-active-chip" id="topbar-company-chip" title="">
+              <span class="chip-company-name" id="topbar-company-name">Empresa</span>
+              <span class="chip-ruc-sep">&middot;</span>
+              <span class="chip-company-ruc" id="topbar-company-ruc">RUC -</span>
+            </div>
             <span id="credentials-traffic-badge" class="badge pendiente">
               <span class="badge-dot"></span>
               <span id="credentials-status-text">SIN VERIFICAR</span>
             </span>
-            <button class="btn btn-secondary btn-sm" onclick="toggleTheme()" title="Cambiar tema claro/oscuro">
-              <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-              Tema
+            <button type="button" class="topbar-action-btn" onclick="salirAlLogin()" title="Cambiar de empresa">
+              Cambiar empresa
             </button>
-            <button class="btn btn-secondary btn-sm" onclick="cerrarSesionUI()" title="Cerrar sesión">
+            <button type="button" class="topbar-action-btn" onclick="cerrarSesionUI()" title="Cerrar sesión">
               Cerrar sesión
             </button>
           </div>
@@ -2215,24 +2379,24 @@
 
             <!-- ACCESOS RÁPIDOS A OPERACIONES -->
             <div class="grid-3" style="margin-bottom: 1.15rem;">
-              <button class="shortcut-card" onclick="switchTab('tab-ventas')">
+              <button class="shortcut-card" onclick="abrirPropuestaLibro('VENTAS')">
                 <div>
-                  <div class="shortcut-title">SIRE Ventas (RVIE)</div>
-                  <div class="shortcut-sub">Descargar propuesta ZIP y Constancia CDR</div>
+                  <div class="shortcut-title">Propuesta SIRE — Ventas (RVIE)</div>
+                  <div class="shortcut-sub">Descargar propuesta ZIP, detalle y constancia CDR</div>
                 </div>
                 <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg>
               </button>
-              <button class="shortcut-card" onclick="switchTab('tab-compras')">
+              <button class="shortcut-card" onclick="abrirPropuestaLibro('COMPRAS')">
                 <div>
-                  <div class="shortcut-title">SIRE Compras (RCE)</div>
-                  <div class="shortcut-sub">Descargar propuesta ZIP y Constancia CDR</div>
+                  <div class="shortcut-title">Propuesta SIRE — Compras (RCE)</div>
+                  <div class="shortcut-sub">Descargar propuesta ZIP, detalle y constancia CDR</div>
                 </div>
                 <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg>
               </button>
               <button class="shortcut-card" onclick="switchTab('tab-comprobantes')">
                 <div>
-                  <div class="shortcut-title">Comprobantes Individuales</div>
-                  <div class="shortcut-sub">Descargar PDF, XML y consultar CDR SOAP</div>
+                  <div class="shortcut-title">Comprobantes CPE</div>
+                  <div class="shortcut-sub">Descargar PDF, XML, CDR y descarga masiva SUNAT</div>
                 </div>
                 <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14"/><polyline points="12 5 19 12 12 19"/></svg>
               </button>
@@ -2255,56 +2419,63 @@
           </div>
 
           <!-- =================================================
-               SECCIÓN 2: SIRE VENTAS (RVIE)
+               SECCIÓN 2: PROPUESTA SIRE (UNIFICA VENTAS RVIE Y COMPRAS RCE)
                ================================================= -->
-          <div id="tab-ventas" class="tab-content">
-            <div class="section-header">
+          <div id="tab-propuesta" class="tab-content">
+            <div class="section-header" style="align-items: center;">
               <div>
                 <div class="section-title-row">
-                  <h2 class="section-title">SIRE Ventas — RVIE</h2>
-                  <span class="badge info">Libro 140000</span>
-                  <span class="badge gold">Manual v31 · 5.18</span>
+                  <h2 class="section-title">Propuesta SIRE</h2>
+                  <span id="prop-libro-badge" class="badge info">Libro 140000 · RVIE</span>
+                  <span id="prop-manual-badge" class="badge gold">Manual v31 · 5.18</span>
                 </div>
-                <p class="section-desc">Selecciona un periodo tributario para inspeccionar el detalle en línea de la propuesta vigente o descargar el paquete ZIP oficial.</p>
+                <p class="section-desc">Descarga la propuesta oficial vigente en formato TXT (SIRE), consulta el detalle en línea o reutiliza una descarga guardada para el periodo.</p>
               </div>
               <div class="section-actions">
-                <button class="btn btn-secondary btn-sm" onclick="copiarPeriodoAlOtroLibro('ventas')" title="Usar este mismo periodo en SIRE Compras">
-                  <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-                  Aplicar periodo a Compras
-                </button>
+                <div class="book-switcher" role="tablist" aria-label="Tipo de libro Propuesta SIRE">
+                  <button type="button" id="prop-btn-ventas" class="book-switch-btn active" role="tab" aria-selected="true" onclick="setPropuestaLibro('VENTAS')">
+                    Ventas (RVIE)
+                    <span class="book-code-tag">140000</span>
+                  </button>
+                  <button type="button" id="prop-btn-compras" class="book-switch-btn" role="tab" aria-selected="false" onclick="setPropuestaLibro('COMPRAS')">
+                    Compras (RCE)
+                    <span class="book-code-tag">080000</span>
+                  </button>
+                </div>
               </div>
             </div>
 
-            <!-- BARRA UNIFICADA DE PERIODO TRIBUTARIO (PROPUESTA ZIP + DETALLE EN LÍNEA) -->
-            <div class="period-bar-card ventas-theme">
+            <!-- BARRA UNIFICADA DE PERIODO Y ACCIONES PROPUESTA SIRE -->
+            <div id="prop-period-card" class="period-bar-card ventas-theme">
               <div class="period-bar-top">
                 <div class="period-hero">
                   <span class="period-hero-icon" aria-hidden="true">
                     <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                   </span>
                   <div>
-                    <div class="period-hero-eyebrow">Periodo Tributario Activo · Propuesta y Detalle RVIE</div>
+                    <div id="prop-hero-eyebrow" class="period-hero-eyebrow">Periodo Tributario Activo · Ventas (RVIE)</div>
                     <div class="period-hero-title-row">
-                      <span id="ventas-periodo-label" class="period-hero-label">Periodo</span>
-                      <span id="ventas-periodo-code" class="period-code-pill">------</span>
-                      <span id="ventas-sunat-status" class="badge info">Listo para consultar</span>
+                      <span id="prop-periodo-label" class="period-hero-label">Periodo</span>
+                      <span id="prop-periodo-code" class="period-code-pill">AAAA-MM</span>
+                      <span id="prop-sunat-status" class="badge info">Periodo seleccionado</span>
+                      <span id="prop-phase-pill" class="prop-phase-pill" style="display:none;"></span>
                     </div>
                   </div>
                 </div>
 
                 <div class="period-controls-right">
-                  <div class="period-stepper-group" aria-label="Selector de año Ventas">
-                    <button type="button" class="period-step-btn" onclick="stepPeriodoYear('ventas', -1)" title="Año anterior" aria-label="Año anterior">&lsaquo;</button>
-                    <select id="ventas-anio" class="period-year-select" aria-label="Año Ventas" onchange="syncPeriodoFromSelects('ventas')"></select>
-                    <button type="button" class="period-step-btn" onclick="stepPeriodoYear('ventas', 1)" title="Año siguiente" aria-label="Año siguiente">&rsaquo;</button>
+                  <div class="period-stepper-group" aria-label="Selector de año Propuesta SIRE">
+                    <button type="button" class="period-step-btn" onclick="stepPeriodoYear('prop', -1)" title="Año anterior" aria-label="Año anterior">&lsaquo;</button>
+                    <select id="prop-anio" class="period-year-select" aria-label="Año Propuesta SIRE" onchange="syncPeriodoFromSelects('prop')"></select>
+                    <button type="button" class="period-step-btn" onclick="stepPeriodoYear('prop', 1)" title="Año siguiente" aria-label="Año siguiente">&rsaquo;</button>
                   </div>
-                  <select id="ventas-mes" class="form-control period-compact-select" aria-label="Mes Ventas" onchange="syncPeriodoFromSelects('ventas')"></select>
-                  <div class="period-stepper-group" aria-label="Navegar mes Ventas">
-                    <button type="button" class="period-step-btn" onclick="stepPeriodoMonth('ventas', -1)" title="Mes anterior" aria-label="Mes anterior">&#9664;</button>
-                    <input type="text" id="ventas-periodo" class="form-control period-compact-input" style="border:none; background:transparent; box-shadow:none;" maxlength="6" aria-label="Periodo YYYYMM Ventas" placeholder="YYYYMM" oninput="syncSelectsFromPeriodo('ventas')">
-                    <button type="button" class="period-step-btn" onclick="stepPeriodoMonth('ventas', 1)" title="Mes siguiente" aria-label="Mes siguiente">&#9654;</button>
+                  <select id="prop-mes" class="form-control period-compact-select" aria-label="Mes Propuesta SIRE" onchange="syncPeriodoFromSelects('prop')"></select>
+                  <div class="period-stepper-group" aria-label="Navegar periodo AAAA-MM">
+                    <button type="button" class="period-step-btn" onclick="stepPeriodoMonth('prop', -1)" title="Mes anterior" aria-label="Mes anterior">&#9664;</button>
+                    <input type="text" id="prop-periodo" class="form-control period-compact-input" style="border:none; background:transparent; box-shadow:none; width:88px;" maxlength="7" aria-label="Periodo AAAA-MM" placeholder="AAAA-MM" oninput="syncSelectsFromPeriodo('prop')">
+                    <button type="button" class="period-step-btn" onclick="stepPeriodoMonth('prop', 1)" title="Mes siguiente" aria-label="Mes siguiente">&#9654;</button>
                   </div>
-                  <button type="button" class="btn btn-secondary btn-sm" onclick="consultarPeriodosVentas()">
+                  <button type="button" class="btn btn-secondary" style="min-height:44px;" onclick="consultarPeriodosPropuesta()">
                     <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
                     Periodos SUNAT
                   </button>
@@ -2312,65 +2483,74 @@
               </div>
 
               <div class="period-months-wrap">
-                <div id="ventas-month-grid" class="month-grid" role="group" aria-label="Meses del año seleccionado (Ventas)"></div>
+                <div id="prop-month-grid" class="month-grid" role="group" aria-label="Meses del año seleccionado"></div>
                 <div class="period-chips-row">
                   <div class="period-chips-left">
-                    <div class="chip-bar" id="ventas-quick-chips"></div>
-                    <div class="chip-bar" id="ventas-sunat-periodos"></div>
+                    <div class="chip-bar" id="prop-quick-chips"></div>
+                    <div class="chip-bar" id="prop-sunat-periodos"></div>
                   </div>
-                  <div id="ventas-periodos-raw"></div>
+                  <div id="prop-periodos-raw"></div>
+                </div>
+              </div>
+
+              <!-- BANNER AUTOMÁTICO SI YA EXISTE DESCARGA GUARDADA PARA ESTE LIBRO + PERIODO -->
+              <div id="prop-saved-banner" class="prop-saved-banner" role="region" aria-label="Descarga guardada disponible">
+                <div id="prop-saved-banner-info" style="font-size:0.86rem; line-height:1.4;"></div>
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                  <button type="button" id="btn-prop-use-saved" class="btn btn-primary" style="min-height:44px;" onclick="usarDescargaGuardadaPropuesta()">
+                    Usar descarga guardada
+                  </button>
+                  <button type="button" class="btn btn-secondary" style="min-height:44px;" onclick="descargarPropuestaPrincipal('0')">
+                    Descargar de nuevo
+                  </button>
                 </div>
               </div>
 
               <div class="period-actions-bar">
                 <div class="period-actions-group">
-                  <button type="button" class="btn btn-navy" onclick="consultarPropuestaVentas(1)">
-                    <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    <span id="ventas-btn-detalle-lbl">Ver Detalle en Línea</span>
-                  </button>
-                  <button type="button" class="btn btn-primary" onclick="descargarPropuestaVentas()">
+                  <button type="button" id="btn-prop-descargar" class="btn btn-gold prop-btn-main" onclick="descargarPropuestaPrincipal('0')">
                     <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    <span id="ventas-btn-zip-lbl">Descargar Propuesta ZIP</span>
+                    <span id="prop-btn-zip-lbl">Descargar propuesta</span>
                   </button>
-                  <div class="period-format-wrap">
-                    <span>Formato ZIP:</span>
-                    <input type="hidden" id="ventas-formato" value="0">
-                    <div class="segmented" role="group" aria-label="Formato propuesta ventas">
-                      <button type="button" class="seg-btn active" data-fmt="0" onclick="selectFormato('ventas', '0', this)">TXT (SIRE)</button>
-                      <button type="button" class="seg-btn" data-fmt="1" onclick="selectFormato('ventas', '1', this)">CSV / Excel</button>
-                    </div>
-                  </div>
+                  <button type="button" class="btn btn-primary prop-btn-main" onclick="consultarPropuestaActiva(1)">
+                    <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span id="prop-btn-detalle-lbl">Ver detalle en línea</span>
+                  </button>
                 </div>
 
                 <div class="period-actions-group">
-                  <button type="button" class="btn btn-secondary btn-sm" onclick="abrirComprobantesDelPeriodo('VENTAS', 'ventas')">
+                  <input type="hidden" id="prop-formato" value="0">
+                  <button type="button" id="btn-prop-csv" class="btn btn-secondary" style="min-height:44px;" onclick="descargarPropuestaPrincipal('1')" title="Descargar propuesta en formato CSV / Excel de SUNAT">
                     <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    Comprobantes del Periodo
+                    ZIP en CSV / Excel
+                  </button>
+                  <button type="button" class="btn btn-secondary" style="min-height:44px;" onclick="abrirComprobantesPropuestaActiva()">
+                    Comprobantes del periodo
                   </button>
                 </div>
               </div>
 
-              <div id="ventas-progress" class="progress-box">
-                <div class="progress-bar-bg"><div id="ventas-progress-bar" class="progress-bar-fill"></div></div>
-                <div class="progress-text"><span id="ventas-progress-msg">Iniciando...</span><span id="ventas-progress-pct">0%</span></div>
+              <div id="prop-progress" class="progress-box">
+                <div class="progress-bar-bg"><div id="prop-progress-bar" class="progress-bar-fill"></div></div>
+                <div class="progress-text"><span id="prop-progress-msg">Iniciando...</span><span id="prop-progress-pct">0%</span></div>
               </div>
             </div>
 
-            <!-- RESULTADO PRINCIPAL (DETALLE EN LÍNEA / CONFIRMACIÓN ZIP) -->
-            <div id="ventas-resultado-box"></div>
+            <!-- CONTENEDOR PRINCIPAL: DASHBOARD TXT (3C-3D) / DETALLE EN LÍNEA / ESTADO DESCARGA -->
+            <div id="prop-resultado-box"></div>
 
-            <!-- UTILIDADES SECUNDARIAS RVIE -->
+            <!-- ACCIONES SECUNDARIAS CONSERVADAS DEL LIBRO ACTIVO -->
             <div class="grid-2">
               <div class="card">
                 <div class="card-header">
                   <div class="card-title">
                     <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Últimas Descargas ZIP — RVIE
+                    <span id="prop-recent-title">Últimas descargas ZIP — Ventas (RVIE)</span>
                   </div>
                   <button type="button" class="btn btn-ghost btn-xs" onclick="switchTab('tab-descargas')">Ver historial completo</button>
                 </div>
                 <div class="card-body">
-                  <div id="ventas-recent-box" style="font-size: 0.83rem; color: var(--text-muted);">Sin descargas recientes.</div>
+                  <div id="prop-recent-box" style="font-size: 0.84rem; color: var(--text-muted);">Sin descargas recientes.</div>
                 </div>
               </div>
 
@@ -2378,164 +2558,20 @@
                 <div class="card-header">
                   <div class="card-title">
                     <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg>
-                    Constancia de Recepción (CDR) — RVIE
+                    <span id="prop-constancia-title">Constancia de Recepción (CDR) — Ventas (RVIE)</span>
                   </div>
                 </div>
                 <div class="card-body">
-                  <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                  <p id="prop-constancia-desc" style="font-size: 0.83rem; color: var(--text-muted); margin-bottom: 0.75rem;">
                     Descarga el archivo oficial de Constancia de Recepción (CDR) del libro de Ventas presentado en SIRE.
                   </p>
                   <div class="form-group">
-                    <label class="form-label" for="ventas-constancia-nombre">Nombre del archivo de constancia (SUNAT)</label>
-                    <input type="text" id="ventas-constancia-nombre" class="form-control" placeholder="Ej. LE2000000000120261000140400021112.zip">
+                    <label class="form-label" for="prop-constancia-nombre">Nombre del archivo de constancia (SUNAT)</label>
+                    <input type="text" id="prop-constancia-nombre" class="form-control" style="min-height:44px;" placeholder="Ej. LE2000000000120261000140400021112.zip">
                   </div>
-                  <button class="btn btn-success btn-sm" style="width: 100%;" onclick="descargarConstanciaLibro('VENTAS')">
+                  <button type="button" class="btn btn-success" style="width: 100%; min-height:44px;" onclick="descargarConstanciaLibro(activePropLibro)">
                     <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Descargar Constancia de Recepción (RVIE)
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- =================================================
-               SECCIÓN 3: SIRE COMPRAS (RCE)
-               ================================================= -->
-          <div id="tab-compras" class="tab-content">
-            <div class="section-header">
-              <div>
-                <div class="section-title-row">
-                  <h2 class="section-title">SIRE Compras — RCE</h2>
-                  <span class="badge gold">Libro 080000</span>
-                  <span class="badge info">Manual v28 · 5.34</span>
-                </div>
-                <p class="section-desc">Selecciona un periodo tributario para consultar el detalle en línea de tus compras propuestas o descargar el paquete ZIP oficial.</p>
-              </div>
-              <div class="section-actions">
-                <button class="btn btn-secondary btn-sm" onclick="copiarPeriodoAlOtroLibro('compras')" title="Usar este mismo periodo en SIRE Ventas">
-                  <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-                  Aplicar periodo a Ventas
-                </button>
-              </div>
-            </div>
-
-            <!-- BARRA UNIFICADA DE PERIODO TRIBUTARIO (PROPUESTA ZIP + DETALLE EN LÍNEA) -->
-            <div class="period-bar-card compras-theme">
-              <div class="period-bar-top">
-                <div class="period-hero">
-                  <span class="period-hero-icon" aria-hidden="true">
-                    <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  </span>
-                  <div>
-                    <div class="period-hero-eyebrow">Periodo Tributario Activo · Propuesta y Detalle RCE</div>
-                    <div class="period-hero-title-row">
-                      <span id="compras-periodo-label" class="period-hero-label">Periodo</span>
-                      <span id="compras-periodo-code" class="period-code-pill">------</span>
-                      <span id="compras-sunat-status" class="badge gold">Listo para consultar</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="period-controls-right">
-                  <div class="period-stepper-group" aria-label="Selector de año Compras">
-                    <button type="button" class="period-step-btn" onclick="stepPeriodoYear('compras', -1)" title="Año anterior" aria-label="Año anterior">&lsaquo;</button>
-                    <select id="compras-anio" class="period-year-select" aria-label="Año Compras" onchange="syncPeriodoFromSelects('compras')"></select>
-                    <button type="button" class="period-step-btn" onclick="stepPeriodoYear('compras', 1)" title="Año siguiente" aria-label="Año siguiente">&rsaquo;</button>
-                  </div>
-                  <select id="compras-mes" class="form-control period-compact-select" aria-label="Mes Compras" onchange="syncPeriodoFromSelects('compras')"></select>
-                  <div class="period-stepper-group" aria-label="Navegar mes Compras">
-                    <button type="button" class="period-step-btn" onclick="stepPeriodoMonth('compras', -1)" title="Mes anterior" aria-label="Mes anterior">&#9664;</button>
-                    <input type="text" id="compras-periodo" class="form-control period-compact-input" style="border:none; background:transparent; box-shadow:none;" maxlength="6" aria-label="Periodo YYYYMM Compras" placeholder="YYYYMM" oninput="syncSelectsFromPeriodo('compras')">
-                    <button type="button" class="period-step-btn" onclick="stepPeriodoMonth('compras', 1)" title="Mes siguiente" aria-label="Mes siguiente">&#9654;</button>
-                  </div>
-                  <button type="button" class="btn btn-secondary btn-sm" onclick="consultarPeriodosCompras()">
-                    <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
-                    Periodos SUNAT
-                  </button>
-                </div>
-              </div>
-
-              <div class="period-months-wrap">
-                <div id="compras-month-grid" class="month-grid" role="group" aria-label="Meses del año seleccionado (Compras)"></div>
-                <div class="period-chips-row">
-                  <div class="period-chips-left">
-                    <div class="chip-bar" id="compras-quick-chips"></div>
-                    <div class="chip-bar" id="compras-sunat-periodos"></div>
-                  </div>
-                  <div id="compras-periodos-raw"></div>
-                </div>
-              </div>
-
-              <div class="period-actions-bar">
-                <div class="period-actions-group">
-                  <button type="button" class="btn btn-navy" onclick="consultarPropuestaCompras(1)">
-                    <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    <span id="compras-btn-detalle-lbl">Ver Detalle en Línea</span>
-                  </button>
-                  <button type="button" class="btn btn-gold" onclick="descargarPropuestaCompras()">
-                    <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    <span id="compras-btn-zip-lbl">Descargar Propuesta ZIP</span>
-                  </button>
-                  <div class="period-format-wrap">
-                    <span>Formato ZIP:</span>
-                    <input type="hidden" id="compras-formato" value="0">
-                    <div class="segmented" role="group" aria-label="Formato propuesta compras">
-                      <button type="button" class="seg-btn active" data-fmt="0" onclick="selectFormato('compras', '0', this)">TXT (SIRE)</button>
-                      <button type="button" class="seg-btn" data-fmt="1" onclick="selectFormato('compras', '1', this)">CSV (Delimitado)</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="period-actions-group">
-                  <button type="button" class="btn btn-secondary btn-sm" onclick="abrirComprobantesDelPeriodo('COMPRAS', 'compras')">
-                    <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                    Comprobantes del Periodo
-                  </button>
-                </div>
-              </div>
-
-              <div id="compras-progress" class="progress-box">
-                <div class="progress-bar-bg"><div id="compras-progress-bar" class="progress-bar-fill"></div></div>
-                <div class="progress-text"><span id="compras-progress-msg">Iniciando...</span><span id="compras-progress-pct">0%</span></div>
-              </div>
-            </div>
-
-            <!-- RESULTADO PRINCIPAL (DETALLE EN LÍNEA / CONFIRMACIÓN ZIP) -->
-            <div id="compras-resultado-box"></div>
-
-            <!-- UTILIDADES SECUNDARIAS RCE -->
-            <div class="grid-2">
-              <div class="card">
-                <div class="card-header">
-                  <div class="card-title">
-                    <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Últimas Descargas ZIP — RCE
-                  </div>
-                  <button type="button" class="btn btn-ghost btn-xs" onclick="switchTab('tab-descargas')">Ver historial completo</button>
-                </div>
-                <div class="card-body">
-                  <div id="compras-recent-box" style="font-size: 0.83rem; color: var(--text-muted);">Sin descargas recientes.</div>
-                </div>
-              </div>
-
-              <div class="card">
-                <div class="card-header">
-                  <div class="card-title">
-                    <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg>
-                    Constancia de Recepción (CDR) — RCE
-                  </div>
-                </div>
-                <div class="card-body">
-                  <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-                    Descarga el archivo oficial de Constancia de Recepción (CDR) del libro de Compras presentado en SIRE.
-                  </p>
-                  <div class="form-group">
-                    <label class="form-label" for="compras-constancia-nombre">Nombre del archivo de constancia (SUNAT)</label>
-                    <input type="text" id="compras-constancia-nombre" class="form-control" placeholder="Ej. LE2000000000120261000080400021112.zip">
-                  </div>
-                  <button class="btn btn-success btn-sm" style="width: 100%;" onclick="descargarConstanciaLibro('COMPRAS')">
-                    <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Descargar Constancia de Recepción (RCE)
+                    <span id="prop-constancia-btn-lbl">Descargar Constancia de Recepción (RVIE)</span>
                   </button>
                 </div>
               </div>
@@ -3133,16 +3169,20 @@
     };
     const TAB_TITLES = {
       'tab-conexion': 'Conexión y Credenciales',
-      'tab-ventas': 'SIRE Ventas (RVIE)',
-      'tab-compras': 'SIRE Compras (RCE)',
-      'tab-comprobantes': 'Comprobantes (PDF / XML / CDR)',
-      'tab-descargas': 'Historial de Descargas',
+      'tab-propuesta': 'Propuesta SIRE',
+      'tab-ventas': 'Propuesta SIRE',
+      'tab-compras': 'Propuesta SIRE',
+      'tab-comprobantes': 'Comprobantes CPE',
+      'tab-descargas': 'Historial Descargas',
       'tab-ajustes': 'Ajustes y Empresas'
     };
 
     let currentEmpresas = [];
     let currentDescargas = [];
     let activeRUC = '';
+    let activePropLibro = 'VENTAS';
+    let activePropSavedDownload = null;
+    let activePropPollInterval = null;
     let empresaEnEdicion = null;
     let rucParaProbar = '';
     let cpeFilterOrigen = '';
@@ -3152,6 +3192,7 @@
     let activeBulkPollTimer = null;
     let lastBulkJob = null;
     const sunatPeriodosMap = { ventas: {}, compras: {} };
+    const sunatPeriodosRaw = { ventas: null, compras: null };
 
     function escapeHtml(str) {
       if (typeof str !== 'string') return String(str || '');
@@ -3174,23 +3215,59 @@
       document.getElementById('sidebar-scrim').classList.toggle('open', open);
     }
 
-    // --- SELECTORES UNIFICADOS DE PERIODO (PROPUESTA ZIP + DETALLE EN LÍNEA) ---
+    // --- SELECTORES UNIFICADOS DE PERIODO (AAAA-MM EN UI -> YYYYMM EN BACKEND) ---
+    function normalizePeriodoYYYYMM(raw) {
+      const str = String(raw || '').trim();
+      const mDash = str.match(/^(\d{4})-(\d{2})$/);
+      const mPlain = str.match(/^(\d{4})(\d{2})$/);
+      const match = mDash || mPlain;
+      if (!match) return '';
+      const y = Number(match[1]);
+      const m = Number(match[2]);
+      if (y < 2000 || y > 2099 || m < 1 || m > 12) return '';
+      return `${match[1]}${match[2]}`;
+    }
+
+    function formatPeriodoDash(per) {
+      const clean = normalizePeriodoYYYYMM(per);
+      if (!clean) return '';
+      return `${clean.slice(0, 4)}-${clean.slice(4, 6)}`;
+    }
+
     function isValidPeriodo(per) {
-      if (!/^\d{6}$/.test(String(per || '').trim())) return false;
-      const m = Number(String(per).slice(4, 6));
-      return m >= 1 && m <= 12;
+      return Boolean(normalizePeriodoYYYYMM(per));
     }
 
     function formatPeriodoLabel(per) {
-      if (!isValidPeriodo(per)) return 'Periodo inválido';
-      const y = per.slice(0, 4);
-      const m = per.slice(4, 6);
+      const clean = normalizePeriodoYYYYMM(per);
+      if (!clean) return 'Periodo inválido';
+      const y = clean.slice(0, 4);
+      const m = clean.slice(4, 6);
       return `${MESES_LARGOS[m] || m} ${y}`;
     }
 
     function formatPeriodoShort(per) {
-      if (!isValidPeriodo(per)) return per || '------';
-      return `${MESES_CORTOS[per.slice(4, 6)] || per.slice(4, 6)} ${per.slice(0, 4)}`;
+      const clean = normalizePeriodoYYYYMM(per);
+      if (!clean) return per || '------';
+      return `${MESES_CORTOS[clean.slice(4, 6)] || clean.slice(4, 6)} ${clean.slice(0, 4)}`;
+    }
+
+    function getActiveBookKey() {
+      return activePropLibro === 'COMPRAS' ? 'compras' : 'ventas';
+    }
+
+    function getActiveCodLibro() {
+      return activePropLibro === 'COMPRAS' ? '080000' : '140000';
+    }
+
+    function resolvePeriodoPrefix(prefix) {
+      if (prefix && document.getElementById(`${prefix}-periodo`)) return prefix;
+      return 'prop';
+    }
+
+    function getPeriodoYYYYMM(prefix = 'prop') {
+      const resolved = resolvePeriodoPrefix(prefix);
+      return normalizePeriodoYYYYMM(document.getElementById(`${resolved}-periodo`)?.value || '');
     }
 
     function ensureYearOption(anioSel, yearStr) {
@@ -3204,45 +3281,50 @@
     }
 
     function renderMonthGrid(prefix) {
-      const grid = document.getElementById(`${prefix}-month-grid`);
+      const resolved = resolvePeriodoPrefix(prefix);
+      const grid = document.getElementById(`${resolved}-month-grid`);
       if (!grid) return;
-      const anio = document.getElementById(`${prefix}-anio`)?.value || String(new Date().getFullYear());
-      const curPer = (document.getElementById(`${prefix}-periodo`)?.value || '').trim();
-      const sunatMap = sunatPeriodosMap[prefix] || {};
+      const anio = document.getElementById(`${resolved}-anio`)?.value || String(new Date().getFullYear());
+      const curPer = getPeriodoYYYYMM(resolved);
+      const bookKey = resolved === 'prop' ? getActiveBookKey() : resolved;
+      const sunatMap = sunatPeriodosMap[bookKey] || {};
 
       grid.innerHTML = MESES.map(([m]) => {
         const per = `${anio}${m}`;
+        const perDash = `${anio}-${m}`;
         const isActive = curPer === per;
         const sunatInfo = sunatMap[per];
         const hasSunat = Boolean(sunatInfo);
         const title = hasSunat
-          ? `${MESES_LARGOS[m]} ${anio} (${per}) · Habilitado en SUNAT${sunatInfo.desEstado ? ' (' + sunatInfo.desEstado + ')' : ''}`
-          : `Seleccionar ${MESES_LARGOS[m]} ${anio} (${per})`;
-        return `<button type="button" class="month-btn ${isActive ? 'active' : ''} ${hasSunat ? 'sunat-enabled' : ''}" data-periodo="${per}" title="${escapeHtml(title)}" onclick="setPeriodoQuick('${prefix}', '${per}')"><span>${MESES_CORTOS[m]}</span><span class="m-num">${m}</span></button>`;
+          ? `${MESES_LARGOS[m]} ${anio} (${perDash}) · Habilitado en SUNAT${sunatInfo.desEstado ? ' (' + sunatInfo.desEstado + ')' : ''}`
+          : `Seleccionar ${MESES_LARGOS[m]} ${anio} (${perDash})`;
+        return `<button type="button" class="month-btn ${isActive ? 'active' : ''} ${hasSunat ? 'sunat-enabled' : ''}" data-periodo="${per}" title="${escapeHtml(title)}" onclick="setPeriodoQuick('${resolved}', '${per}')"><span>${MESES_CORTOS[m]}</span><span class="m-num">${m}</span></button>`;
       }).join('');
     }
 
     function updatePeriodoUI(prefix) {
-      const per = (document.getElementById(`${prefix}-periodo`)?.value || '').trim();
-      const valid = isValidPeriodo(per);
+      const resolved = resolvePeriodoPrefix(prefix);
+      const per = getPeriodoYYYYMM(resolved);
+      const valid = Boolean(per);
+      const bookKey = resolved === 'prop' ? getActiveBookKey() : resolved;
 
-      renderMonthGrid(prefix);
+      renderMonthGrid(resolved);
 
-      const lblEl = document.getElementById(`${prefix}-periodo-label`);
-      const codeEl = document.getElementById(`${prefix}-periodo-code`);
-      const statusEl = document.getElementById(`${prefix}-sunat-status`);
-      const btnDetLbl = document.getElementById(`${prefix}-btn-detalle-lbl`);
-      const btnZipLbl = document.getElementById(`${prefix}-btn-zip-lbl`);
+      const lblEl = document.getElementById(`${resolved}-periodo-label`);
+      const codeEl = document.getElementById(`${resolved}-periodo-code`);
+      const statusEl = document.getElementById(`${resolved}-sunat-status`);
+      const btnDetLbl = document.getElementById(`${resolved}-btn-detalle-lbl`);
+      const btnZipLbl = document.getElementById(`${resolved}-btn-zip-lbl`);
 
       if (lblEl) lblEl.textContent = valid ? formatPeriodoLabel(per) : 'Periodo incompleto';
-      if (codeEl) codeEl.textContent = valid ? per : 'YYYYMM';
+      if (codeEl) codeEl.textContent = valid ? formatPeriodoDash(per) : 'AAAA-MM';
 
-      const sunatMap = sunatPeriodosMap[prefix] || {};
+      const sunatMap = sunatPeriodosMap[bookKey] || {};
       const loadedCount = Object.keys(sunatMap).length;
       if (statusEl) {
         if (!valid) {
           statusEl.className = 'badge invalidas';
-          statusEl.textContent = 'Formato YYYYMM requerido';
+          statusEl.textContent = 'Formato AAAA-MM requerido';
         } else if (loadedCount > 0 && sunatMap[per]) {
           statusEl.className = 'badge valido';
           statusEl.textContent = sunatMap[per].desEstado ? `SUNAT: ${sunatMap[per].desEstado}` : 'Habilitado en SUNAT';
@@ -3250,26 +3332,32 @@
           statusEl.className = 'badge pendiente';
           statusEl.textContent = 'No listado en SUNAT';
         } else {
-          statusEl.className = prefix === 'compras' ? 'badge gold' : 'badge info';
+          statusEl.className = bookKey === 'compras' ? 'badge gold' : 'badge info';
           statusEl.textContent = 'Periodo seleccionado';
         }
       }
 
       const shortLbl = valid ? formatPeriodoShort(per) : '';
-      if (btnDetLbl) btnDetLbl.textContent = shortLbl ? `Ver Detalle · ${shortLbl}` : 'Ver Detalle en Línea';
-      if (btnZipLbl) btnZipLbl.textContent = shortLbl ? `Descargar ZIP · ${shortLbl}` : 'Descargar Propuesta ZIP';
+      if (btnDetLbl) btnDetLbl.textContent = shortLbl ? `Ver detalle en línea · ${shortLbl}` : 'Ver detalle en línea';
+      if (btnZipLbl) btnZipLbl.textContent = shortLbl ? `Descargar propuesta · ${shortLbl}` : 'Descargar propuesta';
 
-      document.querySelectorAll(`#${prefix}-quick-chips .chip, #${prefix}-sunat-periodos .chip`).forEach(c => {
+      document.querySelectorAll(`#${resolved}-quick-chips .chip, #${resolved}-sunat-periodos .chip`).forEach(c => {
         c.classList.toggle('active', valid && c.getAttribute('data-periodo') === per);
       });
+
+      if (resolved === 'prop') {
+        updatePropSavedBanner();
+      }
     }
 
     function initPeriodoControls(prefix) {
+      const resolved = resolvePeriodoPrefix(prefix);
       const now = new Date();
       const curYear = now.getFullYear();
-      const anioSel = document.getElementById(`${prefix}-anio`);
-      const mesSel = document.getElementById(`${prefix}-mes`);
-      const input = document.getElementById(`${prefix}-periodo`);
+      const anioSel = document.getElementById(`${resolved}-anio`);
+      const mesSel = document.getElementById(`${resolved}-mes`);
+      const input = document.getElementById(`${resolved}-periodo`);
+      if (!anioSel || !mesSel || !input) return;
 
       anioSel.innerHTML = '';
       for (let y = curYear + 1; y >= 2022; y--) {
@@ -3284,87 +3372,292 @@
       // Por defecto: mes anterior (periodo tributario más habitual en SIRE)
       const prev = new Date(curYear, now.getMonth() - 1, 1);
       const defPer = `${prev.getFullYear()}${String(prev.getMonth() + 1).padStart(2, '0')}`;
-      input.value = defPer;
+      input.value = formatPeriodoDash(defPer);
 
       // Chips rápidos dinámicos (3 últimos meses)
-      const chipsWrap = document.getElementById(`${prefix}-quick-chips`);
-      const quickList = [0, -1, -2].map(offset => {
-        const d = new Date(curYear, now.getMonth() + offset, 1);
-        const per = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
-        const label = offset === 0 ? `Actual · ${formatPeriodoShort(per)}` : (offset === -1 ? `Anterior · ${formatPeriodoShort(per)}` : formatPeriodoShort(per));
-        return { per, label };
-      });
-      chipsWrap.innerHTML = `<span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.04em;">Rápido:</span>` +
-        quickList.map(q => `<button type="button" class="chip" data-periodo="${q.per}" onclick="setPeriodoQuick('${prefix}', '${q.per}')">${q.label}</button>`).join('');
+      const chipsWrap = document.getElementById(`${resolved}-quick-chips`);
+      if (chipsWrap) {
+        const quickList = [0, -1, -2].map(offset => {
+          const d = new Date(curYear, now.getMonth() + offset, 1);
+          const per = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
+          const label = offset === 0 ? `Actual · ${formatPeriodoShort(per)}` : (offset === -1 ? `Anterior · ${formatPeriodoShort(per)}` : formatPeriodoShort(per));
+          return { per, label };
+        });
+        chipsWrap.innerHTML = `<span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.04em;">Rápido:</span>` +
+          quickList.map(q => `<button type="button" class="chip" data-periodo="${q.per}" onclick="setPeriodoQuick('${resolved}', '${q.per}')">${q.label}</button>`).join('');
+      }
 
-      syncSelectsFromPeriodo(prefix);
+      syncSelectsFromPeriodo(resolved);
     }
 
     function setPeriodoQuick(prefix, per) {
-      if (!isValidPeriodo(per)) return;
-      document.getElementById(`${prefix}-periodo`).value = per;
-      syncSelectsFromPeriodo(prefix);
+      const resolved = resolvePeriodoPrefix(prefix);
+      const clean = normalizePeriodoYYYYMM(per);
+      if (!clean) return;
+      const input = document.getElementById(`${resolved}-periodo`);
+      if (input) input.value = formatPeriodoDash(clean);
+      syncSelectsFromPeriodo(resolved);
     }
 
     function syncPeriodoFromSelects(prefix) {
-      const y = document.getElementById(`${prefix}-anio`).value;
-      const m = document.getElementById(`${prefix}-mes`).value;
-      document.getElementById(`${prefix}-periodo`).value = `${y}${m}`;
-      updatePeriodoUI(prefix);
+      const resolved = resolvePeriodoPrefix(prefix);
+      const y = document.getElementById(`${resolved}-anio`)?.value || '';
+      const m = document.getElementById(`${resolved}-mes`)?.value || '';
+      const input = document.getElementById(`${resolved}-periodo`);
+      if (input && y && m) input.value = `${y}-${m}`;
+      updatePeriodoUI(resolved);
     }
 
     function syncSelectsFromPeriodo(prefix) {
-      const input = document.getElementById(`${prefix}-periodo`);
-      const clean = (input.value || '').replace(/\D/g, '').slice(0, 6);
-      if (input.value !== clean) input.value = clean;
-      if (isValidPeriodo(clean)) {
+      const resolved = resolvePeriodoPrefix(prefix);
+      const input = document.getElementById(`${resolved}-periodo`);
+      if (!input) return;
+      let val = String(input.value || '').replace(/[^\d-]/g, '').slice(0, 7);
+      if (/^\d{6}$/.test(val)) {
+        val = `${val.slice(0, 4)}-${val.slice(4, 6)}`;
+      }
+      if (input.value !== val) input.value = val;
+
+      const clean = normalizePeriodoYYYYMM(val);
+      if (clean) {
         const y = clean.slice(0, 4);
         const m = clean.slice(4, 6);
-        const anioSel = document.getElementById(`${prefix}-anio`);
-        const mesSel = document.getElementById(`${prefix}-mes`);
+        const anioSel = document.getElementById(`${resolved}-anio`);
+        const mesSel = document.getElementById(`${resolved}-mes`);
         ensureYearOption(anioSel, y);
-        anioSel.value = y;
-        if (Array.from(mesSel.options).some(o => o.value === m)) mesSel.value = m;
+        if (anioSel) anioSel.value = y;
+        if (mesSel && Array.from(mesSel.options).some(o => o.value === m)) mesSel.value = m;
       }
-      updatePeriodoUI(prefix);
+      updatePeriodoUI(resolved);
     }
 
     function stepPeriodoYear(prefix, delta) {
-      const anioSel = document.getElementById(`${prefix}-anio`);
-      const mesSel = document.getElementById(`${prefix}-mes`);
+      const resolved = resolvePeriodoPrefix(prefix);
+      const anioSel = document.getElementById(`${resolved}-anio`);
+      const mesSel = document.getElementById(`${resolved}-mes`);
+      if (!anioSel || !mesSel) return;
       const nextY = Number(anioSel.value || new Date().getFullYear()) + delta;
       if (nextY < 2020 || nextY > 2035) return;
       const yStr = String(nextY);
       ensureYearOption(anioSel, yStr);
       anioSel.value = yStr;
-      document.getElementById(`${prefix}-periodo`).value = `${yStr}${mesSel.value || '01'}`;
-      updatePeriodoUI(prefix);
+      document.getElementById(`${resolved}-periodo`).value = `${yStr}-${mesSel.value || '01'}`;
+      updatePeriodoUI(resolved);
     }
 
     function stepPeriodoMonth(prefix, delta) {
-      const cur = (document.getElementById(`${prefix}-periodo`).value || '').trim();
-      const baseY = isValidPeriodo(cur) ? Number(cur.slice(0, 4)) : Number(document.getElementById(`${prefix}-anio`).value);
-      const baseM = isValidPeriodo(cur) ? Number(cur.slice(4, 6)) - 1 : Number(document.getElementById(`${prefix}-mes`).value) - 1;
+      const resolved = resolvePeriodoPrefix(prefix);
+      const cur = getPeriodoYYYYMM(resolved);
+      const baseY = cur ? Number(cur.slice(0, 4)) : Number(document.getElementById(`${resolved}-anio`)?.value || new Date().getFullYear());
+      const baseM = cur ? Number(cur.slice(4, 6)) - 1 : Number(document.getElementById(`${resolved}-mes`)?.value || 1) - 1;
       const d = new Date(baseY, baseM + delta, 1);
       const nextPer = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
-      setPeriodoQuick(prefix, nextPer);
+      setPeriodoQuick(resolved, nextPer);
+    }
+
+    function setPropPhase(phase, text) {
+      const pill = document.getElementById('prop-phase-pill');
+      if (!pill) return;
+      if (!phase) {
+        pill.style.display = 'none';
+        pill.className = 'prop-phase-pill';
+        pill.textContent = '';
+        return;
+      }
+      const defaults = {
+        downloading: 'Descargando',
+        reading: 'Leyendo archivo',
+        ready: 'Listo',
+        error: 'Error'
+      };
+      pill.className = `prop-phase-pill ${phase}`;
+      pill.textContent = text || defaults[phase] || phase;
+      pill.style.display = 'inline-flex';
+    }
+
+    function findSavedDownloadForPropuesta(libro, periodoYYYYMM) {
+      if (!periodoYYYYMM) return null;
+      const targetLibro = String(libro || 'VENTAS').toUpperCase();
+      const targetCod = targetLibro === 'COMPRAS' ? '080000' : '140000';
+      const matches = (currentDescargas || []).filter(d => {
+        if (String(d.estado || '').toUpperCase() !== 'COMPLETADO') return false;
+        const matchLibro = String(d.libro || '').toUpperCase() === targetLibro || String(d.cod_libro || '') === targetCod;
+        const matchPer = normalizePeriodoYYYYMM(d.periodo) === periodoYYYYMM;
+        return matchLibro && matchPer;
+      });
+      if (matches.length === 0) return null;
+      // Preferir archivo TXT oficial (no CSV) y la descarga más reciente (mayor ID)
+      matches.sort((a, b) => {
+        const aCsv = String(a.nombre_archivo || '').toLowerCase().includes('.csv') ? 1 : 0;
+        const bCsv = String(b.nombre_archivo || '').toLowerCase().includes('.csv') ? 1 : 0;
+        if (aCsv !== bCsv) return aCsv - bCsv;
+        return Number(b.id || 0) - Number(a.id || 0);
+      });
+      return matches[0];
+    }
+
+    function updatePropSavedBanner() {
+      const banner = document.getElementById('prop-saved-banner');
+      const infoEl = document.getElementById('prop-saved-banner-info');
+      if (!banner || !infoEl) return;
+      const per = getPeriodoYYYYMM('prop');
+      const saved = findSavedDownloadForPropuesta(activePropLibro, per);
+      activePropSavedDownload = saved;
+
+      if (!saved) {
+        banner.classList.remove('visible', 'show');
+        infoEl.innerHTML = '';
+        return;
+      }
+
+      const bookName = activePropLibro === 'COMPRAS' ? 'Compras (RCE)' : 'Ventas (RVIE)';
+      const kb = saved.tamano_bytes ? `${(saved.tamano_bytes / 1024).toFixed(1)} KB` : '';
+      const fecha = String(saved.created_at || '').replace('T', ' ').slice(0, 16);
+      infoEl.innerHTML = `
+        <strong>Descarga guardada disponible para ${escapeHtml(bookName)} · ${escapeHtml(formatPeriodoLabel(per))} (${escapeHtml(formatPeriodoDash(per))})</strong>
+        <div style="font-size:0.78rem; color:#51627a; margin-top:0.15rem;">
+          Archivo <code>${escapeHtml(saved.nombre_archivo || 'propuesta.zip')}</code>${kb ? ` · ${escapeHtml(kb)}` : ''}${saved.ticket ? ` · Ticket <code>${escapeHtml(saved.ticket)}</code>` : ''}${fecha ? ` · ${escapeHtml(fecha)}` : ''}
+        </div>
+      `;
+      banner.classList.add('visible');
+    }
+
+    function usarDescargaGuardadaPropuesta() {
+      const saved = activePropSavedDownload;
+      const per = getPeriodoYYYYMM('prop');
+      if (!saved) {
+        showToast('No hay descarga guardada para este libro y periodo.', 'warning');
+        return;
+      }
+      const bookName = activePropLibro === 'COMPRAS' ? 'Compras (RCE)' : 'Ventas (RVIE)';
+      const fname = saved.nombre_archivo || `propuesta_${per}.zip`;
+      const kb = saved.tamano_bytes ? `${(saved.tamano_bytes / 1024).toFixed(1)} KB` : '—';
+      const fecha = String(saved.created_at || '—').replace('T', ' ').slice(0, 16);
+      setPropPhase('ready', 'Listo');
+      const box = document.getElementById('prop-resultado-box');
+      if (box) {
+        box.innerHTML = `
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                Descarga guardada lista · ${escapeHtml(bookName)}
+                <span class="badge navy">${escapeHtml(formatPeriodoLabel(per))} (${escapeHtml(formatPeriodoDash(per))})</span>
+              </div>
+              <span class="badge valido">COMPLETADO</span>
+            </div>
+            <div class="card-body">
+              <div class="info-grid" style="margin-bottom:0.85rem;">
+                <div class="info-box"><div class="info-label">Archivo ZIP</div><div class="info-value mono">${escapeHtml(fname)}</div></div>
+                <div class="info-box"><div class="info-label">Ticket SUNAT</div><div class="info-value mono">${escapeHtml(saved.ticket || '—')}</div></div>
+                <div class="info-box"><div class="info-label">Tamaño / Fecha</div><div class="info-value">${escapeHtml(kb)} · ${escapeHtml(fecha)}</div></div>
+              </div>
+              <div style="display:flex; gap:0.55rem; flex-wrap:wrap; align-items:center;">
+                <button type="button" class="btn btn-gold" style="min-height:44px;" onclick="descargarArchivoSeguro('/api/descargas/${saved.id}/archivo', '${escapeHtml(fname)}')">Descargar ZIP guardado</button>
+                <button type="button" class="btn btn-primary" style="min-height:44px;" onclick="consultarPropuestaActiva(1)">Ver detalle en línea (SUNAT)</button>
+                <button type="button" class="btn btn-secondary" style="min-height:44px;" onclick="abrirComprobantesPropuestaActiva()">Comprobantes del periodo</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      showToast(`Descarga guardada seleccionada (${fname})`, 'success');
+    }
+
+    function setPropuestaLibro(libro) {
+      const next = String(libro || 'VENTAS').toUpperCase() === 'COMPRAS' ? 'COMPRAS' : 'VENTAS';
+      activePropLibro = next;
+      const isCompras = next === 'COMPRAS';
+
+      const btnV = document.getElementById('prop-btn-ventas');
+      const btnC = document.getElementById('prop-btn-compras');
+      if (btnV) {
+        btnV.classList.toggle('active', !isCompras);
+        btnV.setAttribute('aria-selected', String(!isCompras));
+      }
+      if (btnC) {
+        btnC.classList.toggle('active', isCompras);
+        btnC.setAttribute('aria-selected', String(isCompras));
+      }
+
+      const card = document.getElementById('prop-period-card');
+      if (card) {
+        card.classList.toggle('ventas-theme', !isCompras);
+        card.classList.toggle('compras-theme', isCompras);
+      }
+
+      const badgeLibro = document.getElementById('prop-libro-badge');
+      const badgeManual = document.getElementById('prop-manual-badge');
+      const eyebrow = document.getElementById('prop-hero-eyebrow');
+      const recentTitle = document.getElementById('prop-recent-title');
+      const constTitle = document.getElementById('prop-constancia-title');
+      const constDesc = document.getElementById('prop-constancia-desc');
+      const constInput = document.getElementById('prop-constancia-nombre');
+      const constBtnLbl = document.getElementById('prop-constancia-btn-lbl');
+
+      if (badgeLibro) {
+        badgeLibro.className = isCompras ? 'badge gold' : 'badge info';
+        badgeLibro.textContent = isCompras ? 'Libro 080000 · RCE' : 'Libro 140000 · RVIE';
+      }
+      if (badgeManual) {
+        badgeManual.textContent = isCompras ? 'Manual v28 · 5.34' : 'Manual v31 · 5.18';
+      }
+      if (eyebrow) {
+        eyebrow.textContent = isCompras ? 'Periodo Tributario Activo · Compras (RCE)' : 'Periodo Tributario Activo · Ventas (RVIE)';
+      }
+      if (recentTitle) {
+        recentTitle.textContent = isCompras ? 'Últimas descargas ZIP — Compras (RCE)' : 'Últimas descargas ZIP — Ventas (RVIE)';
+      }
+      if (constTitle) {
+        constTitle.textContent = isCompras ? 'Constancia de Recepción (CDR) — Compras (RCE)' : 'Constancia de Recepción (CDR) — Ventas (RVIE)';
+      }
+      if (constDesc) {
+        constDesc.textContent = isCompras
+          ? 'Descarga el archivo oficial de Constancia de Recepción (CDR) del libro de Compras presentado en SIRE.'
+          : 'Descarga el archivo oficial de Constancia de Recepción (CDR) del libro de Ventas presentado en SIRE.';
+      }
+      if (constInput) {
+        constInput.placeholder = isCompras
+          ? 'Ej. LE2000000000120261000080400021112.zip'
+          : 'Ej. LE2000000000120261000140400021112.zip';
+      }
+      if (constBtnLbl) {
+        constBtnLbl.textContent = isCompras
+          ? 'Descargar Constancia de Recepción (RCE)'
+          : 'Descargar Constancia de Recepción (RVIE)';
+      }
+
+      if (!activePropPollInterval) setPropPhase('', '');
+      const resBox = document.getElementById('prop-resultado-box');
+      if (resBox) resBox.innerHTML = '';
+
+      renderSunatPeriodosForActiveBook();
+      renderRecentByLibro();
+      updatePeriodoUI('prop');
+    }
+
+    function abrirPropuestaLibro(libro) {
+      setPropuestaLibro(libro);
+      switchTab('tab-propuesta');
     }
 
     function copiarPeriodoAlOtroLibro(fromPrefix) {
-      const per = (document.getElementById(`${fromPrefix}-periodo`)?.value || '').trim();
-      if (!isValidPeriodo(per)) {
-        showToast('Selecciona primero un periodo válido (YYYYMM).', 'danger');
+      const per = getPeriodoYYYYMM(fromPrefix || 'prop');
+      if (!per) {
+        showToast('Selecciona primero un periodo válido (AAAA-MM).', 'danger');
         return;
       }
-      const targetPrefix = fromPrefix === 'ventas' ? 'compras' : 'ventas';
-      const targetTab = targetPrefix === 'compras' ? 'tab-compras' : 'tab-ventas';
-      setPeriodoQuick(targetPrefix, per);
-      showToast(`Periodo ${formatPeriodoShort(per)} (${per}) aplicado a ${targetPrefix === 'compras' ? 'Compras (RCE)' : 'Ventas (RVIE)'}.`, 'success');
-      switchTab(targetTab);
+      const nextLibro = activePropLibro === 'COMPRAS' ? 'VENTAS' : 'COMPRAS';
+      setPropuestaLibro(nextLibro);
+      showToast(`Periodo ${formatPeriodoShort(per)} (${formatPeriodoDash(per)}) mantenido en ${nextLibro === 'COMPRAS' ? 'Compras (RCE)' : 'Ventas (RVIE)'}.`, 'success');
+      switchTab('tab-propuesta');
+    }
+
+    function abrirComprobantesPropuestaActiva() {
+      abrirComprobantesDelPeriodo(activePropLibro, 'prop');
     }
 
     function abrirComprobantesDelPeriodo(origen, prefix) {
-      const per = (document.getElementById(`${prefix}-periodo`)?.value || '').trim();
+      const per = getPeriodoYYYYMM(prefix || 'prop');
       cpeFilterOrigen = origen;
       const segs = document.querySelectorAll('#tab-comprobantes .segmented .seg-btn');
       segs.forEach(b => {
@@ -3373,28 +3666,42 @@
         b.classList.toggle('active', isMatch);
       });
       const perInput = document.getElementById('cpe-filter-periodo');
-      if (perInput && isValidPeriodo(per)) perInput.value = per;
+      if (perInput && per) perInput.value = per;
       switchTab('tab-comprobantes');
     }
 
     function resetPeriodoResultsForCompanySwitch() {
+      if (activePropPollInterval) {
+        clearInterval(activePropPollInterval);
+        activePropPollInterval = null;
+      }
       sunatPeriodosMap.ventas = {};
       sunatPeriodosMap.compras = {};
-      ['ventas', 'compras'].forEach(p => {
-        const sp = document.getElementById(`${p}-sunat-periodos`);
-        if (sp) sp.innerHTML = '';
-        const raw = document.getElementById(`${p}-periodos-raw`);
-        if (raw) raw.innerHTML = '';
-        const box = document.getElementById(`${p}-resultado-box`);
-        if (box) box.innerHTML = '';
-        updatePeriodoUI(p);
-      });
+      sunatPeriodosRaw.ventas = null;
+      sunatPeriodosRaw.compras = null;
+      const sp = document.getElementById('prop-sunat-periodos');
+      if (sp) sp.innerHTML = '';
+      const raw = document.getElementById('prop-periodos-raw');
+      if (raw) raw.innerHTML = '';
+      const box = document.getElementById('prop-resultado-box');
+      if (box) box.innerHTML = '';
+      const prog = document.getElementById('prop-progress');
+      if (prog) prog.style.display = 'none';
+      const banner = document.getElementById('prop-saved-banner');
+      if (banner) banner.classList.remove('visible', 'show');
+      activePropSavedDownload = null;
+      setPropPhase('', '');
+      updatePeriodoUI('prop');
     }
 
     function selectFormato(prefix, val, btn) {
-      document.getElementById(`${prefix}-formato`).value = val;
-      btn.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      const resolved = resolvePeriodoPrefix(prefix);
+      const inp = document.getElementById(`${resolved}-formato`);
+      if (inp) inp.value = val;
+      if (btn && btn.parentElement) {
+        btn.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
     }
 
     // --- API FETCH + DESCARGA SEGURA ---
@@ -3642,6 +3949,13 @@
     }
 
     function switchTab(tabId) {
+      if (tabId === 'tab-ventas') {
+        setPropuestaLibro('VENTAS');
+        tabId = 'tab-propuesta';
+      } else if (tabId === 'tab-compras') {
+        setPropuestaLibro('COMPRAS');
+        tabId = 'tab-propuesta';
+      }
       document.querySelectorAll('.nav-item').forEach(b => {
         b.classList.toggle('active', b.getAttribute('data-tab') === tabId);
       });
@@ -3652,7 +3966,10 @@
       toggleMobileSidebar(false);
 
       if (tabId === 'tab-conexion') cargarEstadoDiagnostico();
-      if (tabId === 'tab-ventas' || tabId === 'tab-compras') renderRecentByLibro();
+      if (tabId === 'tab-propuesta') {
+        renderRecentByLibro();
+        updatePropSavedBanner();
+      }
       if (tabId === 'tab-comprobantes') {
         cargarComprobantesCPE();
         cargarUltimoLoteBulkCPE();
@@ -3667,12 +3984,9 @@
 
     // --- ARRANQUE (CERO LLAMADAS AUTOMÁTICAS A SUNAT) ---
     document.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('sire_theme') === 'dark') {
-        document.body.classList.add('dark');
-      }
       initAuthFlow();
-      initPeriodoControls('ventas');
-      initPeriodoControls('compras');
+      initPeriodoControls('prop');
+      setPropuestaLibro('VENTAS');
       setupDropzone();
       cargarEmpresas();
       cargarAjustes();
@@ -3753,10 +4067,16 @@
           currentDescargas = jD.data || [];
           const ventasCount = currentDescargas.filter(d => (d.libro || '').toUpperCase() === 'VENTAS' || d.cod_libro === '140000').length;
           const comprasCount = currentDescargas.filter(d => (d.libro || '').toUpperCase() === 'COMPRAS' || d.cod_libro === '080000').length;
-          document.getElementById('nav-count-ventas').textContent = String(ventasCount);
-          document.getElementById('nav-count-compras').textContent = String(comprasCount);
-          document.getElementById('nav-count-descargas').textContent = String(currentDescargas.length);
+          const elProp = document.getElementById('nav-count-propuestas');
+          if (elProp) elProp.textContent = String(ventasCount + comprasCount);
+          const elV = document.getElementById('nav-count-ventas');
+          if (elV) elV.textContent = String(ventasCount);
+          const elC = document.getElementById('nav-count-compras');
+          if (elC) elC.textContent = String(comprasCount);
+          const elD = document.getElementById('nav-count-descargas');
+          if (elD) elD.textContent = String(currentDescargas.length);
           renderRecentByLibro();
+          updatePropSavedBanner();
         }
         if (resC.ok) {
           const jC = await resC.json();
@@ -3933,6 +4253,10 @@
       document.getElementById('sidebar-razon').textContent = emp.razon_social;
       document.getElementById('sidebar-razon').title = emp.razon_social;
       document.getElementById('topbar-company-name').textContent = emp.razon_social;
+      const topRuc = document.getElementById('topbar-company-ruc');
+      if (topRuc) topRuc.textContent = 'RUC ' + emp.ruc;
+      const topChip = document.getElementById('topbar-company-chip');
+      if (topChip) topChip.title = `${emp.razon_social} · RUC ${emp.ruc}`;
 
       document.getElementById('conn-ruc').textContent = emp.ruc;
       document.getElementById('conn-razon').textContent = emp.razon_social;
@@ -4117,83 +4441,108 @@
       if (activeRUC) actualizarContextoEmpresaActiva();
     }
 
-    // --- SIRE VENTAS & COMPRAS ---
-    function renderPeriodosChips(prefix, data) {
-      const wrap = document.getElementById(`${prefix}-sunat-periodos`);
-      const rawWrap = document.getElementById(`${prefix}-periodos-raw`);
+    // --- SIRE PROPUESTA UNIFICADA (VENTAS RVIE & COMPRAS RCE) ---
+    function renderSunatPeriodosForActiveBook() {
+      const wrap = document.getElementById('prop-sunat-periodos');
+      const rawWrap = document.getElementById('prop-periodos-raw');
       if (!wrap) return;
 
-      const map = {};
-      const arr = Array.isArray(data) ? data : (data.periodos || data.data || []);
-      if (Array.isArray(arr)) {
-        arr.forEach(item => {
-          if (Array.isArray(item.lisPeriodos)) {
-            item.lisPeriodos.forEach(p => {
-              if (p.perTributario && isValidPeriodo(p.perTributario)) {
-                map[p.perTributario] = {
-                  codEstado: p.codEstado || '',
-                  desEstado: p.desEstado || ''
-                };
-              }
-            });
-          } else if (item.perTributario && isValidPeriodo(item.perTributario)) {
-            map[item.perTributario] = {
-              codEstado: item.codEstado || '',
-              desEstado: item.desEstado || ''
-            };
-          }
-        });
-      }
-
-      sunatPeriodosMap[prefix] = map;
+      const bookKey = getActiveBookKey();
+      const map = sunatPeriodosMap[bookKey] || {};
+      const rawData = sunatPeriodosRaw[bookKey];
       const unique = Object.keys(map).sort().reverse();
+
+      if (!rawData && unique.length === 0) {
+        wrap.innerHTML = '';
+        if (rawWrap) rawWrap.innerHTML = '';
+        return;
+      }
 
       if (unique.length === 0) {
         wrap.innerHTML = `<span style="font-size:0.74rem; color:var(--warning); font-weight:700;">SUNAT no devolvió periodos habilitados.</span>`;
         if (rawWrap) rawWrap.innerHTML = '';
-        updatePeriodoUI(prefix);
         return;
       }
 
-      // Asegurar que los años reportados por SUNAT existan en el selector de Año
-      const anioSel = document.getElementById(`${prefix}-anio`);
+      const anioSel = document.getElementById('prop-anio');
       unique.forEach(p => ensureYearOption(anioSel, p.slice(0, 4)));
 
       const visible = unique.slice(0, 12);
       wrap.innerHTML = `<span style="font-size:0.72rem; color:var(--success); font-weight:800; text-transform:uppercase; letter-spacing:0.04em;">SUNAT (${unique.length}):</span>` +
         visible.map(p => {
           const st = map[p]?.desEstado ? ` · ${map[p].desEstado}` : '';
-          return `<button type="button" class="chip sunat-chip" data-periodo="${p}" title="${escapeHtml(formatPeriodoLabel(p) + ' (' + p + ')' + st)}" onclick="setPeriodoQuick('${prefix}', '${p}')">${formatPeriodoShort(p)}</button>`;
+          return `<button type="button" class="chip sunat-chip" data-periodo="${p}" title="${escapeHtml(formatPeriodoLabel(p) + ' (' + formatPeriodoDash(p) + ')' + st)}" onclick="setPeriodoQuick('prop', '${p}')">${formatPeriodoShort(p)}</button>`;
         }).join('');
 
-      if (rawWrap) {
+      if (rawWrap && rawData) {
         rawWrap.innerHTML = `
           <details style="font-size:0.74rem;">
             <summary style="cursor:pointer; color:var(--text-muted); font-weight:700;">Ver JSON SUNAT</summary>
-            <pre class="console-box" style="margin-top:0.5rem; max-height:220px; max-width:520px;">${escapeHtml(JSON.stringify(data, null, 2))}</pre>
+            <pre class="console-box" style="margin-top:0.5rem; max-height:220px; max-width:520px;">${escapeHtml(JSON.stringify(rawData, null, 2))}</pre>
           </details>
         `;
       }
+    }
 
-      // Si el periodo seleccionado actual no está en los habilitados, seleccionar automáticamente el más reciente habilitado en SUNAT
-      const curPer = (document.getElementById(`${prefix}-periodo`)?.value || '').trim();
-      if (!map[curPer] && unique.length > 0) {
-        setPeriodoQuick(prefix, unique[0]);
-      } else {
-        updatePeriodoUI(prefix);
+    function renderPeriodosChips(bookKey, data) {
+      const normalizedBook = String(bookKey || getActiveBookKey()).toLowerCase() === 'compras' ? 'compras' : 'ventas';
+      const map = {};
+      const arr = Array.isArray(data) ? data : (data.periodos || data.data || []);
+      if (Array.isArray(arr)) {
+        arr.forEach(item => {
+          if (Array.isArray(item.lisPeriodos)) {
+            item.lisPeriodos.forEach(p => {
+              const clean = normalizePeriodoYYYYMM(p.perTributario);
+              if (clean) {
+                map[clean] = {
+                  codEstado: p.codEstado || '',
+                  desEstado: p.desEstado || ''
+                };
+              }
+            });
+          } else {
+            const clean = normalizePeriodoYYYYMM(item.perTributario);
+            if (clean) {
+              map[clean] = {
+                codEstado: item.codEstado || '',
+                desEstado: item.desEstado || ''
+              };
+            }
+          }
+        });
       }
+
+      sunatPeriodosMap[normalizedBook] = map;
+      sunatPeriodosRaw[normalizedBook] = data;
+      const unique = Object.keys(map).sort().reverse();
+
+      if (normalizedBook === getActiveBookKey()) {
+        renderSunatPeriodosForActiveBook();
+        const curPer = getPeriodoYYYYMM('prop');
+        if (!map[curPer] && unique.length > 0) {
+          setPeriodoQuick('prop', unique[0]);
+        } else {
+          updatePeriodoUI('prop');
+        }
+      }
+    }
+
+    async function consultarPeriodosPropuesta() {
+      if (activePropLibro === 'COMPRAS') return consultarPeriodosCompras();
+      return consultarPeriodosVentas();
     }
 
     async function consultarPeriodosVentas() {
       if (!activeRUC) return;
-      const statusEl = document.getElementById('ventas-sunat-status');
+      const statusEl = document.getElementById('prop-sunat-status');
       if (statusEl) { statusEl.className = 'badge pendiente'; statusEl.textContent = 'Consultando SUNAT...'; }
       showToast('Consultando periodos habilitados RVIE en SUNAT...', 'info');
       const res = await apiFetch(`/api/empresas/${activeRUC}/ventas/periodos/140000`);
       const data = await res.json();
       if (!res.ok) {
         if (statusEl) { statusEl.className = 'badge invalidas'; statusEl.textContent = 'Error SUNAT'; }
-        document.getElementById('ventas-resultado-box').innerHTML = renderErrorAlert(data, data.detalle);
+        const resBox = document.getElementById('prop-resultado-box');
+        if (resBox) resBox.innerHTML = renderErrorAlert(data, data.detalle);
         return;
       }
       renderPeriodosChips('ventas', data);
@@ -4203,14 +4552,15 @@
 
     async function consultarPeriodosCompras() {
       if (!activeRUC) return;
-      const statusEl = document.getElementById('compras-sunat-status');
+      const statusEl = document.getElementById('prop-sunat-status');
       if (statusEl) { statusEl.className = 'badge pendiente'; statusEl.textContent = 'Consultando SUNAT...'; }
       showToast('Consultando periodos habilitados RCE en SUNAT...', 'info');
       const res = await apiFetch(`/api/empresas/${activeRUC}/compras/periodos/080000`);
       const data = await res.json();
       if (!res.ok) {
         if (statusEl) { statusEl.className = 'badge invalidas'; statusEl.textContent = 'Error SUNAT'; }
-        document.getElementById('compras-resultado-box').innerHTML = renderErrorAlert(data, data.detalle);
+        const resBox = document.getElementById('prop-resultado-box');
+        if (resBox) resBox.innerHTML = renderErrorAlert(data, data.detalle);
         return;
       }
       renderPeriodosChips('compras', data);
@@ -4218,64 +4568,86 @@
       showToast(`${count} periodo(s) RCE sincronizados desde SUNAT`, 'success');
     }
 
-    async function consultarPropuestaVentas(page = 1, forcedPeriodo = '') {
+    async function consultarPropuestaActiva(page = 1, forcedPeriodo = '') {
       if (!activeRUC) return;
-      const periodo = (forcedPeriodo || document.getElementById('ventas-periodo').value || '').trim();
-      if (!isValidPeriodo(periodo)) {
-        showToast('Selecciona un periodo tributario válido (formato YYYYMM, ej. 202610).', 'danger');
+      const periodo = normalizePeriodoYYYYMM(forcedPeriodo || getPeriodoYYYYMM('prop'));
+      if (!periodo) {
+        showToast('Selecciona un periodo tributario válido (formato AAAA-MM, ej. 2026-10).', 'danger');
         return;
       }
-      if (forcedPeriodo && document.getElementById('ventas-periodo').value.trim() !== forcedPeriodo) {
-        setPeriodoQuick('ventas', forcedPeriodo);
+      if (forcedPeriodo && getPeriodoYYYYMM('prop') !== periodo) {
+        setPeriodoQuick('prop', periodo);
       }
-      const box = document.getElementById('ventas-resultado-box');
-      box.innerHTML = `<div class="banner banner-info"><div>Consultando detalle en línea de <strong>Ventas (RVIE)</strong> para <strong>${escapeHtml(formatPeriodoLabel(periodo))} (${escapeHtml(periodo)})</strong> en SUNAT...</div></div>`;
-      const res = await apiFetch(`/api/sire/propuesta/detalle?ruc=${activeRUC}&codLibro=140000&periodo=${periodo}&page=${page}&perPage=20`);
+      const isCompras = activePropLibro === 'COMPRAS';
+      const codLibro = isCompras ? '080000' : '140000';
+      const labelLibro = isCompras ? 'Compras (RCE)' : 'Ventas (RVIE)';
+      const box = document.getElementById('prop-resultado-box');
+      setPropPhase('downloading', 'Consultando');
+      if (box) {
+        box.innerHTML = `<div class="banner banner-info"><div>Consultando detalle en línea de <strong>${escapeHtml(labelLibro)}</strong> para <strong>${escapeHtml(formatPeriodoLabel(periodo))} (${escapeHtml(formatPeriodoDash(periodo))})</strong> en SUNAT...</div></div>`;
+      }
+      const res = await apiFetch(`/api/sire/propuesta/detalle?ruc=${activeRUC}&codLibro=${codLibro}&periodo=${periodo}&page=${page}&perPage=20`);
       const data = await res.json();
-      if (!res.ok) { box.innerHTML = renderErrorAlert(data, data.detalle); return; }
-      renderPropuestaTable(box, data, 'VENTAS', page, periodo);
+      if (!res.ok) {
+        setPropPhase('error', 'Error');
+        if (box) box.innerHTML = renderErrorAlert(data, data.detalle);
+        return;
+      }
+      setPropPhase('ready', 'Listo');
+      if (box) renderPropuestaTable(box, data, activePropLibro, page, periodo);
+    }
+
+    async function consultarPropuestaVentas(page = 1, forcedPeriodo = '') {
+      if (activePropLibro !== 'VENTAS') setPropuestaLibro('VENTAS');
+      return consultarPropuestaActiva(page, forcedPeriodo);
     }
 
     async function consultarPropuestaCompras(page = 1, forcedPeriodo = '') {
-      if (!activeRUC) return;
-      const periodo = (forcedPeriodo || document.getElementById('compras-periodo').value || '').trim();
-      if (!isValidPeriodo(periodo)) {
-        showToast('Selecciona un periodo tributario válido (formato YYYYMM, ej. 202610).', 'danger');
-        return;
-      }
-      if (forcedPeriodo && document.getElementById('compras-periodo').value.trim() !== forcedPeriodo) {
-        setPeriodoQuick('compras', forcedPeriodo);
-      }
-      const box = document.getElementById('compras-resultado-box');
-      box.innerHTML = `<div class="banner banner-info"><div>Consultando detalle en línea de <strong>Compras (RCE)</strong> para <strong>${escapeHtml(formatPeriodoLabel(periodo))} (${escapeHtml(periodo)})</strong> en SUNAT...</div></div>`;
-      const res = await apiFetch(`/api/sire/propuesta/detalle?ruc=${activeRUC}&codLibro=080000&periodo=${periodo}&page=${page}&perPage=20`);
-      const data = await res.json();
-      if (!res.ok) { box.innerHTML = renderErrorAlert(data, data.detalle); return; }
-      renderPropuestaTable(box, data, 'COMPRAS', page, periodo);
+      if (activePropLibro !== 'COMPRAS') setPropuestaLibro('COMPRAS');
+      return consultarPropuestaActiva(page, forcedPeriodo);
     }
 
-    async function descargarPropuestaVentas() { await solicitarExportacionLibro('140000', 'ventas'); }
-    async function descargarPropuestaCompras() { await solicitarExportacionLibro('080000', 'compras'); }
+    async function descargarPropuestaPrincipal(formato = '0') {
+      const fmtInput = document.getElementById('prop-formato');
+      if (fmtInput) fmtInput.value = String(formato || '0');
+      return solicitarExportacionLibro(getActiveCodLibro(), 'prop', String(formato || '0'));
+    }
 
-    async function solicitarExportacionLibro(codLibro, prefix) {
+    async function descargarPropuestaVentas() {
+      if (activePropLibro !== 'VENTAS') setPropuestaLibro('VENTAS');
+      return solicitarExportacionLibro('140000', 'prop');
+    }
+
+    async function descargarPropuestaCompras() {
+      if (activePropLibro !== 'COMPRAS') setPropuestaLibro('COMPRAS');
+      return solicitarExportacionLibro('080000', 'prop');
+    }
+
+    async function solicitarExportacionLibro(codLibro, prefix, formatoOverride = '') {
       if (!activeRUC) return;
-      const periodo = document.getElementById(`${prefix}-periodo`).value.trim();
-      if (!isValidPeriodo(periodo)) {
-        showToast('Selecciona un periodo tributario válido (YYYYMM) antes de descargar la propuesta.', 'danger');
+      const resolved = resolvePeriodoPrefix(prefix);
+      const periodo = getPeriodoYYYYMM(resolved);
+      if (!periodo) {
+        showToast('Selecciona un periodo tributario válido (formato AAAA-MM, ej. 2026-10) antes de descargar la propuesta.', 'danger');
         return;
       }
-      const formato = document.getElementById(`${prefix}-formato`)?.value || '0';
-      const progressBox = document.getElementById(`${prefix}-progress`);
-      const progressBar = document.getElementById(`${prefix}-progress-bar`);
-      const progressMsg = document.getElementById(`${prefix}-progress-msg`);
-      const progressPct = document.getElementById(`${prefix}-progress-pct`);
-      const resultBox = document.getElementById(`${prefix}-resultado-box`);
+      if (activePropPollInterval) {
+        clearInterval(activePropPollInterval);
+        activePropPollInterval = null;
+      }
+      const formato = formatoOverride || document.getElementById(`${resolved}-formato`)?.value || '0';
+      const progressBox = document.getElementById(`${resolved}-progress`);
+      const progressBar = document.getElementById(`${resolved}-progress-bar`);
+      const progressMsg = document.getElementById(`${resolved}-progress-msg`);
+      const progressPct = document.getElementById(`${resolved}-progress-pct`);
+      const resultBox = document.getElementById(`${resolved}-resultado-box`);
 
-      resultBox.innerHTML = '';
-      progressBox.style.display = 'block';
-      progressBar.style.width = '12%';
-      progressPct.textContent = '12%';
-      progressMsg.textContent = `Solicitando ticket a SUNAT para ${formatPeriodoLabel(periodo)} (${periodo})...`;
+      if (resultBox) resultBox.innerHTML = '';
+      if (progressBox) progressBox.style.display = 'block';
+      if (progressBar) progressBar.style.width = '12%';
+      if (progressPct) progressPct.textContent = '12%';
+      if (progressMsg) progressMsg.textContent = `Solicitando ticket a SUNAT para ${formatPeriodoLabel(periodo)} (${formatPeriodoDash(periodo)})...`;
+      setPropPhase('downloading', 'Descargando');
 
       const payload = { ruc: activeRUC, cod_libro: codLibro, periodo, cod_tipo_archivo: formato };
       if (codLibro === '080000') payload.cod_origen_envio = '2';
@@ -4283,61 +4655,70 @@
       const resExport = await apiFetch('/api/sire/propuesta/exportar', { method: 'POST', body: payload });
       const dataExport = await resExport.json();
       if (!resExport.ok) {
-        progressBox.style.display = 'none';
-        resultBox.innerHTML = renderErrorAlert(dataExport, dataExport.detalle);
+        if (progressBox) progressBox.style.display = 'none';
+        setPropPhase('error', 'Error');
+        if (resultBox) resultBox.innerHTML = renderErrorAlert(dataExport, dataExport.detalle);
         return;
       }
 
       const ticket = dataExport.ticket;
-      progressBar.style.width = '30%';
-      progressPct.textContent = '30%';
-      progressMsg.textContent = `Ticket ${ticket} (${formatPeriodoShort(periodo)}) en proceso en SUNAT...`;
+      if (progressBar) progressBar.style.width = '30%';
+      if (progressPct) progressPct.textContent = '30%';
+      if (progressMsg) progressMsg.textContent = `Ticket ${ticket} (${formatPeriodoShort(periodo)}) en proceso en SUNAT...`;
 
       let intentos = 0;
       const maxIntentos = 35;
-      const interval = setInterval(async () => {
+      activePropPollInterval = setInterval(async () => {
         intentos++;
         const pct = Math.min(30 + intentos * 3, 92);
-        progressBar.style.width = pct + '%';
-        progressPct.textContent = pct + '%';
-        progressMsg.textContent = `Ticket ${ticket} (${periodo}): esperando archivo SUNAT (${intentos}/${maxIntentos})...`;
+        if (progressBar) progressBar.style.width = pct + '%';
+        if (progressPct) progressPct.textContent = pct + '%';
+        if (progressMsg) progressMsg.textContent = `Ticket ${ticket} (${formatPeriodoDash(periodo)}): esperando archivo SUNAT (${intentos}/${maxIntentos})...`;
 
         try {
           const resStatus = await apiFetch(`/api/sire/tickets/${activeRUC}/${ticket}`);
           const dataStatus = await resStatus.json();
           if (dataStatus.estado === 'COMPLETADO') {
-            clearInterval(interval);
-            progressBar.style.width = '100%';
-            progressPct.textContent = '100%';
-            progressMsg.textContent = 'Archivo listo. Descargando ZIP de forma segura...';
+            clearInterval(activePropPollInterval);
+            activePropPollInterval = null;
+            if (progressBar) progressBar.style.width = '100%';
+            if (progressPct) progressPct.textContent = '100%';
+            if (progressMsg) progressMsg.textContent = 'Archivo listo. Descargando ZIP de forma segura...';
             const fname = dataStatus.nombre_archivo || `propuesta_${periodo}.zip`;
             const kb = dataStatus.tamano_bytes ? (dataStatus.tamano_bytes / 1024).toFixed(1) + ' KB' : '';
             const origenLibro = codLibro === '080000' ? 'COMPRAS' : 'VENTAS';
             await descargarArchivoSeguro(`/api/descargas/${dataStatus.id}/archivo`, fname);
-            resultBox.innerHTML = `
-              <div class="banner banner-success" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                <div>
-                  <strong>Descarga completada (${escapeHtml(formatPeriodoLabel(periodo))} · ${escapeHtml(periodo)}):</strong> <code>${escapeHtml(fname)}</code> ${kb ? `(${kb})` : ''} · Ticket <code>${escapeHtml(ticket)}</code>.
-                  <div style="font-size: 0.78rem; margin-top: 0.2rem;">Los comprobantes de esta propuesta se están indexando automáticamente en <strong>Comprobantes PDF/XML</strong>.</div>
+            setPropPhase('ready', 'Listo');
+            if (resultBox) {
+              resultBox.innerHTML = `
+                <div class="banner banner-success" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                  <div>
+                    <strong>Descarga completada (${escapeHtml(formatPeriodoLabel(periodo))} · ${escapeHtml(formatPeriodoDash(periodo))}):</strong> <code>${escapeHtml(fname)}</code> ${kb ? `(${kb})` : ''} · Ticket <code>${escapeHtml(ticket)}</code>.
+                    <div style="font-size: 0.78rem; margin-top: 0.2rem;">Los comprobantes de esta propuesta se están indexando automáticamente en <strong>Comprobantes CPE</strong>.</div>
+                  </div>
+                  <div style="display:flex; gap:0.45rem; flex-wrap:wrap;">
+                    <button class="btn btn-primary btn-xs" onclick="descargarArchivoSeguro('/api/descargas/${dataStatus.id}/archivo', '${escapeHtml(fname)}')">Descargar ZIP</button>
+                    <button class="btn btn-secondary btn-xs" onclick="abrirComprobantesDelPeriodo('${origenLibro}', 'prop')">Ver Comprobantes (${escapeHtml(formatPeriodoDash(periodo))})</button>
+                  </div>
                 </div>
-                <div style="display:flex; gap:0.45rem; flex-wrap:wrap;">
-                  <button class="btn btn-primary btn-xs" onclick="descargarArchivoSeguro('/api/descargas/${dataStatus.id}/archivo', '${escapeHtml(fname)}')">Descargar ZIP</button>
-                  <button class="btn btn-secondary btn-xs" onclick="abrirComprobantesDelPeriodo('${origenLibro}', '${prefix}')">Ver Comprobantes (${escapeHtml(periodo)})</button>
-                </div>
-              </div>
-            `;
-            refreshLocalCounters();
+              `;
+            }
+            await refreshLocalCounters();
             cargarHistorialDescargas();
-            setTimeout(() => { progressBox.style.display = 'none'; }, 2500);
+            setTimeout(() => { if (progressBox) progressBox.style.display = 'none'; }, 2500);
           } else if (dataStatus.estado === 'ERROR') {
-            clearInterval(interval);
-            progressBox.style.display = 'none';
-            resultBox.innerHTML = renderErrorAlert(dataStatus.mensaje_sunat || 'Error procesando ticket en SUNAT');
+            clearInterval(activePropPollInterval);
+            activePropPollInterval = null;
+            if (progressBox) progressBox.style.display = 'none';
+            setPropPhase('error', 'Error');
+            if (resultBox) resultBox.innerHTML = renderErrorAlert(dataStatus.mensaje_sunat || 'Error procesando ticket en SUNAT');
             refreshLocalCounters();
             cargarHistorialDescargas();
           } else if (intentos >= maxIntentos) {
-            clearInterval(interval);
-            progressMsg.textContent = 'Ticket aún en proceso en SUNAT. Revísalo en Historial Descargas.';
+            clearInterval(activePropPollInterval);
+            activePropPollInterval = null;
+            setPropPhase('downloading', 'En proceso');
+            if (progressMsg) progressMsg.textContent = 'Ticket aún en proceso en SUNAT. Revísalo en Historial Descargas.';
           }
         } catch (_) {}
       }, 2000);
@@ -4345,51 +4726,53 @@
 
     async function descargarConstanciaLibro(libro) {
       if (!activeRUC) return;
-      const inputId = libro === 'COMPRAS' ? 'compras-constancia-nombre' : 'ventas-constancia-nombre';
-      const nomArchivo = document.getElementById(inputId).value.trim();
+      const targetLibro = String(libro || activePropLibro || 'VENTAS').toUpperCase();
+      const inputEl =
+        document.getElementById('prop-constancia-nombre') ||
+        document.getElementById(targetLibro === 'COMPRAS' ? 'compras-constancia-nombre' : 'ventas-constancia-nombre');
+      const nomArchivo = (inputEl?.value || '').trim();
       if (!nomArchivo) return alert('Ingrese el nombre exacto del archivo de Constancia de Recepción.');
-      await descargarArchivoSeguro(`/api/empresas/${activeRUC}/sire/constancia?libro=${libro}&nomArchivo=${encodeURIComponent(nomArchivo)}`, nomArchivo);
+      await descargarArchivoSeguro(`/api/empresas/${activeRUC}/sire/constancia?libro=${targetLibro}&nomArchivo=${encodeURIComponent(nomArchivo)}`, nomArchivo);
     }
 
     function renderRecentByLibro() {
-      const renderBox = (boxId, codLibro, libroName, prefix) => {
-        const box = document.getElementById(boxId);
-        if (!box) return;
-        const rows = currentDescargas
-          .filter(d => (d.libro || '').toUpperCase() === libroName || d.cod_libro === codLibro)
-          .slice(0, 4);
-        if (rows.length === 0) {
-          box.innerHTML = 'Sin descargas registradas aún para este libro.';
-          return;
-        }
-        box.innerHTML = rows.map(d => `
-          <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; padding:0.48rem 0; border-bottom:1px solid var(--border);">
-            <div style="display:flex; align-items:center; gap:0.38rem; flex-wrap:wrap; min-width:0;">
-              <button type="button" class="chip" style="padding:0.12rem 0.5rem;" title="Seleccionar periodo ${escapeHtml(d.periodo)}" onclick="setPeriodoQuick('${prefix}', '${escapeHtml(d.periodo)}')">${escapeHtml(isValidPeriodo(d.periodo) ? formatPeriodoShort(d.periodo) : d.periodo)}</button>
-              <code style="font-size:0.74rem;">${escapeHtml(d.ticket)}</code>
-              <span class="badge ${d.estado === 'COMPLETADO' ? 'valido' : (d.estado === 'ERROR' ? 'invalidas' : 'pendiente')}" style="font-size:0.68rem; padding:0.14rem 0.5rem;">${escapeHtml(d.estado)}</span>
-            </div>
-            <div style="flex-shrink:0;">
-              ${d.estado === 'COMPLETADO'
-                ? `<button class="btn btn-secondary btn-xs" onclick="descargarArchivoSeguro('/api/descargas/${d.id}/archivo', '${escapeHtml(d.nombre_archivo || 'propuesta.zip')}')">Descargar</button>`
-                : (d.estado === 'ERROR' ? `<button class="btn btn-secondary btn-xs" onclick="reintentarDescarga(${d.id})">Reintentar</button>` : '')}
-            </div>
+      const box = document.getElementById('prop-recent-box');
+      if (!box) return;
+      const isCompras = activePropLibro === 'COMPRAS';
+      const codLibro = isCompras ? '080000' : '140000';
+      const libroName = isCompras ? 'COMPRAS' : 'VENTAS';
+      const rows = (currentDescargas || [])
+        .filter(d => (d.libro || '').toUpperCase() === libroName || d.cod_libro === codLibro)
+        .slice(0, 5);
+      if (rows.length === 0) {
+        box.innerHTML = 'Sin descargas registradas aún para este libro.';
+        return;
+      }
+      box.innerHTML = rows.map(d => `
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; padding:0.48rem 0; border-bottom:1px solid var(--border);">
+          <div style="display:flex; align-items:center; gap:0.38rem; flex-wrap:wrap; min-width:0;">
+            <button type="button" class="chip" style="padding:0.12rem 0.5rem;" title="Seleccionar periodo ${escapeHtml(formatPeriodoDash(d.periodo) || d.periodo)}" onclick="setPeriodoQuick('prop', '${escapeHtml(d.periodo)}')">${escapeHtml(isValidPeriodo(d.periodo) ? formatPeriodoShort(d.periodo) : d.periodo)}</button>
+            <code style="font-size:0.74rem;">${escapeHtml(d.ticket)}</code>
+            <span class="badge ${d.estado === 'COMPLETADO' ? 'valido' : (d.estado === 'ERROR' ? 'invalidas' : 'pendiente')}" style="font-size:0.68rem; padding:0.14rem 0.5rem;">${escapeHtml(d.estado)}</span>
           </div>
-        `).join('');
-      };
-      renderBox('ventas-recent-box', '140000', 'VENTAS', 'ventas');
-      renderBox('compras-recent-box', '080000', 'COMPRAS', 'compras');
+          <div style="flex-shrink:0;">
+            ${d.estado === 'COMPLETADO'
+              ? `<button class="btn btn-secondary btn-xs" onclick="descargarArchivoSeguro('/api/descargas/${d.id}/archivo', '${escapeHtml(d.nombre_archivo || 'propuesta.zip')}')">Descargar</button>`
+              : (d.estado === 'ERROR' ? `<button class="btn btn-secondary btn-xs" onclick="reintentarDescarga(${d.id})">Reintentar</button>` : '')}
+          </div>
+        </div>
+      `).join('');
     }
 
     function renderPropuestaTable(box, data, origen, page, periodo) {
       const items = data.registros || data.data?.registros || [];
       const pag = data.paginacion || data.data?.paginacion || {};
       const tot = data.totales || data.data?.totales || null;
-      const prefix = origen === 'COMPRAS' ? 'compras' : 'ventas';
-      const perLabel = isValidPeriodo(periodo) ? `${formatPeriodoLabel(periodo)} (${periodo})` : (periodo || '');
+      const perDash = formatPeriodoDash(periodo) || periodo || '';
+      const perLabel = isValidPeriodo(periodo) ? `${formatPeriodoLabel(periodo)} (${perDash})` : (periodo || '');
 
       if (!Array.isArray(items) || items.length === 0) {
-        box.innerHTML = `<div class="banner banner-info"><div>No se encontraron comprobantes en la propuesta <strong>${origen}</strong> para el periodo <strong>${escapeHtml(perLabel)}</strong>.</div></div>`;
+        box.innerHTML = `<div class="banner banner-info"><div>No se encontraron comprobantes en la propuesta <strong>${escapeHtml(origen)}</strong> para el periodo <strong>${escapeHtml(perLabel)}</strong>.</div></div>`;
         return;
       }
       const fnNext = origen === 'COMPRAS' ? 'consultarPropuestaCompras' : 'consultarPropuestaVentas';
@@ -4407,7 +4790,7 @@
         const cntDocs = Number(tot.cntTotalDocumentos ?? totalReg);
         summaryHtml = `
           <div class="stat-grid">
-            <div class="stat-card"><div class="stat-label">Total Comprobantes</div><div class="stat-value">${cntDocs.toLocaleString('es-PE')}</div><div class="stat-hint">Periodo ${escapeHtml(periodo || '')}</div></div>
+            <div class="stat-card"><div class="stat-label">Total Comprobantes</div><div class="stat-value">${cntDocs.toLocaleString('es-PE')}</div><div class="stat-hint">Periodo ${escapeHtml(perDash)}</div></div>
             <div class="stat-card"><div class="stat-label">Base Gravada</div><div class="stat-value">S/ ${sumBase.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div><div class="stat-hint">Valor venta gravado</div></div>
             <div class="stat-card"><div class="stat-label">IGV / IPM</div><div class="stat-value">S/ ${sumIgv.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div><div class="stat-hint">Impuesto declarado SIRE</div></div>
             <div class="stat-card"><div class="stat-label">Importe Total</div><div class="stat-value" style="color: var(--primary);">S/ ${sumTotal.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div><div class="stat-hint">Total propuesta vigente</div></div>
@@ -4438,8 +4821,8 @@
             </div>
             <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
               <span class="badge info">${totalReg.toLocaleString('es-PE')} registros en SUNAT</span>
-              <button type="button" class="btn btn-secondary btn-xs" onclick="${fnZip}()">Descargar ZIP (${escapeHtml(periodo || '')})</button>
-              <button type="button" class="btn btn-ghost btn-xs" onclick="abrirComprobantesDelPeriodo('${origen}', '${prefix}')">Ver CPE</button>
+              <button type="button" class="btn btn-secondary btn-xs" onclick="${fnZip}()">Descargar propuesta (${escapeHtml(perDash)})</button>
+              <button type="button" class="btn btn-ghost btn-xs" onclick="abrirComprobantesDelPeriodo('${origen}', 'prop')">Ver CPE</button>
             </div>
           </div>
           <div class="card-body">
@@ -4959,9 +5342,15 @@
       const json = await res.json();
       if (!res.ok) { tbody.innerHTML = `<tr><td colspan="9">${renderErrorAlert(json, json.detalle)}</td></tr>`; return; }
       currentDescargas = json.data || [];
-      document.getElementById('nav-count-descargas').textContent = String(currentDescargas.length);
+      const ventasCount = currentDescargas.filter(d => (d.libro || '').toUpperCase() === 'VENTAS' || d.cod_libro === '140000').length;
+      const comprasCount = currentDescargas.filter(d => (d.libro || '').toUpperCase() === 'COMPRAS' || d.cod_libro === '080000').length;
+      const elProp = document.getElementById('nav-count-propuestas');
+      if (elProp) elProp.textContent = String(ventasCount + comprasCount);
+      const elDesc = document.getElementById('nav-count-descargas');
+      if (elDesc) elDesc.textContent = String(currentDescargas.length);
       renderHistorialTable();
       renderRecentByLibro();
+      updatePropSavedBanner();
     }
 
     function renderHistorialTable() {
