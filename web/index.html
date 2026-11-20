@@ -1316,62 +1316,51 @@
       align-items: center;
       background: var(--bg-surface);
       border: 1px solid var(--border-strong);
-      border-radius: 9px;
-      padding: 2px;
+      border-radius: 10px;
+      padding: 3px;
       gap: 2px;
       flex-shrink: 0;
+      min-height: 44px;
     }
     .period-step-btn {
-      width: 28px;
-      height: 28px;
+      width: 36px;
+      height: 36px;
       border: none;
       background: transparent;
-      color: var(--text-secondary);
+      color: var(--text-main);
       border-radius: 7px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
+      font-size: 1.15rem;
+      font-weight: 800;
+      line-height: 1;
       transition: background var(--transition), color var(--transition);
     }
-    .period-step-btn:hover {
+    .period-step-btn:hover:not(:disabled) {
       background: var(--primary-soft);
       color: var(--primary);
     }
-    .period-year-select {
-      border: none;
-      background: transparent;
-      color: var(--text-main);
-      font-weight: 800;
-      font-size: 0.86rem;
-      padding: 0.2rem 0.3rem;
-      cursor: pointer;
-      outline: none;
+    .period-step-btn:focus-visible {
+      outline: 2px solid #2f6fa3;
+      outline-offset: 2px;
     }
-    .period-year-select option {
-      background: var(--bg-surface);
-      color: var(--text-main);
+    .period-step-btn:disabled {
+      opacity: 0.32;
+      cursor: not-allowed;
     }
-    .period-controls-right .form-control.period-compact-select {
-      width: 146px;
-      flex: 0 0 auto;
-      padding: 0.36rem 0.58rem;
-      font-size: 0.82rem;
-      font-weight: 600;
-    }
-    .period-controls-right .form-control.period-compact-input {
-      width: 78px;
-      flex: 0 0 auto;
-      padding: 0.28rem 0.35rem;
-      font-size: 0.83rem;
-      font-weight: 800;
-      font-family: Consolas, Menlo, Monaco, monospace;
+    .period-year-value {
+      min-width: 56px;
       text-align: center;
-      letter-spacing: 0.04em;
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: #0b2545;
+      letter-spacing: -0.01em;
+      user-select: none;
     }
 
-    /* GRILLA INTERACTIVA DE 12 MESES */
+    /* GRILLA INTERACTIVA DE 12 MESES (12 COLS ESCRITORIO, 6x2 MÓVIL) */
     .period-months-wrap {
       padding: 0.9rem 1.25rem;
       border-bottom: 1px solid var(--border);
@@ -1383,12 +1372,13 @@
     }
     .month-btn {
       position: relative;
+      min-height: 48px;
       border: 1px solid var(--border);
       background: var(--bg-subtle);
       color: var(--text-secondary);
-      border-radius: 8px;
+      border-radius: 9px;
       padding: 0.48rem 0.25rem;
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       font-weight: 700;
       cursor: pointer;
       display: flex;
@@ -1396,49 +1386,77 @@
       align-items: center;
       justify-content: center;
       gap: 0.1rem;
-      transition: all var(--transition);
+      transition: background var(--transition), border-color var(--transition), color var(--transition), box-shadow var(--transition);
     }
     .month-btn .m-num {
-      font-size: 0.65rem;
+      font-size: 0.66rem;
       font-weight: 600;
-      opacity: 0.7;
+      opacity: 0.72;
     }
-    .month-btn:hover {
+    .month-btn:hover:not(:disabled):not(.active) {
       border-color: var(--primary);
       background: var(--primary-soft);
       color: var(--primary);
     }
+    .month-btn:focus-visible {
+      outline: 2px solid #2f6fa3;
+      outline-offset: 2px;
+    }
     .month-btn.active {
-      background: var(--primary);
-      border-color: var(--primary);
+      background: #2f6fa3;
+      border-color: #2f6fa3;
       color: #ffffff;
-      box-shadow: 0 3px 10px rgba(30, 111, 160, 0.28);
+      box-shadow: 0 3px 10px rgba(47, 111, 163, 0.28);
+    }
+    .month-btn.active .m-num {
+      opacity: 0.88;
     }
     .period-bar-card.compras-theme .month-btn.active {
-      background: #06233e;
-      border-color: var(--gold);
+      background: #0b2545;
+      border-color: #e8a91b;
       color: #ffffff;
-      box-shadow: 0 3px 10px rgba(6, 35, 62, 0.25);
+      box-shadow: 0 3px 10px rgba(11, 37, 69, 0.25);
     }
-    body.dark .period-bar-card.compras-theme .month-btn.active {
-      background: var(--gold);
-      border-color: var(--gold-bright);
-      color: #06233e;
+    .month-btn:disabled,
+    .month-btn.is-future {
+      background: #f1f5f9;
+      border: 1px dashed #cbd5e1;
+      color: #94a3b8;
+      opacity: 0.62;
+      cursor: not-allowed;
+      box-shadow: none;
     }
-    .month-btn.sunat-enabled::after {
-      content: "";
+    .month-btn.sunat-enabled:not(.active):not(:disabled) {
+      border-bottom: 2px solid #2f6fa3;
+    }
+    .month-dl-dot {
       position: absolute;
-      top: 5px;
-      right: 5px;
-      width: 6px;
-      height: 6px;
+      top: 6px;
+      right: 6px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 0 2px var(--bg-surface);
+      background: #16a34a;
+      box-shadow: 0 0 0 2px #ffffff;
     }
-    .month-btn.active.sunat-enabled::after {
-      background: var(--gold-bright);
+    .month-btn.active .month-dl-dot {
+      background: #e8a91b;
       box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+    }
+    .month-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.38rem;
+      font-size: 0.74rem;
+      color: #51627a;
+      font-weight: 600;
+    }
+    .month-dl-dot-inline {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #16a34a;
+      display: inline-block;
     }
 
     .period-chips-row {
@@ -2038,10 +2056,8 @@
       background: rgba(6, 24, 41, 0.52);
       z-index: 150;
     }
-    @media (max-width: 1080px) {
-      .month-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-    }
     @media (max-width: 960px) {
+      .month-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
       aside.ws-sidebar { transform: translateX(-100%); }
       aside.ws-sidebar.open { transform: translateX(0); }
       .sidebar-scrim.open { display: block; }
@@ -2050,9 +2066,6 @@
       .grid-2, .grid-3, .stepper { grid-template-columns: 1fr; }
       .grid-4, .stat-grid { grid-template-columns: repeat(2, 1fr); }
       .login-brand-divider { display: none; }
-    }
-    @media (max-width: 560px) {
-      .month-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
   </style>
 </head>
@@ -2456,7 +2469,6 @@
                     <div id="prop-hero-eyebrow" class="period-hero-eyebrow">Periodo Tributario Activo · Ventas (RVIE)</div>
                     <div class="period-hero-title-row">
                       <span id="prop-periodo-label" class="period-hero-label">Periodo</span>
-                      <span id="prop-periodo-code" class="period-code-pill">AAAA-MM</span>
                       <span id="prop-sunat-status" class="badge info">Periodo seleccionado</span>
                       <span id="prop-phase-pill" class="prop-phase-pill" style="display:none;"></span>
                     </div>
@@ -2464,17 +2476,13 @@
                 </div>
 
                 <div class="period-controls-right">
-                  <div class="period-stepper-group" aria-label="Selector de año Propuesta SIRE">
-                    <button type="button" class="period-step-btn" onclick="stepPeriodoYear('prop', -1)" title="Año anterior" aria-label="Año anterior">&lsaquo;</button>
-                    <select id="prop-anio" class="period-year-select" aria-label="Año Propuesta SIRE" onchange="syncPeriodoFromSelects('prop')"></select>
-                    <button type="button" class="period-step-btn" onclick="stepPeriodoYear('prop', 1)" title="Año siguiente" aria-label="Año siguiente">&rsaquo;</button>
+                  <div class="period-stepper-group" role="group" aria-label="Selector de año Propuesta SIRE">
+                    <button type="button" id="prop-year-prev" class="period-step-btn" onclick="stepPeriodoYear('prop', -1)" title="Año anterior" aria-label="Año anterior">&lsaquo;</button>
+                    <span id="prop-year-display" class="period-year-value" aria-live="polite">2026</span>
+                    <button type="button" id="prop-year-next" class="period-step-btn" onclick="stepPeriodoYear('prop', 1)" title="Año siguiente" aria-label="Año siguiente">&rsaquo;</button>
                   </div>
-                  <select id="prop-mes" class="form-control period-compact-select" aria-label="Mes Propuesta SIRE" onchange="syncPeriodoFromSelects('prop')"></select>
-                  <div class="period-stepper-group" aria-label="Navegar periodo AAAA-MM">
-                    <button type="button" class="period-step-btn" onclick="stepPeriodoMonth('prop', -1)" title="Mes anterior" aria-label="Mes anterior">&#9664;</button>
-                    <input type="text" id="prop-periodo" class="form-control period-compact-input" style="border:none; background:transparent; box-shadow:none; width:88px;" maxlength="7" aria-label="Periodo AAAA-MM" placeholder="AAAA-MM" oninput="syncSelectsFromPeriodo('prop')">
-                    <button type="button" class="period-step-btn" onclick="stepPeriodoMonth('prop', 1)" title="Mes siguiente" aria-label="Mes siguiente">&#9654;</button>
-                  </div>
+                  <input type="hidden" id="prop-anio" value="">
+                  <input type="hidden" id="prop-periodo" value="">
                   <button type="button" class="btn btn-secondary" style="min-height:44px;" onclick="consultarPeriodosPropuesta()">
                     <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
                     Periodos SUNAT
@@ -2483,7 +2491,7 @@
               </div>
 
               <div class="period-months-wrap">
-                <div id="prop-month-grid" class="month-grid" role="group" aria-label="Meses del año seleccionado"></div>
+                <div id="prop-month-grid" class="month-grid" role="radiogroup" aria-label="Meses del año seleccionado" onkeydown="handleMonthGridKeydown(event)"></div>
                 <div class="period-chips-row">
                   <div class="period-chips-left">
                     <div class="chip-bar" id="prop-quick-chips"></div>
@@ -3270,8 +3278,19 @@
       return normalizePeriodoYYYYMM(document.getElementById(`${resolved}-periodo`)?.value || '');
     }
 
+    function getCurrentMaxPeriodoYYYYMM() {
+      const now = new Date();
+      return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    function isFuturePeriodo(per) {
+      const clean = normalizePeriodoYYYYMM(per);
+      if (!clean) return false;
+      return clean > getCurrentMaxPeriodoYYYYMM();
+    }
+
     function ensureYearOption(anioSel, yearStr) {
-      if (!anioSel || !/^\d{4}$/.test(yearStr)) return;
+      if (!anioSel || !anioSel.options || !/^\d{4}$/.test(yearStr)) return;
       if (!Array.from(anioSel.options).some(o => o.value === yearStr)) {
         const opt = document.createElement('option');
         opt.value = yearStr;
@@ -3284,22 +3303,85 @@
       const resolved = resolvePeriodoPrefix(prefix);
       const grid = document.getElementById(`${resolved}-month-grid`);
       if (!grid) return;
-      const anio = document.getElementById(`${resolved}-anio`)?.value || String(new Date().getFullYear());
+      const nowYear = new Date().getFullYear();
       const curPer = getPeriodoYYYYMM(resolved);
+      const anioEl = document.getElementById(`${resolved}-anio`);
+      const anio = (anioEl?.value && /^\d{4}$/.test(anioEl.value))
+        ? anioEl.value
+        : (curPer ? curPer.slice(0, 4) : String(nowYear));
+      if (anioEl && anioEl.value !== anio) anioEl.value = anio;
+
+      const yearDisplay = document.getElementById(`${resolved}-year-display`);
+      if (yearDisplay) yearDisplay.textContent = anio;
+      const btnPrevY = document.getElementById(`${resolved}-year-prev`);
+      const btnNextY = document.getElementById(`${resolved}-year-next`);
+      if (btnPrevY) btnPrevY.disabled = Number(anio) <= 2020;
+      if (btnNextY) btnNextY.disabled = Number(anio) >= nowYear;
+
       const bookKey = resolved === 'prop' ? getActiveBookKey() : resolved;
       const sunatMap = sunatPeriodosMap[bookKey] || {};
+      const libroTarget = bookKey === 'compras' ? 'COMPRAS' : 'VENTAS';
+
+      // Roving tabindex: si ningún mes habilitado de este año coincide con curPer, el primero habilitado recibe tabindex="0"
+      const hasActiveInYear = MESES.some(([m]) => !isFuturePeriodo(`${anio}${m}`) && curPer === `${anio}${m}`);
+      let fallbackFocusAssigned = false;
 
       grid.innerHTML = MESES.map(([m]) => {
         const per = `${anio}${m}`;
-        const perDash = `${anio}-${m}`;
-        const isActive = curPer === per;
-        const sunatInfo = sunatMap[per];
+        const isFuture = isFuturePeriodo(per);
+        const isActive = !isFuture && curPer === per;
+        const sunatInfo = !isFuture ? sunatMap[per] : null;
         const hasSunat = Boolean(sunatInfo);
-        const title = hasSunat
-          ? `${MESES_LARGOS[m]} ${anio} (${perDash}) · Habilitado en SUNAT${sunatInfo.desEstado ? ' (' + sunatInfo.desEstado + ')' : ''}`
-          : `Seleccionar ${MESES_LARGOS[m]} ${anio} (${perDash})`;
-        return `<button type="button" class="month-btn ${isActive ? 'active' : ''} ${hasSunat ? 'sunat-enabled' : ''}" data-periodo="${per}" title="${escapeHtml(title)}" onclick="setPeriodoQuick('${resolved}', '${per}')"><span>${MESES_CORTOS[m]}</span><span class="m-num">${m}</span></button>`;
+        const hasSaved = !isFuture && Boolean(findSavedDownloadForPropuesta(libroTarget, per));
+
+        let tabIdx = '-1';
+        if (!isFuture) {
+          if (isActive) {
+            tabIdx = '0';
+          } else if (!hasActiveInYear && !fallbackFocusAssigned) {
+            tabIdx = '0';
+            fallbackFocusAssigned = true;
+          }
+        }
+
+        const parts = [`${MESES_LARGOS[m]} ${anio}`];
+        if (isFuture) parts.push('Mes futuro no disponible');
+        if (hasSaved) parts.push('Descarga COMPLETADA guardada');
+        if (hasSunat) parts.push(`Habilitado en SUNAT${sunatInfo.desEstado ? ' (' + sunatInfo.desEstado + ')' : ''}`);
+        const label = parts.join(' · ');
+
+        const dotHtml = hasSaved ? '<span class="month-dl-dot" aria-hidden="true"></span>' : '';
+        return `<button type="button" role="radio" aria-checked="${isActive ? 'true' : 'false'}" aria-label="${escapeHtml(label)}" tabindex="${tabIdx}" class="month-btn ${isActive ? 'active' : ''} ${isFuture ? 'is-future' : ''} ${hasSaved ? 'has-download' : ''} ${hasSunat ? 'sunat-enabled' : ''}" data-periodo="${per}" title="${escapeHtml(label)}" ${isFuture ? 'disabled aria-disabled="true"' : `onclick="setPeriodoQuick('${resolved}', '${per}')"`}>${dotHtml}<span>${MESES_CORTOS[m]}</span><span class="m-num">${m}</span></button>`;
       }).join('');
+    }
+
+    function handleMonthGridKeydown(e) {
+      const keys = ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End', ' ', 'Enter'];
+      if (!keys.includes(e.key)) return;
+      const grid = document.getElementById('prop-month-grid');
+      if (!grid) return;
+      const enabled = Array.from(grid.querySelectorAll('[role="radio"]:not(:disabled)'));
+      if (enabled.length === 0) return;
+
+      const currentIdx = Math.max(0, enabled.indexOf(document.activeElement));
+      let nextIdx = currentIdx;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        nextIdx = (currentIdx + 1) % enabled.length;
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        nextIdx = (currentIdx - 1 + enabled.length) % enabled.length;
+      } else if (e.key === 'Home') {
+        nextIdx = 0;
+      } else if (e.key === 'End') {
+        nextIdx = enabled.length - 1;
+      }
+
+      e.preventDefault();
+      const targetPer = enabled[nextIdx].getAttribute('data-periodo');
+      if (targetPer) {
+        setPeriodoQuick('prop', targetPer);
+        const focusBtn = grid.querySelector(`[role="radio"][data-periodo="${targetPer}"]`);
+        if (focusBtn) focusBtn.focus();
+      }
     }
 
     function updatePeriodoUI(prefix) {
@@ -3311,20 +3393,18 @@
       renderMonthGrid(resolved);
 
       const lblEl = document.getElementById(`${resolved}-periodo-label`);
-      const codeEl = document.getElementById(`${resolved}-periodo-code`);
       const statusEl = document.getElementById(`${resolved}-sunat-status`);
       const btnDetLbl = document.getElementById(`${resolved}-btn-detalle-lbl`);
       const btnZipLbl = document.getElementById(`${resolved}-btn-zip-lbl`);
 
       if (lblEl) lblEl.textContent = valid ? formatPeriodoLabel(per) : 'Periodo incompleto';
-      if (codeEl) codeEl.textContent = valid ? formatPeriodoDash(per) : 'AAAA-MM';
 
       const sunatMap = sunatPeriodosMap[bookKey] || {};
       const loadedCount = Object.keys(sunatMap).length;
       if (statusEl) {
         if (!valid) {
           statusEl.className = 'badge invalidas';
-          statusEl.textContent = 'Formato AAAA-MM requerido';
+          statusEl.textContent = 'Periodo requerido';
         } else if (loadedCount > 0 && sunatMap[per]) {
           statusEl.className = 'badge valido';
           statusEl.textContent = sunatMap[per].desEstado ? `SUNAT: ${sunatMap[per].desEstado}` : 'Habilitado en SUNAT';
@@ -3342,7 +3422,9 @@
       if (btnZipLbl) btnZipLbl.textContent = shortLbl ? `Descargar propuesta · ${shortLbl}` : 'Descargar propuesta';
 
       document.querySelectorAll(`#${resolved}-quick-chips .chip, #${resolved}-sunat-periodos .chip`).forEach(c => {
-        c.classList.toggle('active', valid && c.getAttribute('data-periodo') === per);
+        const isMatch = valid && c.getAttribute('data-periodo') === per;
+        c.classList.toggle('active', isMatch);
+        c.setAttribute('aria-pressed', isMatch ? 'true' : 'false');
       });
 
       if (resolved === 'prop') {
@@ -3354,37 +3436,29 @@
       const resolved = resolvePeriodoPrefix(prefix);
       const now = new Date();
       const curYear = now.getFullYear();
-      const anioSel = document.getElementById(`${resolved}-anio`);
-      const mesSel = document.getElementById(`${resolved}-mes`);
+      const anioEl = document.getElementById(`${resolved}-anio`);
       const input = document.getElementById(`${resolved}-periodo`);
-      if (!anioSel || !mesSel || !input) return;
-
-      anioSel.innerHTML = '';
-      for (let y = curYear + 1; y >= 2022; y--) {
-        const opt = document.createElement('option');
-        opt.value = String(y);
-        opt.textContent = String(y);
-        anioSel.appendChild(opt);
-      }
-
-      mesSel.innerHTML = MESES.map(([v, lbl]) => `<option value="${v}">${lbl}</option>`).join('');
+      if (!anioEl || !input) return;
 
       // Por defecto: mes anterior (periodo tributario más habitual en SIRE)
       const prev = new Date(curYear, now.getMonth() - 1, 1);
       const defPer = `${prev.getFullYear()}${String(prev.getMonth() + 1).padStart(2, '0')}`;
+      anioEl.value = defPer.slice(0, 4);
       input.value = formatPeriodoDash(defPer);
 
-      // Chips rápidos dinámicos (3 últimos meses)
+      // Chips rápidos: únicamente "Actual" y "Anterior" calculados desde la fecha del sistema
       const chipsWrap = document.getElementById(`${resolved}-quick-chips`);
       if (chipsWrap) {
-        const quickList = [0, -1, -2].map(offset => {
+        const quickList = [0, -1].map(offset => {
           const d = new Date(curYear, now.getMonth() + offset, 1);
           const per = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
-          const label = offset === 0 ? `Actual · ${formatPeriodoShort(per)}` : (offset === -1 ? `Anterior · ${formatPeriodoShort(per)}` : formatPeriodoShort(per));
+          const label = offset === 0 ? `Actual · ${formatPeriodoShort(per)}` : `Anterior · ${formatPeriodoShort(per)}`;
           return { per, label };
         });
-        chipsWrap.innerHTML = `<span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.04em;">Rápido:</span>` +
-          quickList.map(q => `<button type="button" class="chip" data-periodo="${q.per}" onclick="setPeriodoQuick('${resolved}', '${q.per}')">${q.label}</button>`).join('');
+        chipsWrap.innerHTML =
+          `<span style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.04em;">Rápido:</span>` +
+          quickList.map(q => `<button type="button" class="chip" aria-pressed="false" data-periodo="${q.per}" onclick="setPeriodoQuick('${resolved}', '${q.per}')">${q.label}</button>`).join('') +
+          `<span class="month-legend-item" style="margin-left:0.4rem;"><span class="month-dl-dot-inline" aria-hidden="true"></span>Descarga guardada</span>`;
       }
 
       syncSelectsFromPeriodo(resolved);
@@ -3393,19 +3467,22 @@
     function setPeriodoQuick(prefix, per) {
       const resolved = resolvePeriodoPrefix(prefix);
       const clean = normalizePeriodoYYYYMM(per);
-      if (!clean) return;
+      if (!clean || isFuturePeriodo(clean)) return;
       const input = document.getElementById(`${resolved}-periodo`);
       if (input) input.value = formatPeriodoDash(clean);
-      syncSelectsFromPeriodo(resolved);
+      const anioEl = document.getElementById(`${resolved}-anio`);
+      if (anioEl) anioEl.value = clean.slice(0, 4);
+      updatePeriodoUI(resolved);
     }
 
     function syncPeriodoFromSelects(prefix) {
       const resolved = resolvePeriodoPrefix(prefix);
-      const y = document.getElementById(`${resolved}-anio`)?.value || '';
-      const m = document.getElementById(`${resolved}-mes`)?.value || '';
-      const input = document.getElementById(`${resolved}-periodo`);
-      if (input && y && m) input.value = `${y}-${m}`;
-      updatePeriodoUI(resolved);
+      const cur = getPeriodoYYYYMM(resolved);
+      const y = document.getElementById(`${resolved}-anio`)?.value || String(new Date().getFullYear());
+      const m = cur ? cur.slice(4, 6) : '01';
+      let target = `${y}${m}`;
+      if (isFuturePeriodo(target)) target = getCurrentMaxPeriodoYYYYMM();
+      setPeriodoQuick(resolved, target);
     }
 
     function syncSelectsFromPeriodo(prefix) {
@@ -3419,39 +3496,39 @@
       if (input.value !== val) input.value = val;
 
       const clean = normalizePeriodoYYYYMM(val);
-      if (clean) {
+      if (clean && !isFuturePeriodo(clean)) {
         const y = clean.slice(0, 4);
-        const m = clean.slice(4, 6);
-        const anioSel = document.getElementById(`${resolved}-anio`);
-        const mesSel = document.getElementById(`${resolved}-mes`);
-        ensureYearOption(anioSel, y);
-        if (anioSel) anioSel.value = y;
-        if (mesSel && Array.from(mesSel.options).some(o => o.value === m)) mesSel.value = m;
+        const anioEl = document.getElementById(`${resolved}-anio`);
+        if (anioEl) anioEl.value = y;
       }
       updatePeriodoUI(resolved);
     }
 
     function stepPeriodoYear(prefix, delta) {
       const resolved = resolvePeriodoPrefix(prefix);
-      const anioSel = document.getElementById(`${resolved}-anio`);
-      const mesSel = document.getElementById(`${resolved}-mes`);
-      if (!anioSel || !mesSel) return;
-      const nextY = Number(anioSel.value || new Date().getFullYear()) + delta;
-      if (nextY < 2020 || nextY > 2035) return;
-      const yStr = String(nextY);
-      ensureYearOption(anioSel, yStr);
-      anioSel.value = yStr;
-      document.getElementById(`${resolved}-periodo`).value = `${yStr}-${mesSel.value || '01'}`;
-      updatePeriodoUI(resolved);
+      const nowYear = new Date().getFullYear();
+      const cur = getPeriodoYYYYMM(resolved);
+      const anioEl = document.getElementById(`${resolved}-anio`);
+      const curYear = Number(anioEl?.value || (cur ? cur.slice(0, 4) : nowYear));
+      const curMonth = cur ? cur.slice(4, 6) : String(new Date().getMonth() + 1).padStart(2, '0');
+      const nextY = curYear + delta;
+      if (nextY < 2020 || nextY > nowYear) return;
+
+      let nextPer = `${nextY}${curMonth}`;
+      if (isFuturePeriodo(nextPer)) {
+        nextPer = getCurrentMaxPeriodoYYYYMM();
+      }
+      setPeriodoQuick(resolved, nextPer);
     }
 
     function stepPeriodoMonth(prefix, delta) {
       const resolved = resolvePeriodoPrefix(prefix);
       const cur = getPeriodoYYYYMM(resolved);
-      const baseY = cur ? Number(cur.slice(0, 4)) : Number(document.getElementById(`${resolved}-anio`)?.value || new Date().getFullYear());
-      const baseM = cur ? Number(cur.slice(4, 6)) - 1 : Number(document.getElementById(`${resolved}-mes`)?.value || 1) - 1;
+      const baseY = cur ? Number(cur.slice(0, 4)) : new Date().getFullYear();
+      const baseM = cur ? Number(cur.slice(4, 6)) - 1 : new Date().getMonth();
       const d = new Date(baseY, baseM + delta, 1);
       const nextPer = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (isFuturePeriodo(nextPer)) return;
       setPeriodoQuick(resolved, nextPer);
     }
 
@@ -3968,7 +4045,7 @@
       if (tabId === 'tab-conexion') cargarEstadoDiagnostico();
       if (tabId === 'tab-propuesta') {
         renderRecentByLibro();
-        updatePropSavedBanner();
+        updatePeriodoUI('prop');
       }
       if (tabId === 'tab-comprobantes') {
         cargarComprobantesCPE();
@@ -4076,7 +4153,7 @@
           const elD = document.getElementById('nav-count-descargas');
           if (elD) elD.textContent = String(currentDescargas.length);
           renderRecentByLibro();
-          updatePropSavedBanner();
+          updatePeriodoUI('prop');
         }
         if (resC.ok) {
           const jC = await resC.json();
@@ -4519,8 +4596,9 @@
       if (normalizedBook === getActiveBookKey()) {
         renderSunatPeriodosForActiveBook();
         const curPer = getPeriodoYYYYMM('prop');
-        if (!map[curPer] && unique.length > 0) {
-          setPeriodoQuick('prop', unique[0]);
+        const firstValid = unique.find(p => !isFuturePeriodo(p));
+        if (!map[curPer] && firstValid) {
+          setPeriodoQuick('prop', firstValid);
         } else {
           updatePeriodoUI('prop');
         }
@@ -5350,7 +5428,7 @@
       if (elDesc) elDesc.textContent = String(currentDescargas.length);
       renderHistorialTable();
       renderRecentByLibro();
-      updatePropSavedBanner();
+      updatePeriodoUI('prop');
     }
 
     function renderHistorialTable() {
