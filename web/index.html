@@ -1666,11 +1666,226 @@
       .prop-counts-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .prop-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .prop-viz-grid { grid-template-columns: 1fr; }
+      .cpe-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 640px) {
       .prop-counts-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .prop-kpi-grid { grid-template-columns: 1fr; }
       .prop-search-input { width: 100%; }
+      .cpe-kpi-grid { grid-template-columns: 1fr; }
+    }
+
+    /* =======================================================
+       MÓDULO COMPROBANTES CPE — DISEÑO IMAGEN 3 (SUB-ETAPA 3E)
+       ======================================================= */
+    .cpe-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.05rem;
+    }
+    .cpe-kpi-card {
+      background: #ffffff;
+      border: 1px solid #dce5f0;
+      border-left: 4px solid #2f6fa3;
+      border-radius: 12px;
+      padding: 0.9rem 1.1rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .cpe-kpi-card.accent-gold { border-left-color: #e8a91b; }
+    .cpe-kpi-card.accent-slate { border-left-color: #94a3b8; }
+    .cpe-kpi-card .stat-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #51627a;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .cpe-kpi-card .stat-val {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: #0b2545;
+      line-height: 1.2;
+      margin-top: 0.2rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .cpe-kpi-card .stat-hint {
+      font-size: 0.74rem;
+      color: #64748b;
+      margin-top: 0.18rem;
+    }
+    .cpe-toolbar-card {
+      background: #ffffff;
+      border: 1px solid #dce5f0;
+      border-radius: 12px;
+      padding: 0.95rem 1.15rem;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.78rem;
+    }
+    .cpe-toolbar-main {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .cpe-toolbar-fields {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      flex: 1;
+      min-width: 0;
+    }
+    .cpe-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .cpe-field label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #0b2545;
+    }
+    .cpe-field .form-control {
+      min-height: 44px;
+      border-color: #b8c6d8;
+      border-radius: 9px;
+      background: #ffffff;
+      color: #0b2545;
+    }
+    .cpe-toolbar-secondary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+      padding-top: 0.68rem;
+      border-top: 1px solid #e6edf5;
+    }
+    .cpe-secondary-group {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+    .cpe-link-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      background: #e9f2f9;
+      border: 1px solid #9dc2e0;
+      border-left: 4px solid #2f6fa3;
+      border-radius: 11px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      color: #0b2545;
+      font-size: 0.84rem;
+    }
+    .cpe-link-banner.visible { display: flex; }
+    .cpe-table-card {
+      background: #ffffff;
+      border: 1px solid #dce5f0;
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      min-width: 0;
+      max-width: 100%;
+    }
+    .cpe-table-scroll {
+      max-height: 580px;
+      overflow: auto;
+      width: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+    #table-cpe {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+      font-size: 0.84rem;
+    }
+    #table-cpe thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #eef3f8;
+      color: #0b2545;
+      font-weight: 800;
+      font-size: 0.78rem;
+      padding: 0.75rem 0.9rem;
+      border-bottom: 1px solid #d5e0ec;
+      text-align: left;
+      white-space: nowrap;
+    }
+    #table-cpe thead th.num,
+    #table-cpe tbody td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    #table-cpe tbody td {
+      padding: 0.72rem 0.9rem;
+      border-bottom: 1px solid #e6edf5;
+      color: #0b2545;
+      vertical-align: middle;
+    }
+    #table-cpe tbody tr:hover { background: #f5f9fd; }
+    #table-cpe tbody tr.cpe-row-linked {
+      background: #fffbeb;
+      box-shadow: inset 4px 0 0 #e8a91b;
+    }
+    .cpe-file-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+    .cpe-file-btn {
+      min-height: 34px;
+      padding: 0.25rem 0.62rem;
+      border-radius: 8px;
+      border: 1px solid #2f6fa3;
+      background: #ffffff;
+      color: #2f6fa3;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+    }
+    .cpe-file-btn:hover:not(:disabled) {
+      background: #2f6fa3;
+      color: #ffffff;
+    }
+    .cpe-file-btn:focus-visible {
+      outline: 2px solid #0b2545;
+      outline-offset: 2px;
+    }
+    .cpe-file-btn.is-local {
+      border-color: #15803d;
+      background: #ecfdf5;
+      color: #166534;
+    }
+    .cpe-file-btn.is-local:hover:not(:disabled) {
+      background: #15803d;
+      color: #ffffff;
+    }
+    .cpe-file-btn.subtle {
+      border-color: #cbd5e1;
+      color: #475569;
+    }
+    .cpe-file-btn.subtle:hover:not(:disabled) {
+      background: #0b2545;
+      border-color: #0b2545;
+      color: #ffffff;
+    }
+    .cpe-file-btn:disabled {
+      opacity: 0.55;
+      cursor: wait;
     }
 
     main.ws-content {
@@ -3125,35 +3340,108 @@
           </div>
 
           <!-- =================================================
-               SECCIÓN 4: COMPROBANTES INDIVIDUALES (PDF / XML / CDR)
+               SECCIÓN 4: COMPROBANTES INDIVIDUALES (PDF / XML / CDR / JSON)
                ================================================= -->
           <div id="tab-comprobantes" class="tab-content">
-            <div class="section-header">
+            <div class="section-header" style="align-items: center;">
               <div>
-                <h2 class="section-title">Comprobantes Individuales (PDF / XML / CDR / JSON)</h2>
-                <p class="section-desc">Descarga masiva costo S/ 0 directo desde SUNAT SOL (api-cpe), generación automática de PDF con Código QR desde XML UBL 2.1, CDR SOAP y exportación de ítems.</p>
+                <h2 class="section-title">Descarga de comprobantes</h2>
+                <p class="section-desc">Consulta comprobantes de Compras y Ventas, descarga PDF, XML, CDR y JSON desde SUNAT SOL (api-cpe) o importa lotes locales.</p>
               </div>
-              <div class="section-actions">
-                <button class="btn btn-primary btn-sm" onclick="abrirModalBulkCPE()">
+            </div>
+
+            <!-- KPIs DINÁMICOS ESTILO IMAGEN 3 (DATOS REALES DEL SISTEMA) -->
+            <div class="cpe-kpi-grid">
+              <div class="cpe-kpi-card">
+                <div class="stat-label">Comprobantes consultados</div>
+                <div class="stat-val" id="cpe-stat-total">0</div>
+                <div class="stat-hint" id="cpe-stat-split-hint">Compras: 0 · Ventas: 0</div>
+              </div>
+              <div class="cpe-kpi-card">
+                <div class="stat-label">PDF disponibles</div>
+                <div class="stat-val" id="cpe-stat-pdf">0</div>
+                <div class="stat-hint">Originales SUNAT / XML+QR</div>
+              </div>
+              <div class="cpe-kpi-card accent-gold">
+                <div class="stat-label">XML / Concordantes</div>
+                <div class="stat-val" id="cpe-stat-xml">0</div>
+                <div class="stat-hint" id="cpe-stat-conc-hint">UBL 2.1 validados vs SIRE</div>
+              </div>
+              <div class="cpe-kpi-card accent-slate">
+                <div class="stat-label">CDR Oficiales</div>
+                <div class="stat-val" id="cpe-stat-cdr">0</div>
+                <div class="stat-hint">SUNAT api-cpe (/03) / SOAP</div>
+              </div>
+            </div>
+
+            <!-- BANNER DE ENLACE DESDE PROPUESTA SIRE (3E) -->
+            <div id="cpe-link-banner" class="cpe-link-banner" role="status" aria-live="polite">
+              <div id="cpe-link-banner-text"></div>
+              <div id="cpe-link-banner-actions" style="display:flex; gap:0.45rem; flex-wrap:wrap;"></div>
+            </div>
+
+            <!-- BARRA PRINCIPAL DE FILTROS Y ACCIÓN MASIVA (IMAGEN 3) -->
+            <div class="cpe-toolbar-card">
+              <div class="cpe-toolbar-main">
+                <div class="cpe-toolbar-fields">
+                  <div class="cpe-field">
+                    <label for="cpe-filter-origen">Tipo</label>
+                    <select id="cpe-filter-origen" class="form-control" style="min-width: 155px;" onchange="setCpeOrigen(this.value)">
+                      <option value="">Todos (Compras y Ventas)</option>
+                      <option value="COMPRAS">Compras (RCE)</option>
+                      <option value="VENTAS">Ventas (RVIE)</option>
+                    </select>
+                  </div>
+                  <div class="cpe-field">
+                    <label for="cpe-filter-periodo">Periodo</label>
+                    <input type="text" id="cpe-filter-periodo" class="form-control" style="width: 122px;" placeholder="AAAA-MM" maxlength="7" aria-label="Periodo de comprobantes en formato AAAA-MM" oninput="debouncedCargarCPE()">
+                  </div>
+                  <div class="cpe-field">
+                    <label for="cpe-filter-tipo">Documento</label>
+                    <select id="cpe-filter-tipo" class="form-control" style="min-width: 195px;" onchange="cargarComprobantesCPE()">
+                      <option value="FACTURAS_NOTAS" selected>Facturas y Notas (01/07/08)</option>
+                      <option value="">Todos los tipos (incl. Boletas)</option>
+                      <option value="01">01 - Solo Facturas</option>
+                      <option value="07">07 - Notas de Crédito</option>
+                      <option value="08">08 - Notas de Débito</option>
+                      <option value="03">03 - Boletas de Venta</option>
+                    </select>
+                  </div>
+                  <div class="cpe-field" style="flex:1; min-width: 190px;">
+                    <label for="cpe-filter-q">Buscar</label>
+                    <input type="search" id="cpe-filter-q" class="form-control" placeholder="Serie, número, RUC o producto..." aria-label="Buscar comprobante por serie, número, RUC o producto" oninput="debouncedCargarCPE()">
+                  </div>
+                  <button type="button" id="btn-cpe-consultar" class="btn btn-primary" style="min-height: 44px; padding: 0.55rem 1.25rem;" onclick="cargarComprobantesCPE()">
+                    Consultar
+                  </button>
+                </div>
+
+                <button type="button" id="btn-cpe-bulk" class="btn btn-gold" style="min-height: 44px; padding: 0.55rem 1.25rem;" onclick="abrirModalBulkCPE()">
                   <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                  Descarga Masiva SUNAT
+                  Descargar todo
                 </button>
-                <button class="btn btn-secondary btn-sm" onclick="sincronizarCPEdesdeSIRE()">
-                  <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
-                  Sincronizar SIRE
-                </button>
-                <button class="btn btn-secondary btn-sm" onclick="exportarItemsCPE()">
-                  <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-                  Exportar Ítems (CSV)
-                </button>
-                <button class="btn btn-secondary btn-sm" onclick="abrirModalImportarCPE(0)">
-                  <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                  Subir XML / PDF / ZIP
-                </button>
-                <button class="btn btn-secondary btn-sm" onclick="openModal('modal-cpe-manual')">
-                  <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-                  CDR Manual
-                </button>
+              </div>
+
+              <div class="cpe-toolbar-secondary">
+                <div class="cpe-secondary-group">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="sincronizarCPEdesdeSIRE()">
+                    <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+                    Sincronizar SIRE
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="exportarItemsCPE()">
+                    <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+                    Exportar Ítems (CSV)
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="abrirModalImportarCPE(0)">
+                    <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Subir XML / PDF / ZIP
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="openModal('modal-cpe-manual')">
+                    <svg class="icon icon-sm" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                    Consulta / CDR Manual
+                  </button>
+                </div>
+                <button type="button" class="btn btn-ghost btn-xs" onclick="limpiarFiltrosCPE()">Limpiar filtros</button>
               </div>
             </div>
 
@@ -3177,31 +3465,28 @@
               </div>
             </div>
 
-            <!-- KPIs DINÁMICOS -->
-            <div class="grid-4">
-              <div class="stat-card">
-                <div class="stat-label">Total Vigentes SIRE</div>
-                <div class="stat-val" id="cpe-stat-total">0</div>
-                <div class="stat-hint">En propuesta SIRE vigente</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">PDF Reales</div>
-                <div class="stat-val" id="cpe-stat-pdf">0</div>
-                <div class="stat-hint">Originales SUNAT / XML+QR</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">XML / Concordantes</div>
-                <div class="stat-val" id="cpe-stat-xml">0</div>
-                <div class="stat-hint" id="cpe-stat-conc-hint">UBL 2.1 validados vs SIRE</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">CDR Oficiales</div>
-                <div class="stat-val" id="cpe-stat-cdr">0</div>
-                <div class="stat-hint">SUNAT api-cpe (/03) / SOAP</div>
+            <!-- TABLA DE COMPROBANTES ESTILO IMAGEN 3 -->
+            <div class="cpe-table-card" style="margin-bottom: 1rem;">
+              <div class="cpe-table-scroll" tabindex="0" aria-label="Tabla de comprobantes CPE">
+                <table id="table-cpe">
+                  <thead>
+                    <tr>
+                      <th scope="col">Comprobante</th>
+                      <th scope="col">Fecha</th>
+                      <th scope="col">Proveedor / Cliente</th>
+                      <th scope="col" class="num">Importe</th>
+                      <th scope="col">Estado</th>
+                      <th scope="col">Archivos</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">Sin comprobantes indexados aún. Descarga una propuesta SIRE o arrastra archivos XML/PDF/CDR.</td></tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <!-- DROPZONE INTERACTIVO -->
+            <!-- DROPZONE INTERACTIVO CONSERVADO -->
             <div id="cpe-dropzone" class="dropzone" onclick="abrirModalImportarCPE(0)">
               <div style="display:flex; align-items:center; gap:0.85rem;">
                 <svg class="icon icon-lg" style="color: var(--primary);" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -3211,49 +3496,6 @@
                 </div>
               </div>
               <span class="btn btn-secondary btn-sm">Elegir archivo</span>
-            </div>
-
-            <div class="card">
-              <div class="card-header">
-                <div class="segmented" role="group" aria-label="Filtrar origen comprobantes">
-                  <button type="button" class="seg-btn active" onclick="setCpeOrigen('', this)">Todos</button>
-                  <button type="button" class="seg-btn" onclick="setCpeOrigen('VENTAS', this)">Ventas (RVIE)</button>
-                  <button type="button" class="seg-btn" onclick="setCpeOrigen('COMPRAS', this)">Compras (RCE)</button>
-                </div>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-                  <select id="cpe-filter-tipo" class="form-control" style="width: 190px;" onchange="cargarComprobantesCPE()">
-                    <option value="FACTURAS_NOTAS" selected>Facturas y Notas (01/07/08)</option>
-                    <option value="">Todos los tipos (incl. Boletas)</option>
-                    <option value="01">01 - Solo Facturas</option>
-                    <option value="07">07 - Notas de Crédito</option>
-                    <option value="08">08 - Notas de Débito</option>
-                    <option value="03">03 - Boletas de Venta</option>
-                  </select>
-                  <input type="text" id="cpe-filter-periodo" class="form-control" style="width: 110px;" placeholder="Periodo" maxlength="6" oninput="debouncedCargarCPE()">
-                  <input type="text" id="cpe-filter-q" class="form-control" style="width: 220px;" placeholder="Buscar serie, RUC o producto..." oninput="debouncedCargarCPE()">
-                </div>
-              </div>
-              <div class="card-body">
-                <div class="table-container">
-                  <table id="table-cpe">
-                    <thead>
-                      <tr>
-                        <th>Origen</th>
-                        <th>Periodo</th>
-                        <th>Comprobante</th>
-                        <th>Fecha</th>
-                        <th>Contraparte</th>
-                        <th>Total</th>
-                        <th>Estado</th>
-                        <th>Descargas</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">Sin comprobantes indexados aún. Descarga una propuesta SIRE o arrastra archivos XML/PDF/CDR.</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -4285,20 +4527,24 @@
 
     function abrirComprobantesDelPeriodo(origen, prefix) {
       const per = getPeriodoYYYYMM(prefix || 'prop');
-      cpeFilterOrigen = origen;
-      const segs = document.querySelectorAll('#tab-comprobantes .segmented .seg-btn');
-      segs.forEach(b => {
-        const txt = b.textContent.toUpperCase();
-        const isMatch = (origen === 'VENTAS' && txt.includes('VENTAS')) || (origen === 'COMPRAS' && txt.includes('COMPRAS'));
-        b.classList.toggle('active', isMatch);
-      });
+      cpeLinkContext = null;
+      renderCpeLinkBanner();
+      cpeFilterOrigen = origen || '';
+      const origenSel = document.getElementById('cpe-filter-origen');
+      if (origenSel) origenSel.value = cpeFilterOrigen;
       const perInput = document.getElementById('cpe-filter-periodo');
-      if (perInput && per) perInput.value = per;
+      if (perInput && per) perInput.value = formatPeriodoDash(per);
+      const qInput = document.getElementById('cpe-filter-q');
+      if (qInput) qInput.value = '';
       switchTab('tab-comprobantes');
     }
 
     function resetPeriodoResultsForCompanySwitch() {
       cancelPropuestaActiveWork({ clearResult: true });
+      if (typeof cpeLinkContext !== 'undefined') {
+        cpeLinkContext = null;
+        if (typeof renderCpeLinkBanner === 'function') renderCpeLinkBanner();
+      }
       sunatPeriodosMap.ventas = {};
       sunatPeriodosMap.compras = {};
       sunatPeriodosRaw.ventas = null;
@@ -5260,7 +5506,7 @@
       return solicitarExportacionLibro('080000', 'prop');
     }
 
-    // --- SUB-ETAPA 3D: HELPERS DOM-SAFE (SIN innerHTML), FORMATO es-PE, POLLING CANCELABLE Y DASHBOARD TXT ---
+    // --- SUB-ETAPA 3D: HELPERS DOM-SAFE (SOLO textContent), FORMATO es-PE, POLLING CANCELABLE Y DASHBOARD TXT ---
     const PROP_MONEY_FMT = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const PROP_INT_FMT = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 });
     const PROP_TIPO_CP_LABELS = {
@@ -5779,10 +6025,10 @@
       const tableCard = createDomEl('div', 'prop-table-card');
       const toolbar = createDomEl('div', 'prop-table-toolbar');
 
-      // Tabs de estado (Activos por defecto, Anulados con insignia del conteo, Todos)
+      // Tabs de estado (Activos por defecto, Anulados con insignia del conteo, Todos; accesible con Tab, flechas y Enter)
       const tabsWrap = createDomEl('div', 'prop-state-tabs');
       tabsWrap.id = 'prop-table-state-tabs';
-      tabsWrap.setAttribute('role', 'group');
+      tabsWrap.setAttribute('role', 'tablist');
       tabsWrap.setAttribute('aria-label', 'Filtrar registros por estado');
 
       const tabDefs = [
@@ -5790,23 +6036,50 @@
         { key: 'anulado', label: 'Anulados', count: conteos.anulados || 0 },
         { key: 'todos', label: 'Todos', count: conteos.total_filas || 0 }
       ];
+      const activateStateTab = (estadoKey, focusTab) => {
+        if (!propAnalysisState) return;
+        const changed = propAnalysisState.estado !== estadoKey;
+        propAnalysisState.estado = estadoKey;
+        propAnalysisState.offset = 0;
+        syncPropStateTabsUI(estadoKey);
+        if (focusTab) {
+          const elTab = tabsWrap.querySelector(`[data-estado="${estadoKey}"]`);
+          if (elTab) elTab.focus();
+        }
+        if (changed) cargarPaginaPropuestaTXT();
+      };
+
       tabDefs.forEach(td => {
-        const btn = createDomEl('button', `prop-state-tab ${st.estado === td.key ? 'active' : ''}`.trim());
+        const isSel = st.estado === td.key;
+        const btn = createDomEl('button', `prop-state-tab ${isSel ? 'active' : ''}`.trim());
         btn.type = 'button';
+        btn.setAttribute('role', 'tab');
         btn.dataset.estado = td.key;
-        btn.setAttribute('aria-pressed', st.estado === td.key ? 'true' : 'false');
+        btn.setAttribute('aria-selected', isSel ? 'true' : 'false');
+        btn.setAttribute('aria-label', `${td.label}: ${formatIntPE(td.count)} registros`);
+        btn.tabIndex = isSel ? 0 : -1;
         btn.append(
           createDomEl('span', '', td.label),
           createDomEl('span', 'prop-tab-pill', formatIntPE(td.count))
         );
-        btn.addEventListener('click', () => {
-          if (!propAnalysisState || propAnalysisState.estado === td.key) return;
-          propAnalysisState.estado = td.key;
-          propAnalysisState.offset = 0;
-          syncPropStateTabsUI(td.key);
-          cargarPaginaPropuestaTXT();
-        });
+        btn.addEventListener('click', () => activateStateTab(td.key, false));
         tabsWrap.appendChild(btn);
+      });
+
+      tabsWrap.addEventListener('keydown', e => {
+        const keys = ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'];
+        if (!keys.includes(e.key)) return;
+        const tabs = Array.from(tabsWrap.querySelectorAll('[role="tab"]'));
+        if (tabs.length === 0) return;
+        const curIdx = Math.max(0, tabs.indexOf(document.activeElement));
+        let nextIdx = curIdx;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextIdx = (curIdx + 1) % tabs.length;
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') nextIdx = (curIdx - 1 + tabs.length) % tabs.length;
+        else if (e.key === 'Home') nextIdx = 0;
+        else if (e.key === 'End') nextIdx = tabs.length - 1;
+        e.preventDefault();
+        const nextKey = tabs[nextIdx].dataset.estado;
+        if (nextKey) activateStateTab(nextKey, true);
       });
 
       // Controles de filtro: tipo_cp + búsqueda q (debounce 400ms, máx 40 chars)
@@ -5875,6 +6148,9 @@
           propAnalysisState.q = searchInput.value.trim().slice(0, 40);
           propAnalysisState.offset = 0;
           cargarPaginaPropuestaTXT();
+        } else if (e.key === 'Escape' && searchInput.value) {
+          e.preventDefault();
+          clearBtn.click();
         }
       });
       clearBtn.addEventListener('click', () => {
@@ -5915,7 +6191,8 @@
             { label: 'No Gravado', num: true },
             { label: 'Total CP', num: true },
             { label: 'Mon.', num: false },
-            { label: 'Estado', num: false }
+            { label: 'Estado', num: false },
+            { label: 'Acción', num: false }
           ]
         : [
             { label: 'Fecha', num: false },
@@ -5927,7 +6204,8 @@
             { label: 'IGV', num: true },
             { label: 'Total CP', num: true },
             { label: 'Mon.', num: false },
-            { label: 'Estado', num: false }
+            { label: 'Estado', num: false },
+            { label: 'Acción', num: false }
           ];
       cols.forEach(c => {
         const th = createDomEl('th', c.num ? 'num' : '', c.label);
@@ -5955,10 +6233,11 @@
     function syncPropStateTabsUI(activeEstado) {
       const container = document.getElementById('prop-table-state-tabs');
       if (!container) return;
-      container.querySelectorAll('.prop-state-tab').forEach(btn => {
+      container.querySelectorAll('[role="tab"]').forEach(btn => {
         const match = btn.dataset.estado === activeEstado;
         btn.classList.toggle('active', match);
-        btn.setAttribute('aria-pressed', match ? 'true' : 'false');
+        btn.setAttribute('aria-selected', match ? 'true' : 'false');
+        btn.tabIndex = match ? 0 : -1;
       });
     }
 
@@ -5968,7 +6247,7 @@
       tbody.replaceChildren();
       const tr = createDomEl('tr');
       const td = createDomEl('td', 'prop-state-empty', 'Cargando registros de la propuesta...');
-      td.colSpan = 10;
+      td.colSpan = 11;
       tr.appendChild(td);
       tbody.appendChild(tr);
     }
@@ -5979,7 +6258,7 @@
       tbody.replaceChildren();
       const tr = createDomEl('tr');
       const td = createDomEl('td', 'prop-state-empty');
-      td.colSpan = 10;
+      td.colSpan = 11;
       td.setAttribute('role', 'alert');
       const msgDiv = createDomEl('div', '', message);
       msgDiv.style.color = '#991b1b';
@@ -5998,6 +6277,10 @@
       const pagBar = document.getElementById('prop-table-pagbar');
       if (!tbody || !pagBar) return;
 
+      const prevFocusAction = (document.activeElement && pagBar.contains(document.activeElement))
+        ? (document.activeElement.dataset.pagAction || '')
+        : '';
+
       tbody.replaceChildren();
       const resumen = st.resumen || {};
       const isCompras = String(resumen.libro || st.libro || '').toUpperCase() === 'COMPRAS';
@@ -6006,7 +6289,7 @@
       if (rows.length === 0) {
         const tr = createDomEl('tr');
         const td = createDomEl('td', 'prop-state-empty');
-        td.colSpan = 10;
+        td.colSpan = 11;
         td.appendChild(createDomEl('div', '', 'No se encontraron comprobantes que coincidan con los filtros seleccionados.'));
         if (st.estado !== 'activo' || st.tipo_cp || st.q) {
           const btnReset = createDomEl('button', 'btn btn-secondary btn-xs', 'Limpiar filtros');
@@ -6032,6 +6315,8 @@
         tbody.appendChild(tr);
       } else {
         const frag = document.createDocumentFragment();
+        const linkLibro = isCompras ? 'COMPRAS' : 'VENTAS';
+        const linkPeriodo = normalizePeriodoYYYYMM(resumen.periodo || st.periodo);
         rows.forEach(row => {
           const tr = createDomEl('tr');
           const marca = String(row.estado_marca || (row.anulado ? 'anulado' : 'activo')).toLowerCase();
@@ -6126,13 +6411,23 @@
             tdEst.appendChild(createDomEl('span', 'prop-row-badge activo', 'Activo'));
           }
 
-          tr.append(tdFecha, tdTipo, tdComp, tdCP, ...numCells, tdMon, tdEst);
+          // 11. Acción (3E: enlace a Comprobantes CPE sin duplicar lógica)
+          const tdAct = createDomEl('td');
+          tdAct.style.whiteSpace = 'nowrap';
+          const btnVer = createDomEl('button', 'btn btn-secondary btn-xs', 'Ver comprobante');
+          btnVer.type = 'button';
+          btnVer.style.minHeight = '34px';
+          btnVer.setAttribute('aria-label', `Ver comprobante ${compStr} en Comprobantes CPE`);
+          btnVer.addEventListener('click', () => abrirComprobanteEnCPE(row, linkLibro, linkPeriodo));
+          tdAct.appendChild(btnVer);
+
+          tr.append(tdFecha, tdTipo, tdComp, tdCP, ...numCells, tdMon, tdEst, tdAct);
           frag.appendChild(tr);
         });
         tbody.appendChild(frag);
       }
 
-      // Barra de paginación
+      // Barra de paginación (accesible con Tab, flechas y Enter)
       pagBar.replaceChildren();
       const totalFiltrado = Number(st.total_filtrado || 0);
       const limit = Number(st.limit || 50);
@@ -6145,7 +6440,9 @@
       const infoSpan = createDomEl('div', '',
         `Mostrando ${formatIntPE(fromIdx)}–${formatIntPE(toIdx)} de ${formatIntPE(totalFiltrado)} registros · Página ${formatIntPE(currentPage)} de ${formatIntPE(totalPages)}`);
 
-      const controls = createDomEl('div', 'prop-pag-controls');
+      const controls = createDomEl('nav', 'prop-pag-controls');
+      controls.setAttribute('aria-label', 'Paginación de comprobantes');
+
       const goPage = nextOffset => {
         if (!propAnalysisState) return;
         const clamped = Math.max(0, Math.min(nextOffset, (totalPages - 1) * limit));
@@ -6154,9 +6451,10 @@
         cargarPaginaPropuestaTXT();
       };
 
-      const makePagBtn = (label, targetOffset, disabled, ariaLabel) => {
+      const makePagBtn = (actionKey, label, targetOffset, disabled, ariaLabel) => {
         const b = createDomEl('button', 'btn btn-secondary btn-xs', label);
         b.type = 'button';
+        b.dataset.pagAction = actionKey;
         b.style.minHeight = '36px';
         b.disabled = disabled;
         if (ariaLabel) b.setAttribute('aria-label', ariaLabel);
@@ -6165,13 +6463,35 @@
       };
 
       controls.append(
-        makePagBtn('« Primera', 0, currentPage <= 1, 'Primera página'),
-        makePagBtn('‹ Anterior', offset - limit, currentPage <= 1, 'Página anterior'),
-        makePagBtn('Siguiente ›', offset + limit, currentPage >= totalPages, 'Página siguiente'),
-        makePagBtn('Última »', (totalPages - 1) * limit, currentPage >= totalPages, 'Última página')
+        makePagBtn('first', '« Primera', 0, currentPage <= 1, 'Primera página'),
+        makePagBtn('prev', '‹ Anterior', offset - limit, currentPage <= 1, 'Página anterior'),
+        makePagBtn('next', 'Siguiente ›', offset + limit, currentPage >= totalPages, 'Página siguiente'),
+        makePagBtn('last', 'Última »', (totalPages - 1) * limit, currentPage >= totalPages, 'Última página')
       );
 
+      controls.addEventListener('keydown', e => {
+        const keys = ['ArrowRight', 'ArrowLeft', 'Home', 'End'];
+        if (!keys.includes(e.key)) return;
+        const enabled = Array.from(controls.querySelectorAll('button:not(:disabled)'));
+        if (enabled.length === 0) return;
+        const idx = Math.max(0, enabled.indexOf(document.activeElement));
+        let nextIdx = idx;
+        if (e.key === 'ArrowRight') nextIdx = (idx + 1) % enabled.length;
+        else if (e.key === 'ArrowLeft') nextIdx = (idx - 1 + enabled.length) % enabled.length;
+        else if (e.key === 'Home') nextIdx = 0;
+        else if (e.key === 'End') nextIdx = enabled.length - 1;
+        e.preventDefault();
+        enabled[nextIdx].focus();
+      });
+
       pagBar.append(infoSpan, controls);
+
+      if (prevFocusAction) {
+        const same = controls.querySelector(`button[data-pag-action="${prevFocusAction}"]:not(:disabled)`);
+        const fallback = controls.querySelector('button:not(:disabled)');
+        if (same) same.focus();
+        else if (fallback) fallback.focus();
+      }
     }
 
     function renderProposalDailySvg(porDia) {
@@ -6555,28 +6875,190 @@
       return `<div class="card"><div class="card-header"><div class="card-title">${escapeHtml(title)}</div></div><div class="card-body"><pre class="console-box">${escapeHtml(JSON.stringify(data, null, 2))}</pre></div></div>`;
     }
 
-    // --- COMPROBANTES INDIVIDUALES ---
+    // --- COMPROBANTES INDIVIDUALES (SUB-ETAPA 3E: DISEÑO IMAGEN 3 + ENLACE DESDE PROPUESTA SIRE) ---
+    let cpeLinkContext = null; // contexto en memoria RAM al navegar desde "Ver comprobante" (nunca storage/console)
+
+    function getCpeFilterPeriodoYYYYMM() {
+      const raw = document.getElementById('cpe-filter-periodo')?.value.trim() || '';
+      if (!raw) return '';
+      return normalizePeriodoYYYYMM(raw) || raw.replace(/\D/g, '').slice(0, 6);
+    }
+
     function setCpeOrigen(val, btn) {
-      cpeFilterOrigen = val;
-      btn.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      cpeFilterOrigen = val || '';
+      const sel = document.getElementById('cpe-filter-origen');
+      if (sel && sel.value !== cpeFilterOrigen) sel.value = cpeFilterOrigen;
+      if (btn && btn.parentElement) {
+        btn.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
       cargarComprobantesCPE();
+    }
+
+    function limpiarFiltrosCPE() {
+      cpeLinkContext = null;
+      renderCpeLinkBanner();
+      cpeFilterOrigen = '';
+      const selOrig = document.getElementById('cpe-filter-origen');
+      if (selOrig) selOrig.value = '';
+      const selTipo = document.getElementById('cpe-filter-tipo');
+      if (selTipo) selTipo.value = 'FACTURAS_NOTAS';
+      const perInp = document.getElementById('cpe-filter-periodo');
+      if (perInp) perInp.value = '';
+      const qInp = document.getElementById('cpe-filter-q');
+      if (qInp) qInp.value = '';
+      cargarComprobantesCPE();
+    }
+
+    function renderCpeLinkBanner(notFound = false) {
+      const banner = document.getElementById('cpe-link-banner');
+      const txtBox = document.getElementById('cpe-link-banner-text');
+      const actBox = document.getElementById('cpe-link-banner-actions');
+      if (!banner || !txtBox || !actBox) return;
+
+      txtBox.replaceChildren();
+      actBox.replaceChildren();
+
+      if (!cpeLinkContext) {
+        banner.classList.remove('visible');
+        return;
+      }
+
+      const ctx = cpeLinkContext;
+      const compLbl = ctx.serie ? `${ctx.serie}-${ctx.numero || ''}` : (ctx.numero || '—');
+      const perLbl = ctx.periodo ? formatPeriodoLabel(ctx.periodo) : '';
+      const titleEl = createDomEl('strong', '', `Comprobante vinculado desde Propuesta SIRE: ${ctx.tipo_cp || ''} · ${compLbl}`);
+      const subText = notFound
+        ? ` No se encontró aún indexado en Comprobantes CPE (${ctx.origen}${perLbl ? ' · ' + perLbl : ''}). Puedes registrarlo o consultar su CDR manualmente sin alterar la propuesta.`
+        : ` (${ctx.origen}${perLbl ? ' · ' + perLbl : ''}${ctx.razon_social ? ' · ' + ctx.razon_social : ''})`;
+      txtBox.append(titleEl, createDomEl('span', '', subText));
+
+      if (notFound) {
+        const btnManual = createDomEl('button', 'btn btn-primary btn-xs', 'Consulta / CDR Manual');
+        btnManual.type = 'button';
+        btnManual.addEventListener('click', () => abrirModalManualDesdeEnlace(ctx));
+        actBox.appendChild(btnManual);
+      }
+
+      const btnAllPer = createDomEl('button', 'btn btn-secondary btn-xs', 'Ver todos del periodo');
+      btnAllPer.type = 'button';
+      btnAllPer.addEventListener('click', () => {
+        cpeLinkContext = null;
+        renderCpeLinkBanner();
+        const qInp = document.getElementById('cpe-filter-q');
+        if (qInp) qInp.value = '';
+        cargarComprobantesCPE();
+      });
+      actBox.appendChild(btnAllPer);
+
+      banner.classList.add('visible');
+    }
+
+    function abrirModalManualDesdeEnlace(ctx) {
+      if (!ctx) return;
+      const origEl = document.getElementById('manual-origen');
+      const tipoEl = document.getElementById('manual-tipo');
+      const serEl = document.getElementById('manual-serie');
+      const numEl = document.getElementById('manual-numero');
+      const rucEl = document.getElementById('manual-ruc-cp');
+      const perEl = document.getElementById('manual-periodo');
+      if (origEl && (ctx.origen === 'VENTAS' || ctx.origen === 'COMPRAS')) origEl.value = ctx.origen;
+      if (tipoEl && ['01', '03', '07', '08'].includes(String(ctx.tipo_cp || ''))) tipoEl.value = ctx.tipo_cp;
+      if (serEl) serEl.value = ctx.serie || '';
+      if (numEl) numEl.value = ctx.numero || '';
+      if (rucEl) rucEl.value = ctx.nro_doc_identidad || '';
+      if (perEl) perEl.value = normalizePeriodoYYYYMM(ctx.periodo) || '';
+      openModal('modal-cpe-manual');
+    }
+
+    function abrirComprobanteEnCPE(row, libro, periodo) {
+      const targetOrigen = String(libro || activePropLibro || 'VENTAS').toUpperCase() === 'COMPRAS' ? 'COMPRAS' : 'VENTAS';
+      const cleanPer = normalizePeriodoYYYYMM(periodo || row?.periodo || getPeriodoYYYYMM('prop'));
+      const tipoCode = String(row?.tipo_cp || '').trim();
+      const serie = String(row?.serie || '').trim();
+      const numero = String(row?.numero || '').trim();
+      const car = String(row?.car_sunat || '').trim();
+
+      cpeLinkContext = {
+        origen: targetOrigen,
+        periodo: cleanPer,
+        tipo_cp: tipoCode,
+        serie,
+        numero,
+        car_sunat: car,
+        nro_doc_identidad: String(row?.nro_doc_identidad || '').trim(),
+        razon_social: String(row?.razon_social || '').trim(),
+        triedFallback: false
+      };
+
+      cpeFilterOrigen = targetOrigen;
+      const selOrig = document.getElementById('cpe-filter-origen');
+      if (selOrig) selOrig.value = targetOrigen;
+
+      const perInp = document.getElementById('cpe-filter-periodo');
+      if (perInp) perInp.value = cleanPer ? formatPeriodoDash(cleanPer) : '';
+
+      const selTipo = document.getElementById('cpe-filter-tipo');
+      if (selTipo) {
+        const hasExactOpt = Array.from(selTipo.options).some(o => o.value === tipoCode);
+        selTipo.value = hasExactOpt ? tipoCode : '';
+      }
+
+      const qInp = document.getElementById('cpe-filter-q');
+      if (qInp) qInp.value = car || numero || serie;
+
+      renderCpeLinkBanner(false);
+      switchTab('tab-comprobantes');
     }
 
     function debouncedCargarCPE() {
       clearTimeout(cpeDebounceTimer);
-      cpeDebounceTimer = setTimeout(cargarComprobantesCPE, 240);
+      cpeDebounceTimer = setTimeout(() => {
+        if (cpeLinkContext) {
+          cpeLinkContext = null;
+          renderCpeLinkBanner();
+        }
+        cargarComprobantesCPE();
+      }, 280);
     }
 
     function updateCpeStats(list) {
-      document.getElementById('cpe-stat-total').textContent = String(list.length);
-      document.getElementById('cpe-stat-pdf').textContent = String(list.filter(c => c.tiene_pdf || c.tiene_xml).length);
-      const xmlCount = list.filter(c => c.tiene_xml).length;
-      const concCount = list.filter(c => c.concordancia_sire === 'CONCORDANTE').length;
-      document.getElementById('cpe-stat-xml').textContent = `${xmlCount} / ${concCount}`;
+      const arr = Array.isArray(list) ? list : [];
+      document.getElementById('cpe-stat-total').textContent = formatIntPE(arr.length);
+      const comprasCnt = arr.filter(c => String(c.origen || '').toUpperCase() === 'COMPRAS').length;
+      const ventasCnt = arr.filter(c => String(c.origen || '').toUpperCase() === 'VENTAS').length;
+      const splitEl = document.getElementById('cpe-stat-split-hint');
+      if (splitEl) splitEl.textContent = `Compras: ${formatIntPE(comprasCnt)} · Ventas: ${formatIntPE(ventasCnt)}`;
+      document.getElementById('cpe-stat-pdf').textContent = formatIntPE(arr.filter(c => c.tiene_pdf || c.tiene_xml).length);
+      const xmlCount = arr.filter(c => c.tiene_xml).length;
+      const concCount = arr.filter(c => c.concordancia_sire === 'CONCORDANTE').length;
+      document.getElementById('cpe-stat-xml').textContent = `${formatIntPE(xmlCount)} / ${formatIntPE(concCount)}`;
       const hintEl = document.getElementById('cpe-stat-conc-hint');
-      if (hintEl) hintEl.textContent = `${concCount} concordantes con SIRE vigente`;
-      document.getElementById('cpe-stat-cdr').textContent = String(list.filter(c => c.tiene_cdr).length);
+      if (hintEl) hintEl.textContent = `${formatIntPE(concCount)} concordantes con SIRE vigente`;
+      document.getElementById('cpe-stat-cdr').textContent = formatIntPE(arr.filter(c => c.tiene_cdr).length);
+    }
+
+    function buildConcordanciaBadgeEl(c) {
+      const st = c.concordancia_sire || 'PENDIENTE';
+      if (st === 'CONCORDANTE') {
+        const sp = createDomEl('span', 'badge valido', 'Concordante');
+        sp.title = c.detalle_concordancia || 'XML coincide 100% con SIRE';
+        return sp;
+      }
+      if (st === 'DIFERENCIA') {
+        const sp = createDomEl('span', 'badge invalidas', 'Diferencia');
+        sp.title = c.detalle_concordancia || 'Diferencia detectada XML vs SIRE';
+        return sp;
+      }
+      if (st === 'NO_EN_SUNAT') {
+        const sp = createDomEl('span', 'badge pendiente', 'No en CPE');
+        sp.title = c.detalle_concordancia || 'No disponible en Consulta CPE de SUNAT';
+        return sp;
+      }
+      const sp = createDomEl('span', '', c.estado_sunat || 'En SIRE');
+      sp.style.fontSize = '0.75rem';
+      sp.style.color = 'var(--text-muted)';
+      return sp;
     }
 
     function renderConcordanciaBadge(c) {
@@ -6596,9 +7078,16 @@
     async function cargarComprobantesCPE() {
       if (!activeRUC) return;
       const tbody = document.querySelector('#table-cpe tbody');
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Cargando comprobantes vigentes del SIRE...</td></tr>';
+      if (!tbody) return;
 
-      const periodo = document.getElementById('cpe-filter-periodo')?.value.trim() || '';
+      tbody.replaceChildren();
+      const loadTr = createDomEl('tr');
+      const loadTd = createDomEl('td', 'prop-state-empty', 'Cargando comprobantes vigentes del SIRE...');
+      loadTd.colSpan = 6;
+      loadTr.appendChild(loadTd);
+      tbody.appendChild(loadTr);
+
+      const periodo = getCpeFilterPeriodoYYYYMM();
       const tipoCP = document.getElementById('cpe-filter-tipo')?.value || '';
       const q = document.getElementById('cpe-filter-q')?.value.trim() || '';
       const params = new URLSearchParams();
@@ -6609,44 +7098,185 @@
 
       const res = await apiFetch(`/api/empresas/${activeRUC}/cpe?${params.toString()}`);
       const json = await res.json();
-      if (!res.ok) { tbody.innerHTML = `<tr><td colspan="8">${renderErrorAlert(json, json.detalle)}</td></tr>`; return; }
-
-      const items = json.data || [];
-      document.getElementById('nav-count-cpe').textContent = String(items.length);
-      updateCpeStats(items);
-
-      if (items.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay comprobantes para este filtro. Cambia el tipo de documento o sincroniza tu propuesta SIRE.</td></tr>';
+      if (!res.ok) {
+        tbody.replaceChildren();
+        const errTr = createDomEl('tr');
+        const errTd = createDomEl('td', 'prop-state-empty');
+        errTd.colSpan = 6;
+        errTd.setAttribute('role', 'alert');
+        const errTxt = createDomEl('div', '', json.error || 'No se pudieron cargar los comprobantes.');
+        errTxt.style.color = '#991b1b';
+        errTxt.style.fontWeight = '700';
+        const btnR = createDomEl('button', 'btn btn-primary btn-xs', 'Reintentar');
+        btnR.type = 'button';
+        btnR.style.marginTop = '0.6rem';
+        btnR.addEventListener('click', () => cargarComprobantesCPE());
+        errTd.append(errTxt, btnR);
+        errTr.appendChild(errTd);
+        tbody.appendChild(errTr);
         return;
       }
 
-      tbody.innerHTML = items.map(c => `
-        <tr>
-          <td><span class="badge ${c.origen === 'VENTAS' ? 'valido' : 'info'}">${escapeHtml(c.origen)}</span></td>
-          <td>${escapeHtml(c.periodo || '-')}</td>
-          <td>
-            <strong>${escapeHtml(c.tipo_cp)}-${escapeHtml(c.serie)}-${escapeHtml(c.numero)}</strong>
-            ${c.resumen_items ? `<div style="font-size:0.72rem; color:var(--primary); margin-top:2px; max-width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${escapeHtml(c.resumen_items)}">${escapeHtml(c.resumen_items)}</div>` : ''}
-          </td>
-          <td>${escapeHtml(c.fecha_emision || '-')}</td>
-          <td>
-            <div style="font-weight: 600;">${escapeHtml(c.ruc_contraparte || '-')}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml((c.razon_contraparte || '').slice(0, 42))}</div>
-          </td>
-          <td><strong>${escapeHtml(c.moneda || 'PEN')} ${Number(c.monto_total || 0).toFixed(2)}</strong></td>
-          <td>${renderConcordanciaBadge(c)}</td>
-          <td>
-            <div style="display: flex; gap: 0.3rem; flex-wrap: wrap;">
-              <button class="btn btn-primary btn-xs" onclick="verDetalleRealCPE(${c.id})" title="Ver ítems reales del XML SUNAT y validar concordancia con SIRE">Ver Detalle</button>
-              <button class="btn ${c.tiene_pdf ? 'btn-success' : 'btn-secondary'} btn-xs" onclick="descargarArchivoCPEReal(${c.id}, 'pdf', '${c.serie}-${c.numero}.pdf', this)" title="${c.tiene_pdf ? 'Descargar PDF original SUNAT' : 'Descargar PDF original directo desde SUNAT SOL'}">PDF</button>
-              <button class="btn ${c.tiene_xml ? 'btn-success' : 'btn-secondary'} btn-xs" onclick="descargarArchivoCPEReal(${c.id}, 'xml', '${c.serie}-${c.numero}.xml', this)" title="${c.tiene_xml ? 'Descargar XML UBL oficial' : 'Descargar XML original directo desde SUNAT SOL'}">XML</button>
-              <button class="btn ${c.tiene_cdr ? 'btn-success' : 'btn-secondary'} btn-xs" onclick="descargarArchivoCPEReal(${c.id}, 'cdr', 'R-${c.serie}-${c.numero}.zip', this)" title="${c.tiene_cdr ? 'Descargar CDR oficial' : 'Descargar CDR directo desde SUNAT SOL (/03 / SOAP)'}">CDR</button>
-              <button class="btn btn-ghost btn-xs" onclick="descargarArchivoCPEReal(${c.id}, 'json', '${c.serie}-${c.numero}.json', this)" title="Descargar JSON estructurado con ítems y hash">JSON</button>
-              <button class="btn btn-ghost btn-xs" onclick="abrirModalImportarCPE(${c.id})" title="Adjuntar XML, PDF o CDR manualmente">Adj.</button>
-            </div>
-          </td>
-        </tr>
-      `).join('');
+      const items = Array.isArray(json.data) ? json.data : [];
+
+      // Si venimos de "Ver comprobante" buscando por CAR SUNAT y no hubo match exacto, reintentar una vez por número
+      if (items.length === 0 && cpeLinkContext && !cpeLinkContext.triedFallback && cpeLinkContext.car_sunat && cpeLinkContext.numero && q === cpeLinkContext.car_sunat) {
+        cpeLinkContext.triedFallback = true;
+        const qInp = document.getElementById('cpe-filter-q');
+        if (qInp) qInp.value = cpeLinkContext.numero;
+        return cargarComprobantesCPE();
+      }
+
+      const navCount = document.getElementById('nav-count-cpe');
+      if (navCount) navCount.textContent = String(items.length);
+      updateCpeStats(items);
+
+      if (cpeLinkContext) {
+        renderCpeLinkBanner(items.length === 0);
+      }
+
+      tbody.replaceChildren();
+      if (items.length === 0) {
+        const emptyTr = createDomEl('tr');
+        const emptyTd = createDomEl('td', 'prop-state-empty');
+        emptyTd.colSpan = 6;
+        emptyTd.appendChild(createDomEl('div', '', 'No hay comprobantes para este filtro. Cambia los criterios de búsqueda o sincroniza tu propuesta SIRE.'));
+        const actWrap = createDomEl('div');
+        actWrap.style.display = 'inline-flex';
+        actWrap.style.gap = '0.5rem';
+        actWrap.style.marginTop = '0.65rem';
+        const btnClear = createDomEl('button', 'btn btn-secondary btn-xs', 'Limpiar filtros');
+        btnClear.type = 'button';
+        btnClear.addEventListener('click', () => limpiarFiltrosCPE());
+        actWrap.appendChild(btnClear);
+        if (cpeLinkContext) {
+          const btnMan = createDomEl('button', 'btn btn-primary btn-xs', 'Consulta / CDR Manual');
+          btnMan.type = 'button';
+          btnMan.addEventListener('click', () => abrirModalManualDesdeEnlace(cpeLinkContext));
+          actWrap.appendChild(btnMan);
+        }
+        emptyTd.appendChild(actWrap);
+        emptyTr.appendChild(emptyTd);
+        tbody.appendChild(emptyTr);
+        return;
+      }
+
+      // Si venimos desde Propuesta SIRE, ordenar coincidencia exacta (serie + numero) primero
+      const ordered = items.slice();
+      if (cpeLinkContext) {
+        const lk = cpeLinkContext;
+        const isExact = c =>
+          String(c.serie || '').toUpperCase() === lk.serie.toUpperCase() &&
+          String(c.numero || '').replace(/^0+/, '') === lk.numero.replace(/^0+/, '');
+        ordered.sort((a, b) => (isExact(b) ? 1 : 0) - (isExact(a) ? 1 : 0));
+      }
+
+      const frag = document.createDocumentFragment();
+      ordered.forEach(c => {
+        const tr = createDomEl('tr');
+        const isLinked = Boolean(
+          cpeLinkContext &&
+          String(c.serie || '').toUpperCase() === cpeLinkContext.serie.toUpperCase() &&
+          String(c.numero || '').replace(/^0+/, '') === cpeLinkContext.numero.replace(/^0+/, '')
+        );
+        if (isLinked) tr.classList.add('cpe-row-linked');
+
+        // 1. Comprobante (F001-123 + badge origen/tipo + resumen ítems)
+        const tdComp = createDomEl('td');
+        const topRow = createDomEl('div');
+        topRow.style.display = 'flex';
+        topRow.style.alignItems = 'center';
+        topRow.style.gap = '0.4rem';
+        topRow.style.flexWrap = 'wrap';
+        const numStrong = createDomEl('strong', '', `${c.serie || ''}-${c.numero || ''}`);
+        numStrong.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+        const origBadge = createDomEl('span', `badge ${c.origen === 'VENTAS' ? 'valido' : 'info'}`, c.origen || '');
+        origBadge.style.fontSize = '0.66rem';
+        origBadge.style.padding = '0.1rem 0.45rem';
+        const tipoTag = createDomEl('span', 'prop-tipo-chip', c.tipo_cp || '—');
+        tipoTag.title = getPropTipoLabel(c.tipo_cp);
+        topRow.append(numStrong, tipoTag, origBadge);
+        tdComp.appendChild(topRow);
+        if (c.resumen_items) {
+          const resDiv = createDomEl('div', '', c.resumen_items);
+          resDiv.style.fontSize = '0.73rem';
+          resDiv.style.color = 'var(--primary)';
+          resDiv.style.marginTop = '2px';
+          resDiv.style.maxWidth = '260px';
+          resDiv.style.whiteSpace = 'nowrap';
+          resDiv.style.overflow = 'hidden';
+          resDiv.style.textOverflow = 'ellipsis';
+          resDiv.title = c.resumen_items;
+          tdComp.appendChild(resDiv);
+        }
+
+        // 2. Fecha + periodo
+        const tdFecha = createDomEl('td');
+        tdFecha.style.whiteSpace = 'nowrap';
+        tdFecha.appendChild(createDomEl('div', '', c.fecha_emision || '—'));
+        if (c.periodo) {
+          tdFecha.appendChild(createDomEl('div', 'prop-cell-sub', formatPeriodoDash(c.periodo) || c.periodo));
+        }
+
+        // 3. Proveedor / Cliente
+        const tdCP = createDomEl('td');
+        const razon = createDomEl('div', '', c.razon_contraparte || c.ruc_contraparte || '—');
+        razon.style.fontWeight = '600';
+        tdCP.appendChild(razon);
+        if (c.ruc_contraparte) {
+          tdCP.appendChild(createDomEl('div', 'prop-cell-sub', `RUC/Doc ${c.ruc_contraparte}`));
+        }
+
+        // 4. Importe (es-PE, 2 decimales, alineado derecha)
+        const mon = String(c.moneda || 'PEN').toUpperCase();
+        const prefixMon = mon === 'PEN' ? 'S/ ' : `${mon} `;
+        const tdImp = createDomEl('td', 'num', `${prefixMon}${formatMoneyPE(c.monto_total || 0)}`);
+        tdImp.style.fontWeight = '800';
+
+        // 5. Estado
+        const tdEst = createDomEl('td');
+        tdEst.appendChild(buildConcordanciaBadgeEl(c));
+
+        // 6. Archivos (PDF, XML, CDR, JSON + Detalle + Adj.)
+        const tdArch = createDomEl('td');
+        const actDiv = createDomEl('div', 'cpe-file-actions');
+        const baseName = `${c.serie || 'CPE'}-${c.numero || c.id}`;
+
+        const makeFileBtn = (label, tipo, fname, isLocal, titleText, extraCls = '') => {
+          const b = createDomEl('button', `cpe-file-btn ${isLocal ? 'is-local' : ''} ${extraCls}`.trim(), label);
+          b.type = 'button';
+          b.title = titleText;
+          b.setAttribute('aria-label', `${label} del comprobante ${baseName}`);
+          b.addEventListener('click', () => descargarArchivoCPEReal(c.id, tipo, fname, b));
+          return b;
+        };
+
+        actDiv.append(
+          makeFileBtn('PDF', 'pdf', `${baseName}.pdf`, Boolean(c.tiene_pdf), c.tiene_pdf ? 'Descargar PDF local / SUNAT' : 'Descargar PDF desde SUNAT SOL'),
+          makeFileBtn('XML', 'xml', `${baseName}.xml`, Boolean(c.tiene_xml), c.tiene_xml ? 'Descargar XML UBL oficial' : 'Descargar XML desde SUNAT SOL'),
+          makeFileBtn('CDR', 'cdr', `R-${baseName}.zip`, Boolean(c.tiene_cdr), c.tiene_cdr ? 'Descargar CDR oficial' : 'Descargar CDR desde SUNAT SOL (/03 / SOAP)'),
+          makeFileBtn('JSON', 'json', `${baseName}.json`, false, 'Descargar JSON estructurado con ítems y hash', 'subtle')
+        );
+
+        const btnDet = createDomEl('button', 'cpe-file-btn subtle', 'Detalle');
+        btnDet.type = 'button';
+        btnDet.title = 'Ver ítems del XML SUNAT y validar concordancia con SIRE';
+        btnDet.setAttribute('aria-label', `Ver detalle de ${baseName}`);
+        btnDet.addEventListener('click', () => verDetalleRealCPE(c.id));
+
+        const btnAdj = createDomEl('button', 'cpe-file-btn subtle', 'Adj.');
+        btnAdj.type = 'button';
+        btnAdj.title = 'Adjuntar XML, PDF o CDR manualmente';
+        btnAdj.setAttribute('aria-label', `Adjuntar archivo a ${baseName}`);
+        btnAdj.addEventListener('click', () => abrirModalImportarCPE(c.id));
+
+        actDiv.append(btnDet, btnAdj);
+        tdArch.appendChild(actDiv);
+
+        tr.append(tdComp, tdFecha, tdCP, tdImp, tdEst, tdArch);
+        frag.appendChild(tr);
+      });
+      tbody.appendChild(frag);
     }
 
     async function descargarArchivoCPEReal(id, tipo, fname, btn) {
@@ -6765,7 +7395,7 @@
       const origenSel = document.getElementById('bulk-origen');
       const perInput = document.getElementById('bulk-periodo');
       if (cpeFilterOrigen) origenSel.value = cpeFilterOrigen;
-      const curPer = document.getElementById('cpe-filter-periodo')?.value.trim() || '';
+      const curPer = getCpeFilterPeriodoYYYYMM();
       if (curPer) perInput.value = curPer;
       openModal('modal-cpe-bulk');
     }
@@ -6783,10 +7413,12 @@
 
       const tiposRaw = (document.getElementById('bulk-tipos')?.value || '').trim();
       const tiposCP = tiposRaw ? tiposRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+      const rawBulkPer = document.getElementById('bulk-periodo').value.trim();
+      const normBulkPer = rawBulkPer ? (normalizePeriodoYYYYMM(rawBulkPer) || rawBulkPer.replace(/\D/g, '').slice(0, 6)) : '';
 
       const body = {
         origen: document.getElementById('bulk-origen').value,
-        periodo: document.getElementById('bulk-periodo').value.trim(),
+        periodo: normBulkPer,
         tipos_cp: tiposCP,
         solo_vigentes_sire: true,
         formatos,
@@ -6946,7 +7578,7 @@
 
     async function exportarItemsCPE() {
       if (!activeRUC) return showToast('Seleccione primero una empresa activa', 'warning');
-      const periodo = document.getElementById('cpe-filter-periodo')?.value.trim() || '';
+      const periodo = getCpeFilterPeriodoYYYYMM();
       const tipoCP = document.getElementById('cpe-filter-tipo')?.value || '';
       const params = new URLSearchParams();
       if (cpeFilterOrigen) params.set('origen', cpeFilterOrigen);
