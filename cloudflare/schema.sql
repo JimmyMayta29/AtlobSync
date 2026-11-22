@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS licenses (
     plan_label       TEXT NOT NULL DEFAULT 'Demo 7 días',
     client_name      TEXT NOT NULL DEFAULT '',
     client_contact   TEXT NOT NULL DEFAULT '',
+    client_email     TEXT NOT NULL DEFAULT '',
+    client_phone     TEXT NOT NULL DEFAULT '',
     status           TEXT NOT NULL DEFAULT 'active'
                      CHECK (status IN ('active', 'expired', 'revoked', 'suspended')),
     duration_days    INTEGER,
@@ -42,4 +44,6 @@ CREATE TABLE IF NOT EXISTS license_events (
 
 CREATE INDEX IF NOT EXISTS idx_licenses_status ON licenses(status);
 CREATE INDEX IF NOT EXISTS idx_licenses_last_seen ON licenses(last_seen_at);
+CREATE INDEX IF NOT EXISTS idx_licenses_client_email ON licenses(client_email);
+CREATE INDEX IF NOT EXISTS idx_licenses_machine_hash ON licenses(machine_hash);
 CREATE INDEX IF NOT EXISTS idx_license_events_license_id ON license_events(license_id, created_at);

@@ -57,6 +57,14 @@ export default {
         return await handleValidateLicense(env.DB, body);
       }
 
+      if (method === "POST" && path === "/rest/v1/rpc/register_trial") {
+        if (!isClient) {
+          return jsonResponse({ message: "Se requiere CLIENT_API_KEY para registrar prueba." }, 403);
+        }
+        const body = await readJsonBody(request);
+        return await handleRegisterTrial(env.DB, body);
+      }
+
       // Rutas administrativas (exclusivas para ADMIN_API_KEY)
       const isAdminRoute =
         (method === "POST" &&
@@ -229,6 +237,8 @@ function formatLicenseRow(row) {
     plan_label: row.plan_label,
     client_name: row.client_name || "",
     client_contact: row.client_contact || "",
+    client_email: row.client_email || "",
+    client_phone: row.client_phone || "",
     status: row.status,
     duration_days: row.duration_days === null || row.duration_days === undefined ? null : Number(row.duration_days),
     max_companies: Number(row.max_companies ?? 0),
@@ -548,6 +558,207 @@ async function handleValidateLicense(db, body) {
 
   row = await db.prepare("SELECT * FROM licenses WHERE id = ?").bind(row.id).first();
   return jsonResponse(buildRpcResponse(true, "ACTIVE", "Licencia vigente.", row, nowDate));
+}
+
+async function handleRegisterTrial(db, body) {
+  const clientName = cleanText(body.p_client_name, 120);
+  const clientEmail = cleanText(body.p_client_email, 120).toLowerCase();
+  const clientPhone = cleanText(body.p_client_phone, 40);
+  const machineHash = normalizeMachineHash(body.p_machine_hash);
+  const machineName = cleanText(body.p_machine_name, 64);
+  const appVersion = cleanText(body.p_app_version, 32);
+  const nowDate = new Date();
+  const nowISO = nowDate.toISOString();
+
+  if (clientName.length < 2) {
+    throw httpError("Ingresa tu nombre completo o estudio contable (mínimo 2 caracteres).", 400);
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail)) {
+    throw httpError("Ingresa un correo electrónico válido.", 400);
+  }
+  const phoneDigits = clientPhone.replace(/\D+/g, "");
+  if (phoneDigits.length < 7) {
+    throw httpError("Ingresa un número de celular o WhatsApp válido (mínimo 7 dígitos).", 400);
+  }
+  if (!machineHash || machineHash.length < 16) {
+    return jsonResponse({
+      ok: false,
+      code: "INVALID_MACHINE",
+      status: "",
+      server_time: nowISO,
+      message: "No se pudo identificar este equipo de forma segura.",
+    });
+  }
+
+  // Regla anti-abuso 1: verificar si este equipo ya registró o tiene una licencia
+  let byMachine = await db
+    .prepare("SELECT * FROM licenses WHERE machine_hash = ? ORDER BY created_at DESC LIMIT 1")
+    .bind(machineHash)
+    .first();
+
+  if (byMachine) {
+    if (byMachine.status === "revoked" || byMachine.status === "suspended") {
+      await recordEvent(db, {
+        licenseId: byMachine.id,
+        licenseKey: byMachine.license_key,
+        eventType: "trial_duplicate_blocked",
+        machineHash,
+        machineName,
+        appVersion,
+        detail: `Registro bloqueado por estado ${byMachine.status} en este equipo`,
+        nowISO,
+      });
+      const msg =
+        byMachine.status === "revoked"
+          ? `Este equipo tuvo un acceso que fue revocado. Contáctanos al ${SUPPORT_PHONE} para soporte o contratación.`
+          : `El acceso en este equipo está suspendido temporalmente. Contáctanos al ${SUPPORT_PHONE}.`;
+      return jsonResponse(buildRpcResponse(false, byMachine.status.toUpperCase(), msg, byMachine, nowDate));
+    }
+
+    if (byMachine.status === "expired" || (byMachine.expires_at && nowDate.getTime() >= Date.parse(byMachine.expires_at))) {
+      await db.prepare("UPDATE licenses SET status = 'expired', updated_at = ? WHERE id = ?").bind(nowISO, byMachine.id).run();
+      byMachine = await db.prepare("SELECT * FROM licenses WHERE id = ?").bind(byMachine.id).first();
+      await recordEvent(db, {
+        licenseId: byMachine.id,
+        licenseKey: byMachine.license_key,
+        eventType: "trial_duplicate_blocked",
+        machineHash,
+        machineName,
+        appVersion,
+        detail: "Equipo intentó volver a crear prueba tras vencer",
+        nowISO,
+      });
+      return jsonResponse(
+        buildRpcResponse(
+          false,
+          "EXPIRED",
+          `Este equipo ya utilizó su prueba gratuita de 7 días. Tus datos siguen guardados; contáctanos al ${SUPPORT_PHONE} para contratar tu licencia.`,
+          byMachine,
+          nowDate
+        )
+      );
+    }
+
+    await db
+      .prepare(
+        `UPDATE licenses
+         SET last_seen_at = ?,
+             machine_name = CASE WHEN ? <> '' THEN ? ELSE machine_name END,
+             app_version = CASE WHEN ? <> '' THEN ? ELSE app_version END,
+             heartbeat_count = heartbeat_count + 1,
+             updated_at = ?
+         WHERE id = ?`
+      )
+      .bind(nowISO, machineName, machineName, appVersion, appVersion, nowISO, byMachine.id)
+      .run();
+
+    byMachine = await db.prepare("SELECT * FROM licenses WHERE id = ?").bind(byMachine.id).first();
+    await recordEvent(db, {
+      licenseId: byMachine.id,
+      licenseKey: byMachine.license_key,
+      eventType: "trial_restored",
+      machineHash,
+      machineName,
+      appVersion,
+      detail: "Se restauró prueba/licencia vigente en el mismo equipo",
+      nowISO,
+    });
+    return jsonResponse(buildRpcResponse(true, "ACTIVE", "Recuperamos tu prueba gratuita activa en este equipo.", byMachine, nowDate));
+  }
+
+  // Regla anti-abuso 2: verificar si el correo ya usó una prueba gratuita
+  let byEmail = await db
+    .prepare("SELECT * FROM licenses WHERE lower(client_email) = ? AND plan_type = 'demo' ORDER BY created_at DESC LIMIT 1")
+    .bind(clientEmail)
+    .first();
+
+  if (byEmail) {
+    if (
+      byEmail.status === "revoked" ||
+      byEmail.status === "suspended" ||
+      byEmail.status === "expired" ||
+      (byEmail.expires_at && nowDate.getTime() >= Date.parse(byEmail.expires_at))
+    ) {
+      if (byEmail.expires_at && nowDate.getTime() >= Date.parse(byEmail.expires_at) && byEmail.status !== "revoked" && byEmail.status !== "suspended") {
+        await db.prepare("UPDATE licenses SET status = 'expired', updated_at = ? WHERE id = ?").bind(nowISO, byEmail.id).run();
+        byEmail = await db.prepare("SELECT * FROM licenses WHERE id = ?").bind(byEmail.id).first();
+      }
+      await recordEvent(db, {
+        licenseId: byEmail.id,
+        licenseKey: byEmail.license_key,
+        eventType: "trial_email_expired",
+        machineHash,
+        machineName,
+        appVersion,
+        detail: `Correo ${clientEmail} intentó repetir prueba gratuita`,
+        nowISO,
+      });
+      return jsonResponse(
+        buildRpcResponse(
+          false,
+          "EXPIRED",
+          `Este correo ya utilizó su prueba gratuita de 7 días. Contáctanos al ${SUPPORT_PHONE} para activar un plan comercial.`,
+          byEmail,
+          nowDate
+        )
+      );
+    }
+
+    if (byEmail.machine_hash && byEmail.machine_hash !== machineHash) {
+      await recordEvent(db, {
+        licenseId: byEmail.id,
+        licenseKey: byEmail.license_key,
+        eventType: "trial_email_duplicate",
+        machineHash,
+        machineName,
+        appVersion,
+        detail: `Correo ${clientEmail} ya activo en otro equipo`,
+        nowISO,
+      });
+      return jsonResponse(
+        buildRpcResponse(
+          false,
+          "MACHINE_MISMATCH",
+          `Este correo ya cuenta con una prueba gratuita registrada en otro equipo. Contáctanos al ${SUPPORT_PHONE} para soporte o contratación.`,
+          byEmail,
+          nowDate
+        )
+      );
+    }
+  }
+
+  // Crear prueba gratuita automática de 7 días con tope de 3 empresas
+  const id = crypto.randomUUID();
+  const licenseKey = await generateUniqueKey(db, "ATLOB-DEMO");
+  const expiresAt = new Date(nowDate.getTime() + 7 * MS_PER_DAY).toISOString();
+  const clientContact = `${clientEmail} | ${clientPhone}`;
+
+  await db
+    .prepare(
+      `INSERT INTO licenses (
+        id, license_key, plan_type, plan_label, client_name, client_contact, client_email, client_phone,
+        status, duration_days, max_companies, machine_hash, machine_name, activated_at, expires_at, last_seen_at,
+        app_version, activation_count, notes, created_at, updated_at
+      ) VALUES (?, ?, 'demo', 'Prueba Gratis 7 días', ?, ?, ?, ?, 'active', 7, 3, ?, ?, ?, ?, ?, ?, 1, 'Auto-registro desde ATLOB Sync', ?, ?)`
+    )
+    .bind(id, licenseKey, clientName, clientContact, clientEmail, clientPhone, machineHash, machineName, nowISO, expiresAt, nowISO, appVersion, nowISO, nowISO)
+    .run();
+
+  const created = await db.prepare("SELECT * FROM licenses WHERE id = ?").bind(id).first();
+  await recordEvent(db, {
+    licenseId: id,
+    licenseKey,
+    eventType: "trial_registered",
+    machineHash,
+    machineName,
+    appVersion,
+    detail: `Auto-registro demo 7 días (${clientEmail} | ${clientPhone})`,
+    nowISO,
+  });
+
+  return jsonResponse(
+    buildRpcResponse(true, "ACTIVE", "¡Cuenta creada! Tienes 7 días de prueba gratuita (hasta 3 empresas).", created, nowDate)
+  );
 }
 
 function generateReadableKey(prefix) {

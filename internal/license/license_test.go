@@ -21,6 +21,7 @@ type mockLicenseRecord struct {
 	PlanType     string
 	PlanLabel    string
 	ClientName   string
+	ClientEmail  string
 	Status       string
 	MaxCompanies int
 	DurationDays int
@@ -54,11 +55,101 @@ func newMockSupabaseServer(baseTime time.Time) *mockSupabaseServer {
 
 		var body map[string]interface{}
 		_ = json.NewDecoder(r.Body).Decode(&body)
-		key, _ := body["p_license_key"].(string)
 		mHash, _ := body["p_machine_hash"].(string)
-		key = strings.ToUpper(strings.TrimSpace(key))
 
 		w.Header().Set("Content-Type", "application/json")
+		if strings.HasSuffix(r.URL.Path, "/register_trial") {
+			cName, _ := body["p_client_name"].(string)
+			cEmail, _ := body["p_client_email"].(string)
+			cEmail = strings.ToLower(strings.TrimSpace(cEmail))
+			for _, rec := range m.records {
+				if rec.MachineHash == mHash {
+					if rec.ExpiresAt != nil && !m.now.Before(*rec.ExpiresAt) {
+						rec.Status = "expired"
+						_ = json.NewEncoder(w).Encode(map[string]interface{}{
+							"ok":            false,
+							"code":          "EXPIRED",
+							"status":        "expired",
+							"license_key":   rec.Key,
+							"plan_type":     rec.PlanType,
+							"plan_label":    rec.PlanLabel,
+							"client_name":   rec.ClientName,
+							"max_companies": rec.MaxCompanies,
+							"expires_at":    rec.ExpiresAt,
+							"server_time":   m.now,
+							"message":       "Este equipo ya utilizó su prueba gratuita de 7 días.",
+						})
+						return
+					}
+					_ = json.NewEncoder(w).Encode(map[string]interface{}{
+						"ok":            true,
+						"code":          "ACTIVE",
+						"status":        "active",
+						"license_key":   rec.Key,
+						"plan_type":     rec.PlanType,
+						"plan_label":    rec.PlanLabel,
+						"client_name":   rec.ClientName,
+						"max_companies": rec.MaxCompanies,
+						"activated_at":  rec.ActivatedAt,
+						"expires_at":    rec.ExpiresAt,
+						"server_time":   m.now,
+						"message":       "Recuperamos tu prueba gratuita.",
+					})
+					return
+				}
+				if rec.ClientEmail == cEmail && rec.PlanType == "demo" && rec.MachineHash != mHash {
+					_ = json.NewEncoder(w).Encode(map[string]interface{}{
+						"ok":            false,
+						"code":          "MACHINE_MISMATCH",
+						"status":        rec.Status,
+						"license_key":   rec.Key,
+						"plan_type":     rec.PlanType,
+						"plan_label":    rec.PlanLabel,
+						"client_name":   rec.ClientName,
+						"max_companies": rec.MaxCompanies,
+						"expires_at":    rec.ExpiresAt,
+						"server_time":   m.now,
+						"message":       "Este correo ya cuenta con una prueba gratuita registrada en otro equipo.",
+					})
+					return
+				}
+			}
+			exp := m.now.Add(7 * 24 * time.Hour)
+			act := m.now
+			newKey := "ATLOB-DEMO-AUTO-0001"
+			rec := &mockLicenseRecord{
+				Key:          newKey,
+				PlanType:     "demo",
+				PlanLabel:    "Prueba Gratis 7 días",
+				ClientName:   cName,
+				ClientEmail:  cEmail,
+				Status:       "active",
+				MaxCompanies: 3,
+				DurationDays: 7,
+				MachineHash:  mHash,
+				ActivatedAt:  &act,
+				ExpiresAt:    &exp,
+			}
+			m.records[newKey] = rec
+			_ = json.NewEncoder(w).Encode(map[string]interface{}{
+				"ok":            true,
+				"code":          "ACTIVE",
+				"status":        "active",
+				"license_key":   rec.Key,
+				"plan_type":     rec.PlanType,
+				"plan_label":    rec.PlanLabel,
+				"client_name":   rec.ClientName,
+				"max_companies": rec.MaxCompanies,
+				"activated_at":  rec.ActivatedAt,
+				"expires_at":    rec.ExpiresAt,
+				"server_time":   m.now,
+				"message":       "¡Cuenta creada! Tienes 7 días de prueba gratuita (hasta 3 empresas).",
+			})
+			return
+		}
+
+		key, _ := body["p_license_key"].(string)
+		key = strings.ToUpper(strings.TrimSpace(key))
 		rec, ok := m.records[key]
 		if !ok {
 			_ = json.NewEncoder(w).Encode(map[string]interface{}{
@@ -474,5 +565,56 @@ func TestLicenseDevModeAllowsRequestsWithoutSupabaseConfig(t *testing.T) {
 	}
 	if err := svc.CheckCanCreateCompany(50); err != nil {
 		t.Fatalf("modo dev no debe limitar empresas: %v", err)
+	}
+}
+
+func TestLicenseRegisterTrialAutoProvisionsAndBlocksRepeat(t *testing.T) {
+	baseNow := time.Date(2026, 11, 21, 20, 0, 0, 0, time.UTC)
+	mock := newMockSupabaseServer(baseNow)
+	defer mock.server.Close()
+
+	db, cryptoSvc := setupLicenseTestDB(t)
+	defer db.Close()
+
+	cfg := Config{SupabaseURL: mock.server.URL, SupabaseAnonKey: "anon", Enforced: true}
+	svc := NewService(db, cryptoSvc, cfg, func() (int, error) { return 0, nil })
+	svc.SetNowFn(func() time.Time { return baseNow })
+	svc.SetMachineIdentity("hash-trial-pc1", "PC-PROSPECTO")
+
+	// Validación local de campos vacíos / inválidos
+	if _, err := svc.RegisterTrial(context.Background(), "A", "mal", "123"); err == nil {
+		t.Fatalf("debía rechazar datos inválidos antes de consultar al servidor")
+	}
+
+	// Registro válido: aprovisiona 7 días y máximo 3 empresas automáticamente
+	st, err := svc.RegisterTrial(context.Background(), "Estudio Contable Lima", "contacto@estudio.pe", "940781298")
+	if err != nil {
+		t.Fatalf("error en registro automático de prueba: %v", err)
+	}
+	if !st.Valid || st.DaysRemaining != 7 || st.MaxCompanies != 3 || st.ClientName != "Estudio Contable Lima" {
+		t.Fatalf("estado inesperado tras auto-registro: %+v", st)
+	}
+
+	// Otro equipo intentando registrar con el mismo correo -> MACHINE_MISMATCH
+	db2, cryptoSvc2 := setupLicenseTestDB(t)
+	defer db2.Close()
+	svc2 := NewService(db2, cryptoSvc2, cfg, nil)
+	svc2.SetNowFn(func() time.Time { return baseNow })
+	svc2.SetMachineIdentity("hash-trial-pc2", "PC-OTRO")
+	stDupEmail, err := svc2.RegisterTrial(context.Background(), "Otro Usuario", "contacto@estudio.pe", "999888777")
+	if err != nil || stDupEmail.Valid || stDupEmail.Code != CodeMachineMismatch {
+		t.Fatalf("mismo correo en otro equipo debía bloquearse con MACHINE_MISMATCH, obtenido: err=%v st=%+v", err, stDupEmail)
+	}
+
+	// Tras vencer 8 días, intentar re-registrar en la misma PC debe bloquearse como EXPIRED
+	expiredNow := baseNow.Add(8 * 24 * time.Hour)
+	mock.mu.Lock()
+	mock.now = expiredNow
+	mock.mu.Unlock()
+	svc.SetNowFn(func() time.Time { return expiredNow })
+
+	stExpired, err := svc.RegisterTrial(context.Background(), "Estudio Contable Lima", "otro@correo.pe", "940781298")
+	if err != nil || stExpired.Valid || stExpired.Code != CodeExpired {
+		t.Fatalf("tras vencer los 7 días debía bloquearse como EXPIRED, obtenido: err=%v st=%+v", err, stExpired)
 	}
 }

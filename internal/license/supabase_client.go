@@ -82,6 +82,18 @@ func (c *SupabaseClient) Validate(ctx context.Context, key, machineHash, machine
 	return c.callRPC(ctx, "validate_license", payload)
 }
 
+func (c *SupabaseClient) RegisterTrial(ctx context.Context, clientName, clientEmail, clientPhone, machineHash, machineName, appVersion string) (*rpcResponse, error) {
+	payload := map[string]interface{}{
+		"p_client_name":  clientName,
+		"p_client_email": clientEmail,
+		"p_client_phone": clientPhone,
+		"p_machine_hash": machineHash,
+		"p_machine_name": machineName,
+		"p_app_version":  appVersion,
+	}
+	return c.callRPC(ctx, "register_trial", payload)
+}
+
 func (c *SupabaseClient) callRPC(ctx context.Context, fnName string, payload map[string]interface{}) (*rpcResponse, error) {
 	if !c.IsConfigured() {
 		return nil, errors.New("servidor de licencias Supabase no configurado")

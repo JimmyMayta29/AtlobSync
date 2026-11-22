@@ -23,6 +23,8 @@ type licenseRow struct {
 	PlanLabel       string     `json:"plan_label"`
 	ClientName      string     `json:"client_name"`
 	ClientContact   string     `json:"client_contact"`
+	ClientEmail     string     `json:"client_email"`
+	ClientPhone     string     `json:"client_phone"`
 	Status          string     `json:"status"`
 	DurationDays    *int       `json:"duration_days"`
 	MaxCompanies    int        `json:"max_companies"`
@@ -304,9 +306,9 @@ func handleListLicenses(client *adminClient) {
 		return
 	}
 
-	fmt.Printf("\n%-22s | %-22s | %-11s | %-9s | %-10s | %-8s | %-15s | %-16s\n",
-		"CLAVE", "CLIENTE", "PLAN", "ESTADO", "VIGENCIA", "EMPRESAS", "EQUIPO", "ULTIMA CONEXION")
-	fmt.Println(strings.Repeat("-", 132))
+	fmt.Printf("\n%-20s | %-20s | %-28s | %-10s | %-9s | %-10s | %-7s | %-14s | %-14s\n",
+		"CLAVE", "CLIENTE", "CONTACTO", "PLAN", "ESTADO", "VIGENCIA", "EMPR.", "EQUIPO", "ULTIMA CONEXION")
+	fmt.Println(strings.Repeat("-", 150))
 
 	now := time.Now()
 	for _, r := range rows {
@@ -327,9 +329,17 @@ func handleListLicenses(client *adminClient) {
 		}
 		empStr := fmt.Sprintf("%d/%s", r.CompaniesCount, maxStr)
 
+		contacto := strings.TrimSpace(r.ClientContact)
+		if contacto == "" {
+			contacto = strings.TrimSpace(strings.Trim(r.ClientEmail+" | "+r.ClientPhone, " |"))
+		}
+		if contacto == "" {
+			contacto = "-"
+		}
+
 		equipo := "-"
 		if r.MachineName != "" {
-			equipo = truncate(r.MachineName, 15)
+			equipo = truncate(r.MachineName, 14)
 		} else if r.MachineHash != nil && *r.MachineHash != "" {
 			equipo = "Vinculado"
 		}
@@ -339,10 +349,11 @@ func handleListLicenses(client *adminClient) {
 			lastSeen = r.LastSeenAt.Local().Format("02/01/06 15:04")
 		}
 
-		fmt.Printf("%-22s | %-22s | %-11s | %-9s | %-10s | %-8s | %-15s | %-16s\n",
-			truncate(r.LicenseKey, 22),
-			truncate(r.ClientName, 22),
-			truncate(r.PlanType, 11),
+		fmt.Printf("%-20s | %-20s | %-28s | %-10s | %-9s | %-10s | %-7s | %-14s | %-14s\n",
+			truncate(r.LicenseKey, 20),
+			truncate(r.ClientName, 20),
+			truncate(contacto, 28),
+			truncate(r.PlanType, 10),
 			truncate(r.Status, 9),
 			truncate(vig, 10),
 			empStr,

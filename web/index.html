@@ -3793,6 +3793,44 @@
       .onboarding-steps { grid-template-columns: 1fr; }
       .wizard-steps { grid-template-columns: 1fr; }
     }
+
+    .lic-mode-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.4rem;
+      background: #edf3f9;
+      border: 1px solid #d5e1ee;
+      border-radius: 10px;
+      padding: 0.28rem;
+      margin-bottom: 1.05rem;
+    }
+    .lic-mode-tab {
+      min-height: 36px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: #51627a;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0.35rem 0.6rem;
+      transition: background var(--transition), color var(--transition), box-shadow var(--transition);
+    }
+    .lic-mode-tab.active {
+      background: #ffffff;
+      color: #0b2545;
+      box-shadow: 0 2px 6px rgba(11, 37, 69, 0.08);
+    }
+    .trial-terms-note {
+      font-size: 0.77rem;
+      color: #51627a;
+      background: #f8fafc;
+      border: 1px solid #dce5f0;
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      margin-bottom: 1rem;
+      line-height: 1.42;
+    }
   </style>
 </head>
 <body>
@@ -3834,12 +3872,17 @@
     <div class="auth-right">
       <div class="auth-card" id="license-gate-card">
         <div style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem; margin-bottom:0.75rem; flex-wrap:wrap;">
-          <span id="lic-gate-status-badge" class="badge gold">Activación requerida</span>
+          <span id="lic-gate-status-badge" class="badge gold">Prueba Gratis · 7 días</span>
           <span style="font-size:0.75rem; color:#51627a; font-weight:600;">Equipo: <code id="lic-gate-machine-id">-</code></span>
         </div>
 
-        <h2 class="auth-card-title" id="lic-gate-title">Activa tu ATLOB Sync</h2>
-        <p class="auth-card-subtitle" id="lic-gate-subtitle" style="margin-bottom:1.1rem;">Ingresa tu código de prueba de 7 días o tu licencia comercial.</p>
+        <h2 class="auth-card-title" id="lic-gate-title">Crea tu cuenta y prueba gratis 7 días</h2>
+        <p class="auth-card-subtitle" id="lic-gate-subtitle" style="margin-bottom:0.95rem;">100% funcional desde tu PC · Límite de hasta 3 empresas (RUCs). Sin códigos ni tarjeta.</p>
+
+        <div class="lic-mode-tabs" id="lic-mode-tabs" role="tablist" aria-label="Modo de acceso">
+          <button type="button" id="lic-tab-trial" class="lic-mode-tab active" onclick="setLicGateMode('trial')">Prueba gratis (7 días)</button>
+          <button type="button" id="lic-tab-activate" class="lic-mode-tab" onclick="setLicGateMode('activate')">Tengo una licencia</button>
+        </div>
 
         <div id="lic-gate-data-safe" class="banner banner-info" style="display:none; margin-bottom:1rem;">
           <div><strong>Tus datos están seguros:</strong> tus empresas registradas y archivos descargados permanecen guardados en este equipo.</div>
@@ -3847,10 +3890,33 @@
 
         <div id="lic-gate-feedback" style="margin-bottom:0.85rem;"></div>
 
-        <form id="form-license-activate" onsubmit="handleLicenseActivateSubmit(event)" novalidate>
+        <form id="form-trial-register" onsubmit="handleTrialRegisterSubmit(event)" novalidate>
+          <div class="auth-field" style="margin-bottom:0.85rem;">
+            <label class="auth-label" for="trial-name">Nombre completo o Estudio Contable</label>
+            <input type="text" id="trial-name" class="auth-input" placeholder="Ej. Estudio Contable Pérez" autocomplete="name" maxlength="100">
+          </div>
+
+          <div class="auth-field" style="margin-bottom:0.85rem;">
+            <label class="auth-label" for="trial-email">Correo electrónico</label>
+            <input type="email" id="trial-email" class="auth-input" placeholder="correo@estudio.com" autocomplete="email" maxlength="120">
+          </div>
+
+          <div class="auth-field" style="margin-bottom:0.85rem;">
+            <label class="auth-label" for="trial-phone">Celular / WhatsApp</label>
+            <input type="tel" id="trial-phone" class="auth-input" placeholder="Ej. 999888777" autocomplete="tel" maxlength="30">
+          </div>
+
+          <div class="trial-terms-note">
+            Tu acceso demo se activa al instante por <strong>7 días</strong> (hasta <strong>3 empresas</strong>). Al finalizar, el sistema se bloquea hasta contratar un plan comercial.
+          </div>
+
+          <button type="submit" id="btn-trial-register" class="auth-submit-btn">Crear cuenta y comenzar prueba (7 días)</button>
+        </form>
+
+        <form id="form-license-activate" onsubmit="handleLicenseActivateSubmit(event)" novalidate style="display:none;">
           <div class="auth-field">
-            <label class="auth-label" for="license-key-input">Código de licencia o prueba</label>
-            <input type="text" id="license-key-input" class="auth-input lic-key-input" placeholder="ATLOB-DEMO-XXXX-XXXX" autocomplete="off" spellcheck="false" maxlength="48" oninput="this.value = this.value.toUpperCase().replace(/\s+/g, '')">
+            <label class="auth-label" for="license-key-input">Código de licencia comercial</label>
+            <input type="text" id="license-key-input" class="auth-input lic-key-input" placeholder="ATLOB-PRO-XXXX-XXXX" autocomplete="off" spellcheck="false" maxlength="48" oninput="this.value = this.value.toUpperCase().replace(/\s+/g, '')">
           </div>
 
           <div class="auth-field" id="license-name-field">
@@ -3868,8 +3934,8 @@
         </div>
 
         <div class="lic-whatsapp-box" id="lic-gate-whatsapp-box">
-          <div class="lic-whatsapp-title" id="lic-gate-wa-title">¿Deseas una prueba de 7 días o contratar un plan?</div>
-          <div class="lic-whatsapp-sub" id="lic-gate-wa-sub">Escríbenos directamente al WhatsApp <strong>940 781 298</strong> para recibir tu acceso o activar la licencia comercial.</div>
+          <div class="lic-whatsapp-title" id="lic-gate-wa-title">¿Necesitas ayuda o contratar empresas ilimitadas?</div>
+          <div class="lic-whatsapp-sub" id="lic-gate-wa-sub">Escríbenos directamente al WhatsApp <strong>940 781 298</strong> para soporte o planes comerciales de <strong>ATLOB Consultores</strong>.</div>
           <div class="lic-whatsapp-actions">
             <button type="button" class="btn-whatsapp" onclick="abrirWhatsAppComercial()">
               WhatsApp · 940 781 298
@@ -6362,6 +6428,32 @@
       box.innerHTML = `<div class="banner ${cls}" style="margin-bottom:0;"><div>${escapeHtml(msg)}</div></div>`;
     }
 
+    let licGateMode = 'trial';
+
+    function setLicGateMode(mode) {
+      licGateMode = mode === 'activate' ? 'activate' : 'trial';
+      const tabTrial = document.getElementById('lic-tab-trial');
+      const tabAct = document.getElementById('lic-tab-activate');
+      const formTrial = document.getElementById('form-trial-register');
+      const formAct = document.getElementById('form-license-activate');
+      const title = document.getElementById('lic-gate-title');
+      const subtitle = document.getElementById('lic-gate-subtitle');
+
+      if (tabTrial) tabTrial.classList.toggle('active', licGateMode === 'trial');
+      if (tabAct) tabAct.classList.toggle('active', licGateMode === 'activate');
+      if (formTrial) formTrial.style.display = licGateMode === 'trial' ? 'block' : 'none';
+      if (formAct) formAct.style.display = licGateMode === 'activate' ? 'block' : 'none';
+
+      renderLicenseFeedback('lic-gate-feedback', '', '');
+      if (licGateMode === 'trial') {
+        if (title) title.textContent = 'Crea tu cuenta y prueba gratis 7 días';
+        if (subtitle) subtitle.textContent = '100% funcional desde tu PC · Límite de hasta 3 empresas (RUCs). Sin códigos ni tarjeta.';
+      } else {
+        if (title) title.textContent = 'Activa tu licencia comercial';
+        if (subtitle) subtitle.textContent = 'Ingresa tu código de licencia para desbloquear empresas ilimitadas.';
+      }
+    }
+
     function renderLicenseGate(lic) {
       toggleMobileSidebar(false);
       document.querySelectorAll('.modal-backdrop.open').forEach(m => m.classList.remove('open'));
@@ -6382,12 +6474,23 @@
       const machineEl = document.getElementById('lic-gate-machine-id');
       const waTitle = document.getElementById('lic-gate-wa-title');
       const waSub = document.getElementById('lic-gate-wa-sub');
+      const tabsEl = document.getElementById('lic-mode-tabs');
+      const formTrial = document.getElementById('form-trial-register');
+      const formAct = document.getElementById('form-license-activate');
 
       if (machineEl) machineEl.textContent = lic?.machine_id || '-';
 
       const savedName = localStorage.getItem(AUTH_USER_KEY) || '';
       const nameInp = document.getElementById('license-user-name');
       if (nameInp && !nameInp.value && savedName) nameInp.value = savedName;
+
+      if (code === 'EXPIRED' || code === 'REVOKED' || code === 'SUSPENDED' || code === 'MACHINE_MISMATCH' || code === 'OFFLINE_LOCKED') {
+        if (tabsEl) tabsEl.style.display = 'none';
+        if (formTrial) formTrial.style.display = 'none';
+        if (formAct) formAct.style.display = 'block';
+      } else {
+        if (tabsEl) tabsEl.style.display = 'grid';
+      }
 
       if (code === 'EXPIRED') {
         if (badge) { badge.className = 'badge invalidas'; badge.textContent = 'Prueba / Licencia Finalizada'; }
@@ -6409,12 +6512,12 @@
         renderLicenseFeedback('lic-gate-feedback', 'danger', lic?.message || 'Comunícate al 940 781 298 para regularizar tu licencia.');
       } else if (code === 'MACHINE_MISMATCH') {
         if (badge) { badge.className = 'badge invalidas'; badge.textContent = 'Otro equipo registrado'; }
-        if (title) title.textContent = 'Licencia vinculada a otra PC';
-        if (subtitle) subtitle.textContent = 'Cada licencia opera en el equipo donde fue activada por primera vez.';
+        if (title) title.textContent = 'Acceso vinculado a otra PC';
+        if (subtitle) subtitle.textContent = 'Cada licencia o prueba gratuita opera en el equipo donde fue registrada por primera vez.';
         if (dataSafe) dataSafe.style.display = 'none';
         if (secActions) secActions.style.display = 'block';
         if (nameField) nameField.style.display = 'none';
-        renderLicenseFeedback('lic-gate-feedback', 'warning', lic?.message || 'Si cambiaste de equipo escríbenos al 940 781 298 para desvincularla.');
+        renderLicenseFeedback('lic-gate-feedback', 'warning', lic?.message || 'Si cambiaste de equipo escríbenos al 940 781 298.');
       } else if (code === 'OFFLINE_LOCKED') {
         if (badge) { badge.className = 'badge pendiente'; badge.textContent = 'Verificación Online Requerida'; }
         if (title) title.textContent = 'Conéctate para validar tu licencia';
@@ -6424,14 +6527,75 @@
         if (nameField) nameField.style.display = 'none';
         renderLicenseFeedback('lic-gate-feedback', 'warning', lic?.message || 'Conéctate a Internet y presiona Verificar ahora.');
       } else {
-        if (badge) { badge.className = 'badge gold'; badge.textContent = 'Activación requerida'; }
-        if (title) title.textContent = 'Activa tu ATLOB Sync';
-        if (subtitle) subtitle.textContent = 'Ingresa tu código de prueba de 7 días o tu licencia comercial.';
+        if (badge) { badge.className = 'badge gold'; badge.textContent = 'Prueba Gratis · 7 días'; }
         if (dataSafe) dataSafe.style.display = 'none';
         if (secActions) secActions.style.display = 'none';
         if (nameField) nameField.style.display = 'block';
-        if (waTitle) waTitle.textContent = '¿Deseas una prueba de 7 días o contratar un plan?';
-        if (waSub) waSub.innerHTML = 'Escríbenos directamente al WhatsApp <strong>940 781 298</strong> para recibir tu código de acceso.';
+        if (waTitle) waTitle.textContent = '¿Necesitas ayuda o contratar empresas ilimitadas?';
+        if (waSub) waSub.innerHTML = 'Escríbenos directamente al WhatsApp <strong>940 781 298</strong> para soporte o planes comerciales de <strong>ATLOB Consultores</strong>.';
+        setLicGateMode(licGateMode || 'trial');
+      }
+    }
+
+    async function handleTrialRegisterSubmit(e) {
+      if (e) e.preventDefault();
+      const nameInp = document.getElementById('trial-name');
+      const emailInp = document.getElementById('trial-email');
+      const phoneInp = document.getElementById('trial-phone');
+      const btn = document.getElementById('btn-trial-register');
+
+      const nombre = (nameInp?.value || '').trim();
+      const correo = (emailInp?.value || '').trim();
+      const telefono = (phoneInp?.value || '').trim();
+
+      if (nombre.length < 2) {
+        renderLicenseFeedback('lic-gate-feedback', 'warning', 'Ingresa tu nombre completo o estudio contable.');
+        nameInp?.focus();
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+        renderLicenseFeedback('lic-gate-feedback', 'warning', 'Ingresa un correo electrónico válido.');
+        emailInp?.focus();
+        return;
+      }
+      if (telefono.replace(/\D+/g, '').length < 7) {
+        renderLicenseFeedback('lic-gate-feedback', 'warning', 'Ingresa un número de celular o WhatsApp válido.');
+        phoneInp?.focus();
+        return;
+      }
+
+      if (btn) { btn.disabled = true; btn.textContent = 'Creando cuenta de prueba...'; }
+      renderLicenseFeedback('lic-gate-feedback', '', '');
+
+      try {
+        const res = await apiFetch('/api/licencia/registrar-prueba', {
+          method: 'POST',
+          body: { nombre, correo, telefono }
+        });
+        const data = await res.json();
+        if (data?.licencia) {
+          currentLicense = data.licencia;
+          renderLicenseUI();
+        }
+        if (res.ok && (!data.licencia || !data.licencia.enforced || data.licencia.valid)) {
+          localStorage.setItem(AUTH_USER_KEY, nombre);
+          sessionStorage.setItem(AUTH_USER_KEY, nombre);
+          updateAuthUserDisplays();
+          showToast(data.mensaje || '¡Prueba gratuita de 7 días activada!', 'success');
+          document.getElementById('auth-screen').style.display = 'none';
+          document.getElementById('workspace-screen').style.display = 'none';
+          document.getElementById('login-screen').style.display = 'flex';
+          await cargarEmpresas();
+          return;
+        }
+        if (data?.licencia && data.licencia.code && data.licencia.code !== 'UNACTIVATED') {
+          renderLicenseGate(data.licencia);
+        }
+        renderLicenseFeedback('lic-gate-feedback', 'danger', data?.detalle || data?.error || 'No se pudo crear la prueba gratuita.');
+      } catch (err) {
+        renderLicenseFeedback('lic-gate-feedback', 'danger', err.message || 'Error al registrar tu cuenta de prueba.');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Crear cuenta y comenzar prueba (7 días)'; }
       }
     }
 

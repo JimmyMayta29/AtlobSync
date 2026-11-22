@@ -207,6 +207,7 @@ func TestRoutesContract_AllFrontendRoutesExistInBackend(t *testing.T) {
 		{"Estado Licencia", "GET", "/api/licencia/estado"},
 		{"Activar Licencia", "POST", "/api/licencia/activar"},
 		{"Validar Licencia", "POST", "/api/licencia/validar"},
+		{"Registrar Prueba 7 días", "POST", "/api/licencia/registrar-prueba"},
 		{"Estado Worker", "GET", "/api/sistema/estado-worker"},
 		{"Diagnóstico Periodos", "POST", "/api/sistema/diagnostico/:ruc"},
 		{"Salud de la App", "GET", "/api/salud"},

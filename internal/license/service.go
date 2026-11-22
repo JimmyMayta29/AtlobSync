@@ -262,6 +262,96 @@ func (s *Service) Activate(ctx context.Context, rawKey string) (LicenseStatus, e
 	return out, nil
 }
 
+// RegisterTrial crea automáticamente una cuenta demo de 7 días (máx 3 empresas) vinculada al equipo y correo del prospecto.
+func (s *Service) RegisterTrial(ctx context.Context, clientName, clientEmail, clientPhone string) (LicenseStatus, error) {
+	name := strings.TrimSpace(clientName)
+	email := strings.ToLower(strings.TrimSpace(clientEmail))
+	phone := strings.TrimSpace(clientPhone)
+
+	if len([]rune(name)) < 2 {
+		msg := "Ingresa tu nombre completo o estudio contable (mínimo 2 caracteres)."
+		return s.buildStatusWithOverride(false, CodeUnactivated, msg), errors.New(msg)
+	}
+	atIdx := strings.IndexByte(email, '@')
+	if atIdx <= 0 || strings.ContainsAny(email, " \t\r\n") || !strings.Contains(email[atIdx+1:], ".") {
+		msg := "Ingresa un correo electrónico válido."
+		return s.buildStatusWithOverride(false, CodeUnactivated, msg), errors.New(msg)
+	}
+	digitCount := 0
+	for _, r := range phone {
+		if r >= '0' && r <= '9' {
+			digitCount++
+		}
+	}
+	if digitCount < 7 {
+		msg := "Ingresa un número de celular o WhatsApp válido (mínimo 7 dígitos)."
+		return s.buildStatusWithOverride(false, CodeUnactivated, msg), errors.New(msg)
+	}
+
+	if !s.IsServerConfigured() {
+		st := s.GetStatus()
+		if !s.cfg.Enforced {
+			return st, nil
+		}
+		st.Valid = false
+		st.Code = CodeUnactivated
+		st.Message = fmt.Sprintf("Esta compilación no tiene configurado el servidor de licencias. Contáctanos por WhatsApp al %s.", BuildSupportPhone)
+		return st, errors.New(st.Message)
+	}
+
+	s.mu.RLock()
+	mHash := s.machineHash
+	mName := s.machineName
+	appVer := s.cfg.AppVersion
+	s.mu.RUnlock()
+
+	resp, err := s.client.RegisterTrial(ctx, name, email, phone, mHash, mName, appVer)
+	if err != nil {
+		if errors.Is(err, ErrNetwork) {
+			msg := "No se pudo conectar al servidor para crear tu prueba gratuita. Verifica tu conexión a Internet e intenta nuevamente."
+			return s.buildStatusWithOverride(false, CodeOfflineLocked, msg), errors.New(msg)
+		}
+		return s.buildStatusWithOverride(false, CodeUnactivated, err.Error()), err
+	}
+
+	now := s.nowFn().UTC()
+	resolvedKey := strings.ToUpper(strings.TrimSpace(resp.LicenseKey))
+	if resp.OK {
+		entry := s.cacheFromRPC(resolvedKey, mHash, resp, now, nil)
+		if err := s.saveCachedLicense(entry); err != nil {
+			return s.GetStatus(), fmt.Errorf("error guardando cuenta de prueba local: %w", err)
+		}
+		s.mu.Lock()
+		s.cache = entry
+		s.offlineMode = false
+		s.mu.Unlock()
+		return s.GetStatus(), nil
+	}
+
+	code := strings.ToUpper(strings.TrimSpace(resp.Code))
+	if code == "" {
+		code = CodeUnactivated
+	}
+	msg := strings.TrimSpace(resp.Message)
+	if msg == "" {
+		msg = "No se pudo registrar la prueba gratuita."
+	}
+
+	if resolvedKey != "" && (code == CodeExpired || code == CodeRevoked || code == CodeSuspended) {
+		entry := s.cacheFromRPC(resolvedKey, mHash, resp, now, nil)
+		entry.Status = strings.ToLower(code)
+		_ = s.saveCachedLicense(entry)
+		s.mu.Lock()
+		s.cache = entry
+		s.offlineMode = false
+		s.mu.Unlock()
+		return s.GetStatus(), nil
+	}
+
+	out := s.buildFailureStatusFromRPC(resolvedKey, code, msg, resp)
+	return out, nil
+}
+
 // Refresh revalida online la licencia activa con Supabase.
 func (s *Service) Refresh(ctx context.Context) (LicenseStatus, error) {
 	if !s.cfg.Enforced {
