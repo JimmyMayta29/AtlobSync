@@ -52,6 +52,7 @@ func (ctrl *Controller) RegisterRoutes(rg *gin.RouterGroup) {
 		sys.GET("/ping", ctrl.Salud)
 		sys.GET("/info", ctrl.GetInfo)
 		sys.POST("/abrir-carpeta", ctrl.AbrirCarpeta)
+		sys.POST("/abrir-url", ctrl.AbrirURL)
 		sys.POST("/diagnostico/:ruc", ctrl.DiagnosticoPeriodos)
 		sys.GET("/estado-worker", ctrl.EstadoWorker)
 	}
@@ -133,6 +134,50 @@ func (ctrl *Controller) AbrirCarpeta(c *gin.Context) {
 		"success": true,
 		"mensaje": "Carpeta abierta en el explorador de archivos",
 		"ruta":    absPath,
+	})
+}
+
+type AbrirURLRequest struct {
+	URL string `json:"url" binding:"required"`
+}
+
+func (ctrl *Controller) AbrirURL(c *gin.Context) {
+	var req AbrirURLRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success":     false,
+			"error":       "URL externa requerida",
+			"detalle":     err.Error(),
+			"codigo_http": http.StatusBadRequest,
+		})
+		return
+	}
+
+	parsed, err := config.ValidateExternalURL(req.URL)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success":     false,
+			"error":       "Enlace externo no permitido",
+			"detalle":     err.Error(),
+			"codigo_http": http.StatusBadRequest,
+		})
+		return
+	}
+
+	if err := config.OpenExternalURL(parsed.String()); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":     false,
+			"error":       "No se pudo abrir el navegador predeterminado",
+			"detalle":     err.Error(),
+			"codigo_http": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"mensaje": "Enlace abierto en el navegador predeterminado",
+		"url":     parsed.String(),
 	})
 }
 

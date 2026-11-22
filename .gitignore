@@ -2,10 +2,13 @@
 .env
 .env.local
 .env.*.local
+.env.supabase
+.env.admin
 
 # Base de datos y almacenamiento local
 data/
 descargas/
+webview2/
 *.db
 *.db-wal
 *.db-shm
@@ -17,6 +20,8 @@ descargas/
 *.so
 *.dylib
 *.bak
+*.syso
+cmd/installer/payload/
 
 # Air - hot reload
 tmp/

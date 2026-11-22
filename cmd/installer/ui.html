@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instalador — ATLOB Sync · SUNAT</title>
+  <style>
+    :root {
+      --navy: #0b2545;
+      --navy-deep: #071a33;
+      --primary: #2f6fa3;
+      --primary-hover: #245882;
+      --gold: #e8a91b;
+      --bg: #f3f7fb;
+      --surface: #ffffff;
+      --subtle: #edf3f9;
+      --border: #d8e3ef;
+      --text: #0b2545;
+      --muted: #51627a;
+      --success: #0d7a5f;
+      --success-bg: #eafaf5;
+      --success-border: #9fe2ce;
+      --warning: #92400e;
+      --warning-bg: #fff8e6;
+      --warning-border: #f2d37c;
+      --danger: #b91c1c;
+      --danger-bg: #fef2f2;
+      --danger-border: #fecaca;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      user-select: none;
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 55%, #16446e 100%);
+      color: #fff;
+      padding: 18px 24px 16px;
+      border-bottom: 3px solid var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      height: 36px;
+      width: auto;
+      display: block;
+    }
+
+    .header-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .header-sub {
+      font-size: 11.5px;
+      color: #b7d2ea;
+      margin-top: 2px;
+    }
+
+    .version-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(232, 169, 27, 0.18);
+      border: 1px solid rgba(232, 169, 27, 0.55);
+      color: #fbd36b;
+      white-space: nowrap;
+    }
+
+    .content {
+      flex: 1;
+      padding: 18px 24px 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mode-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      align-self: flex-start;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      background: #e9f2f9;
+      color: #1f5380;
+      border: 1px solid #c5daf0;
+    }
+
+    .mode-badge.update {
+      background: var(--success-bg);
+      color: var(--success);
+      border-color: var(--success-border);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      box-shadow: 0 2px 6px rgba(11, 37, 69, 0.04);
+    }
+
+    .card-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .path-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 8px;
+    }
+
+    .path-row:last-child { margin-bottom: 0; }
+
+    .path-label {
+      font-size: 11.5px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .path-value {
+      font-size: 12px;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      color: var(--text);
+      background: var(--subtle);
+      padding: 5px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      user-select: text;
+    }
+
+    .checks {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      font-size: 12.5px;
+      cursor: pointer;
+      line-height: 1.35;
+    }
+
+    .check-item input[type="checkbox"] {
+      margin-top: 2px;
+      width: 15px;
+      height: 15px;
+      accent-color: var(--primary);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .check-hint {
+      display: block;
+      font-size: 11.2px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .migration-box {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      border-radius: 8px;
+      padding: 9px 11px;
+      margin-top: 2px;
+    }
+
+    .migration-box .check-item {
+      color: var(--warning);
+      font-weight: 600;
+    }
+
+    .migration-box .check-hint {
+      color: #7c4a10;
+      font-weight: 400;
+    }
+
+    .progress-wrap {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .progress-wrap.active { display: flex; }
+
+    .progress-bar-bg {
+      height: 10px;
+      background: var(--subtle);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary) 0%, #1d8ec2 70%, var(--gold) 100%);
+      border-radius: 999px;
+      transition: width 260ms ease;
+    }
+
+    .progress-status {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .log-box {
+      background: #0b1c30;
+      color: #cde2f5;
+      font-family: Consolas, monospace;
+      font-size: 11.2px;
+      line-height: 1.5;
+      padding: 10px 12px;
+      border-radius: 8px;
+      height: 145px;
+      overflow-y: auto;
+      user-select: text;
+    }
+
+    .log-line-ok { color: #5eead4; }
+    .log-line-err { color: #fca5a5; }
+
+    .result-banner {
+      display: none;
+      padding: 11px 13px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      line-height: 1.4;
+    }
+
+    .result-banner.success {
+      display: block;
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      color: var(--success);
+    }
+
+    .result-banner.error {
+      display: block;
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      color: var(--danger);
+    }
+
+    .footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .footer-note {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 7px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 140ms ease;
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--subtle);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .btn-success:hover:not(:disabled) {
+      background: #0a634d;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-left">
+        <img src="{{LOGO_DATA_URI}}" alt="ATLOB Consultores" class="brand-logo">
+        <div>
+          <div class="header-title">ATLOB Sync · SUNAT</div>
+          <div class="header-sub">Instalador de Aplicación Local de Escritorio</div>
+        </div>
+      </div>
+      <span class="version-pill">v2.0.0 Local</span>
+    </header>
+
+    <main class="content">
+      <div id="setup-view" style="display:flex; flex-direction:column; gap:11px;">
+        <div id="mode-badge" class="mode-badge">Preparando instalación...</div>
+
+        <div class="card">
+          <div class="card-title">Ubicaciones en este equipo</div>
+          <div class="path-row">
+            <span class="path-label">Aplicación (sin privilegios de administrador)</span>
+            <div id="txt-install-dir" class="path-value">Cargando...</div>
+          </div>
+          <div class="path-row">
+            <span class="path-label">Datos locales (empresas, llave cifrada y descargas)</span>
+            <div id="txt-data-dir" class="path-value">Cargando...</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Opciones de instalación</div>
+          <div class="checks">
+            <label class="check-item">
+              <input type="checkbox" id="chk-desktop" checked>
+              <span>Crear acceso directo en el Escritorio</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" id="chk-startmenu" checked>
+              <span>Crear acceso directo en el Menú Inicio y desinstalador en Windows</span>
+            </label>
+            <div id="migration-box" class="migration-box hidden">
+              <label class="check-item">
+                <input type="checkbox" id="chk-migrate" checked>
+                <span>
+                  Conservar y migrar datos existentes de API-SIRE
+                  <span id="txt-migration-detail" class="check-hint"></span>
+                </span>
+              </label>
+            </div>
+            <label class="check-item">
+              <input type="checkbox" id="chk-launch" checked>
+              <span>Abrir ATLOB Sync en ventana de escritorio al finalizar</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div id="progress-view" class="progress-wrap">
+        <div class="card" style="display:flex; flex-direction:column; gap:10px;">
+          <div class="progress-status">
+            <span id="txt-step">Iniciando instalación...</span>
+            <span id="txt-pct">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="bar-fill" class="progress-bar-fill"></div>
+          </div>
+          <div id="log-box" class="log-box"></div>
+        </div>
+        <div id="result-banner" class="result-banner"></div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-note">ATLOB Consultores · Soporte y licencias WhatsApp 940 781 298</div>
+      <div class="btn-group">
+        <button id="btn-cancel" class="btn btn-secondary" onclick="onCancel()">Cancelar</button>
+        <button id="btn-install" class="btn btn-primary" onclick="onInstall()">Instalar ahora</button>
+        <button id="btn-finish" class="btn btn-success hidden" onclick="onFinish()">Finalizar</button>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    let initState = null;
+    let isInstalling = false;
+    let installSucceeded = false;
+
+    function appendLog(msg, cls) {
+      const box = document.getElementById('log-box');
+      const div = document.createElement('div');
+      if (cls) div.className = cls;
+      div.textContent = '• ' + msg;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    window.__onInstallProgress = function(step, pct) {
+      document.getElementById('txt-step').textContent = step;
+      document.getElementById('txt-pct').textContent = pct + '%';
+      document.getElementById('bar-fill').style.width = pct + '%';
+      appendLog(step);
+    };
+
+    function setResultBanner(type, heading, message) {
+      const banner = document.getElementById('result-banner');
+      banner.className = 'result-banner ' + type;
+      banner.textContent = '';
+      const strong = document.createElement('strong');
+      strong.textContent = heading;
+      const br = document.createElement('br');
+      const span = document.createElement('span');
+      span.textContent = message;
+      banner.appendChild(strong);
+      banner.appendChild(br);
+      banner.appendChild(span);
+    }
+
+    window.__onInstallDone = function(res) {
+      isInstalling = false;
+      installSucceeded = true;
+      document.getElementById('txt-step').textContent = 'Instalación completada';
+      document.getElementById('txt-pct').textContent = '100%';
+      document.getElementById('bar-fill').style.width = '100%';
+      appendLog(res.summary || 'ATLOB Sync instalado correctamente.', 'log-line-ok');
+
+      setResultBanner(
+        'success',
+        'Instalación completada con éxito.',
+        res.summary || 'Al abrir ATLOB Sync podrás ingresar tu código de prueba o licencia comercial (WhatsApp 940 781 298).'
+      );
+
+      document.getElementById('btn-cancel').classList.add('hidden');
+      document.getElementById('btn-install').classList.add('hidden');
+      const btnFinish = document.getElementById('btn-finish');
+      btnFinish.classList.remove('hidden');
+      btnFinish.disabled = false;
+      const launch = document.getElementById('chk-launch').checked;
+      btnFinish.textContent = launch ? 'Abrir ATLOB Sync' : 'Finalizar';
+    };
+
+    window.__onInstallError = function(errMsg) {
+      isInstalling = false;
+      installSucceeded = false;
+      document.getElementById('txt-step').textContent = 'Error durante la instalación';
+      appendLog('ERROR: ' + errMsg, 'log-line-err');
+
+      setResultBanner('error', 'No se pudo completar la instalación:', String(errMsg));
+
+      document.getElementById('btn-cancel').disabled = false;
+      document.getElementById('btn-cancel').textContent = 'Cerrar';
+      document.getElementById('btn-install').disabled = false;
+      document.getElementById('btn-install').textContent = 'Reintentar';
+    };
+
+    async function loadInit() {
+      try {
+        const res = await window.installerInit();
+        initState = res;
+        document.getElementById('txt-install-dir').textContent = res.install_dir;
+        document.getElementById('txt-data-dir').textContent = res.data_dir;
+
+        const badge = document.getElementById('mode-badge');
+        const btnInstall = document.getElementById('btn-install');
+        if (res.is_update) {
+          badge.className = 'mode-badge update';
+          badge.textContent = 'Instalación previa detectada — Se actualizará conservando tus datos';
+          btnInstall.textContent = 'Actualizar ahora';
+        } else {
+          badge.className = 'mode-badge';
+          badge.textContent = 'Nueva instalación local en este equipo';
+          btnInstall.textContent = 'Instalar ahora';
+        }
+
+        if (res.legacy && res.legacy.can_migrate) {
+          const box = document.getElementById('migration-box');
+          box.classList.remove('hidden');
+          const empText = res.legacy.companies_count === 1 ? '1 empresa' : (res.legacy.companies_count + ' empresas');
+          const fileText = res.legacy.downloads_files === 1 ? '1 archivo descargado' : (res.legacy.downloads_files + ' archivos descargados');
+          document.getElementById('txt-migration-detail').textContent =
+            'Detectado en API-SIRE: ' + empText + ', llave maestra y ' + fileText + ' (tus archivos originales se conservan intactos).';
+        }
+      } catch (e) {
+        document.getElementById('mode-badge').textContent = 'Error cargando información: ' + e;
+      }
+    }
+
+    function onInstall() {
+      if (isInstalling) return;
+      isInstalling = true;
+      document.getElementById('setup-view').classList.add('hidden');
+      document.getElementById('progress-view').classList.add('active');
+      document.getElementById('result-banner').className = 'result-banner';
+      document.getElementById('log-box').innerHTML = '';
+      document.getElementById('btn-cancel').disabled = true;
+      document.getElementById('btn-install').disabled = true;
+
+      const opts = {
+        desktop_shortcut: document.getElementById('chk-desktop').checked,
+        start_menu_shortcut: document.getElementById('chk-startmenu').checked,
+        migrate_legacy: Boolean(initState && initState.legacy && initState.legacy.can_migrate && document.getElementById('chk-migrate').checked),
+        launch_after: document.getElementById('chk-launch').checked
+      };
+
+      window.installerStart(opts).catch(err => {
+        window.__onInstallError(String(err));
+      });
+    }
+
+    function onCancel() {
+      if (isInstalling) return;
+      window.installerFinish(false);
+    }
+
+    function onFinish() {
+      const launch = installSucceeded && document.getElementById('chk-launch').checked;
+      window.installerFinish(launch);
+    }
+
+    window.addEventListener('DOMContentLoaded', loadInit);
+  </script>
+</body>
+</html>

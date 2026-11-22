@@ -180,7 +180,7 @@ func SecurityMiddleware() gin.HandlerFunc {
 				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 					"success":     false,
 					"error":       "Token de sesión local inválido o ausente",
-					"detalle":     "Recargue la aplicación web para renovar la sesión de seguridad local.",
+					"detalle":     "Reinicie la aplicación para renovar la sesión de seguridad local.",
 					"codigo_http": http.StatusForbidden,
 				})
 				return

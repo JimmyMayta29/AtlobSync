@@ -136,6 +136,56 @@ func runMigrations(db *sql.DB) error {
 		expires_at DATETIME NOT NULL,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
+
+	-- 5. Recibos por Honorarios Electrónicos (RHE · Rol Receptor · 4ta Categoría)
+	CREATE TABLE IF NOT EXISTS recibos_honorarios (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		empresa_ruc TEXT NOT NULL,
+		periodo TEXT NOT NULL,
+		fecha_emision TEXT DEFAULT '',
+		tipo_doc TEXT NOT NULL DEFAULT 'RH',
+		nro_doc TEXT NOT NULL,
+		serie TEXT DEFAULT '',
+		numero TEXT DEFAULT '',
+		estado TEXT DEFAULT '',
+		tipo_doc_emisor TEXT DEFAULT 'RUC',
+		nro_doc_emisor TEXT NOT NULL DEFAULT '',
+		razon_emisor TEXT DEFAULT '',
+		tipo_renta TEXT DEFAULT '',
+		gratuito TEXT DEFAULT '',
+		descripcion TEXT DEFAULT '',
+		observacion TEXT DEFAULT '',
+		moneda TEXT DEFAULT 'SOLES',
+		renta_bruta REAL DEFAULT 0.0,
+		impuesto_renta REAL DEFAULT 0.0,
+		renta_neta REAL DEFAULT 0.0,
+		monto_pendiente REAL DEFAULT 0.0,
+		vigente INTEGER DEFAULT 1,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		UNIQUE(empresa_ruc, nro_doc_emisor, tipo_doc, nro_doc)
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_rhe_empresa_periodo ON recibos_honorarios(empresa_ruc, periodo);
+
+	-- 6. Metadatos de última consulta RHE Receptor por empresa y periodo
+	CREATE TABLE IF NOT EXISTS consultas_rhe (
+		empresa_ruc TEXT NOT NULL,
+		periodo TEXT NOT NULL,
+		fecha_desde TEXT NOT NULL,
+		fecha_hasta TEXT NOT NULL,
+		total_registros INTEGER DEFAULT 0,
+		ruta_txt TEXT DEFAULT '',
+		consultado_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		PRIMARY KEY (empresa_ruc, periodo)
+	);
+
+	-- 7. Caché cifrada de licencia comercial (AES-256-GCM)
+	CREATE TABLE IF NOT EXISTS licencia_local (
+		id INTEGER PRIMARY KEY CHECK (id = 1),
+		payload_enc TEXT NOT NULL,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	);
 	`
 
 	if _, err := db.Exec(ddl); err != nil {

@@ -10,6 +10,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -24,26 +25,86 @@ import (
 )
 
 type Config struct {
-	Host         string `json:"host"`
-	Port         string `json:"port"`
-	GinMode      string `json:"gin_mode"`
-	AppMasterKey string `json:"-"`
-	KeySource    string `json:"key_source"`
-	BaseDir      string `json:"base_dir"`
-	DBPath       string `json:"db_path"`
-	StorageDir   string `json:"storage_dir"`
-	LogsDir      string `json:"logs_dir"`
-	DefaultRUC   string `json:"default_ruc"`
+	Host           string `json:"host"`
+	Port           string `json:"port"`
+	GinMode        string `json:"gin_mode"`
+	AppMasterKey   string `json:"-"`
+	KeySource      string `json:"key_source"`
+	BaseDir        string `json:"base_dir"`
+	DBPath         string `json:"db_path"`
+	StorageDir     string `json:"storage_dir"`
+	LogsDir        string `json:"logs_dir"`
+	WebViewDataDir string `json:"webview_data_dir"`
+	DefaultRUC     string `json:"default_ruc"`
 }
 
 var AppConfig *Config
 
-// GetBaseDir obtiene la ruta base del ejecutable o del proyecto
-func GetBaseDir() string {
-	execPath, err := os.Executable()
-	if err == nil && !strings.Contains(execPath, "go-build") && !strings.Contains(execPath, "Temp") {
-		return filepath.Dir(execPath)
+// DefaultAppDataDir retorna la carpeta estándar de datos locales del usuario (%LocalAppData%\ATLOB Sync en Windows).
+func DefaultAppDataDir() string {
+	if runtime.GOOS == "windows" {
+		if localAppData := strings.TrimSpace(os.Getenv("LOCALAPPDATA")); localAppData != "" {
+			return filepath.Join(localAppData, "ATLOB Sync")
+		}
 	}
+	if cfgDir, err := os.UserConfigDir(); err == nil && strings.TrimSpace(cfgDir) != "" {
+		return filepath.Join(cfgDir, "ATLOB Sync")
+	}
+	return ""
+}
+
+// isInstalledProgramPath detecta si el ejecutable reside en un directorio típico de instalación de programas.
+func isInstalledProgramPath(execDir string) bool {
+	lower := strings.ToLower(filepath.Clean(execDir))
+	return strings.Contains(lower, `\programs\atlob sync`) ||
+		strings.Contains(lower, `\program files`) ||
+		strings.Contains(lower, `/programs/atlob sync`)
+}
+
+// hasPortableMarker verifica si el directorio del ejecutable contiene archivos de datos portables.
+func hasPortableMarker(dir string) bool {
+	if _, err := os.Stat(filepath.Join(dir, ".env")); err == nil {
+		return true
+	}
+	if _, err := os.Stat(filepath.Join(dir, "data", "sire.db")); err == nil {
+		return true
+	}
+	return false
+}
+
+// isGoRunOrTestBinary detecta si el binario se está ejecutando desde `go run` o `go test`.
+func isGoRunOrTestBinary(execPath string) bool {
+	lower := strings.ToLower(execPath)
+	return strings.Contains(lower, "go-build") ||
+		strings.HasSuffix(lower, ".test.exe") ||
+		strings.HasSuffix(lower, ".test")
+}
+
+// resolveBaseDir determina el directorio base de datos locales a partir de la ruta del ejecutable y variables de entorno.
+func resolveBaseDir(execPath string, execErr error) string {
+	if customDir := strings.TrimSpace(os.Getenv("ATLOB_DATA_DIR")); customDir != "" {
+		if abs, err := filepath.Abs(customDir); err == nil {
+			return abs
+		}
+		return customDir
+	}
+
+	if execErr == nil && strings.TrimSpace(execPath) != "" && !isGoRunOrTestBinary(execPath) {
+		execDir := filepath.Dir(execPath)
+		// Modo portable explícito o carpeta de proyecto/portable con .env o data/sire.db junto al .exe
+		if strings.TrimSpace(os.Getenv("ATLOB_PORTABLE")) == "1" {
+			return execDir
+		}
+		if !isInstalledProgramPath(execDir) && hasPortableMarker(execDir) {
+			return execDir
+		}
+		// Modo instalado de escritorio local: usar %LocalAppData%\ATLOB Sync
+		if appDataDir := DefaultAppDataDir(); appDataDir != "" {
+			return appDataDir
+		}
+		return execDir
+	}
+
 	// Fallback para ejecución desde go run / go test
 	dir, err := os.Getwd()
 	if err == nil {
@@ -52,17 +113,27 @@ func GetBaseDir() string {
 	return "."
 }
 
+// GetBaseDir obtiene la ruta base de datos locales de la aplicación.
+func GetBaseDir() string {
+	execPath, err := os.Executable()
+	return resolveBaseDir(execPath, err)
+}
+
 // SetupDirectoriesAndLogging asegura la existencia de carpetas requeridas y configura logging en archivo
 func SetupDirectoriesAndLogging(baseDir string) error {
 	dataDir := filepath.Join(baseDir, "data")
 	logsDir := filepath.Join(dataDir, "logs")
 	storageDir := filepath.Join(baseDir, "descargas")
+	webviewDir := filepath.Join(baseDir, "webview2")
 
 	if err := os.MkdirAll(logsDir, 0755); err != nil {
 		return fmt.Errorf("error al crear directorio de logs: %w", err)
 	}
 	if err := os.MkdirAll(storageDir, 0755); err != nil {
 		return fmt.Errorf("error al crear directorio de descargas: %w", err)
+	}
+	if err := os.MkdirAll(webviewDir, 0755); err != nil {
+		return fmt.Errorf("error al crear directorio de perfil local: %w", err)
 	}
 
 	logFilePath := filepath.Join(logsDir, "sire_api.log")
@@ -140,20 +211,19 @@ func ProbeAvailablePort(host, startPort string) (selectedPort string, isExisting
 		}
 
 		if pingErr == nil && resp != nil {
-			defer resp.Body.Close()
-			if resp.StatusCode == http.StatusOK {
-				var info struct {
-					Status  string `json:"status"`
-					App     string `json:"app"`
-					Version string `json:"version"`
-					PID     int    `json:"pid"`
+			var info struct {
+				Status  string `json:"status"`
+				App     string `json:"app"`
+				Version string `json:"version"`
+				PID     int    `json:"pid"`
+			}
+			decodeErr := json.NewDecoder(resp.Body).Decode(&info)
+			_ = resp.Body.Close()
+			if resp.StatusCode == http.StatusOK && decodeErr == nil && info.App == "sire-api" {
+				if info.Version == AppVersion || info.Version == "" {
+					return currentPort, true, nil
 				}
-				if json.NewDecoder(resp.Body).Decode(&info) == nil && info.App == "sire-api" {
-					if info.Version == AppVersion || info.Version == "" {
-						return currentPort, true, nil
-					}
-					return "", false, fmt.Errorf("hay otra instancia de sire_api.exe en ejecución con una versión distinta (versión detectada: %s, versión actual: %s) en el puerto %s; ciérrela desde el Administrador de tareas", info.Version, AppVersion, currentPort)
-				}
+				return "", false, fmt.Errorf("hay otra instancia de ATLOB Sync en ejecución con una versión distinta (versión detectada: %s, versión actual: %s) en el puerto %s; ciérrela desde el Administrador de tareas", info.Version, AppVersion, currentPort)
 			}
 		}
 	}
@@ -161,21 +231,7 @@ func ProbeAvailablePort(host, startPort string) (selectedPort string, isExisting
 	return "", false, errors.New("no se encontró ningún puerto disponible entre 8080 y 8095; cierre los procesos en conflicto")
 }
 
-// OpenBrowser abre la URL en el navegador predeterminado del sistema operativo
-func OpenBrowser(targetURL string) {
-	go func() {
-		time.Sleep(350 * time.Millisecond)
-		if runtime.GOOS == "windows" {
-			_ = exec.Command("rundll32", "url.dll,FileProtocolHandler", targetURL).Start()
-		} else if runtime.GOOS == "darwin" {
-			_ = exec.Command("open", targetURL).Start()
-		} else {
-			_ = exec.Command("xdg-open", targetURL).Start()
-		}
-	}()
-}
-
-// OpenFolder abre una carpeta en el explorador de archivos de Windows
+// OpenFolder abre una carpeta en el explorador de archivos del sistema operativo
 func OpenFolder(path string) error {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
@@ -189,6 +245,53 @@ func OpenFolder(path string) error {
 	return exec.Command("xdg-open", absPath).Start()
 }
 
+var allowedExternalHosts = map[string]bool{
+	"wa.me":                    true,
+	"api.whatsapp.com":         true,
+	"web.whatsapp.com":         true,
+	"e-menu.sunat.gob.pe":      true,
+	"api-seguridad.sunat.gob.pe": true,
+	"ww1.sunat.gob.pe":         true,
+	"www.sunat.gob.pe":         true,
+}
+
+// ValidateExternalURL verifica que la URL externa use HTTPS y pertenezca a un dominio oficial autorizado (WhatsApp o SUNAT).
+func ValidateExternalURL(rawURL string) (*url.URL, error) {
+	trimmed := strings.TrimSpace(rawURL)
+	if trimmed == "" {
+		return nil, errors.New("la URL no puede estar vacía")
+	}
+	parsed, err := url.Parse(trimmed)
+	if err != nil || !parsed.IsAbs() {
+		return nil, errors.New("URL externa inválida")
+	}
+	if !strings.EqualFold(parsed.Scheme, "https") {
+		return nil, errors.New("solo se permiten enlaces HTTPS seguros")
+	}
+	if parsed.User != nil || parsed.Port() != "" {
+		return nil, errors.New("la URL externa contiene parámetros de autoridad no permitidos")
+	}
+	host := strings.ToLower(strings.TrimSpace(parsed.Hostname()))
+	if !allowedExternalHosts[host] {
+		return nil, fmt.Errorf("dominio externo no autorizado: %s", host)
+	}
+	return parsed, nil
+}
+
+// OpenExternalURL valida y abre un enlace oficial autorizado en el navegador predeterminado del equipo.
+func OpenExternalURL(rawURL string) error {
+	parsed, err := ValidateExternalURL(rawURL)
+	if err != nil {
+		return err
+	}
+	if runtime.GOOS == "windows" {
+		return exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", parsed.String()).Start()
+	} else if runtime.GOOS == "darwin" {
+		return exec.Command("open", parsed.String()).Start()
+	}
+	return exec.Command("xdg-open", parsed.String()).Start()
+}
+
 // ShowWindowsAlert muestra una alerta modal nativa de Windows en caso de fallo crítico en modo GUI
 func ShowWindowsAlert(title, message string) {
 	if runtime.GOOS == "windows" {
@@ -197,6 +300,19 @@ func ShowWindowsAlert(title, message string) {
 		tPtr, _ := syscall.UTF16PtrFromString(title)
 		mPtr, _ := syscall.UTF16PtrFromString(message)
 		msgBox.Call(0, uintptr(unsafe.Pointer(mPtr)), uintptr(unsafe.Pointer(tPtr)), 0x00000010 /* MB_ICONERROR */)
+	} else {
+		log.Printf("[%s] %s", title, message)
+	}
+}
+
+// ShowWindowsInfo muestra un diálogo informativo nativo de Windows
+func ShowWindowsInfo(title, message string) {
+	if runtime.GOOS == "windows" {
+		user32 := syscall.NewLazyDLL("user32.dll")
+		msgBox := user32.NewProc("MessageBoxW")
+		tPtr, _ := syscall.UTF16PtrFromString(title)
+		mPtr, _ := syscall.UTF16PtrFromString(message)
+		msgBox.Call(0, uintptr(unsafe.Pointer(mPtr)), uintptr(unsafe.Pointer(tPtr)), 0x00000040 /* MB_ICONINFORMATION */)
 	} else {
 		log.Printf("[%s] %s", title, message)
 	}
@@ -228,7 +344,7 @@ func LoadConfig() *Config {
 
 	masterKey, keySource, err := ResolveMasterKey(baseDir)
 	if err != nil {
-		ShowWindowsAlert("SIRE API - Error de Seguridad", err.Error())
+		ShowWindowsAlert("ATLOB Sync - Error de Seguridad", err.Error())
 		log.Fatalf("\n===================================================================================\n"+
 			"[ERROR FATAL DE CONFIGURACIÓN]\n%s\n"+
 			"===================================================================================\n", err.Error())
@@ -249,6 +365,7 @@ func LoadConfig() *Config {
 	}
 
 	logsDir := filepath.Join(baseDir, "data", "logs")
+	webviewDataDir := filepath.Join(baseDir, "webview2")
 
 	defaultRUC := os.Getenv("DEFAULT_RUC")
 	if defaultRUC == "" {
@@ -256,16 +373,17 @@ func LoadConfig() *Config {
 	}
 
 	AppConfig = &Config{
-		Host:         host,
-		Port:         port,
-		GinMode:      ginMode,
-		AppMasterKey: masterKey,
-		KeySource:    keySource,
-		BaseDir:      baseDir,
-		DBPath:       dbPath,
-		StorageDir:   storageDir,
-		LogsDir:      logsDir,
-		DefaultRUC:   defaultRUC,
+		Host:           host,
+		Port:           port,
+		GinMode:        ginMode,
+		AppMasterKey:   masterKey,
+		KeySource:      keySource,
+		BaseDir:        baseDir,
+		DBPath:         dbPath,
+		StorageDir:     storageDir,
+		LogsDir:        logsDir,
+		WebViewDataDir: webviewDataDir,
+		DefaultRUC:     defaultRUC,
 	}
 
 	return AppConfig

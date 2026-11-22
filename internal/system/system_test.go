@@ -66,4 +66,37 @@ func TestSystemEndpoints(t *testing.T) {
 	if wErr.Code != http.StatusBadRequest {
 		t.Fatalf("AbrirCarpeta con tipo inválido debió responder 400, dio %d", wErr.Code)
 	}
+
+	// 4. Probar validación estricta de URLs externas (whitelist + HTTPS)
+	allowed := []string{
+		"https://wa.me/51940781298?text=Hola",
+		"https://api.whatsapp.com/send?phone=51940781298",
+		"https://e-menu.sunat.gob.pe/cl-ti-itmenu/MenuInternet.htm",
+	}
+	for _, u := range allowed {
+		if _, err := config.ValidateExternalURL(u); err != nil {
+			t.Errorf("URL oficial debía permitirse (%s): %v", u, err)
+		}
+	}
+
+	blocked := []string{
+		"http://wa.me/51940781298",
+		"javascript:alert(1)",
+		"file:///C:/Windows/System32/calc.exe",
+		"https://evil.example.com/phish",
+		"https://wa.me:8443/51940781298",
+		"https://user@wa.me/51940781298",
+	}
+	for _, u := range blocked {
+		if _, err := config.ValidateExternalURL(u); err == nil {
+			t.Errorf("URL peligrosa o no autorizada debía bloquearse: %s", u)
+		}
+		reqURL, _ := http.NewRequest(http.MethodPost, "/api/sistema/abrir-url", strings.NewReader(`{"url": "`+u+`"}`))
+		reqURL.Header.Set("Content-Type", "application/json")
+		wURL := httptest.NewRecorder()
+		r.ServeHTTP(wURL, reqURL)
+		if wURL.Code != http.StatusBadRequest {
+			t.Errorf("POST /api/sistema/abrir-url con URL bloqueada %s dio %d, se esperaba 400", u, wURL.Code)
+		}
+	}
 }

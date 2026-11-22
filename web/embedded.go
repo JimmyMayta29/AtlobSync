@@ -67,3 +67,9 @@ func RegisterRoutes(r *gin.Engine) {
 func GetEmbeddedHTML() []byte {
 	return indexHTML
 }
+
+// GetBrandAsset retorna el contenido binario de un recurso embebido en web/assets/
+func GetBrandAsset(name string) ([]byte, error) {
+	clean := filepath.Base(strings.TrimSpace(name))
+	return assetsFS.ReadFile("assets/" + clean)
+}

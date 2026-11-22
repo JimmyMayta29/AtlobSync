@@ -25,6 +25,7 @@ func (ctrl *Controller) RegisterRoutes(apiGroup *gin.RouterGroup, empresaAuth gi
 	// Endpoints globales directos (usados por la interfaz web y clientes)
 	apiGroup.GET("/descargas", ctrl.ListarDescargasGlobal)
 	apiGroup.GET("/descargas/:id/archivo", ctrl.DescargarArchivoDirecto)
+	apiGroup.GET("/descargas/:id/exportar", ctrl.ExportarPropuestaArchivo)
 	apiGroup.GET("/descargas/:id/propuesta-txt", ctrl.AnalizarPropuestaTXT)
 	apiGroup.POST("/descargas/:id/reintentar", ctrl.ReintentarDescarga)
 	apiGroup.POST("/sire/propuesta/exportar", ctrl.SolicitarExportacionGlobal)
@@ -239,6 +240,50 @@ func (ctrl *Controller) DescargarArchivoDirecto(c *gin.Context) {
 	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", descarga.NombreArchivo))
 	c.Header("Content-Type", detectDownloadContentType(descarga.NombreArchivo))
 	c.File(filePath)
+}
+
+// ExportarPropuestaArchivo exporta una descarga SIRE completada en formato Excel (.xlsx), TXT oficial (.txt) o ZIP original (.zip).
+func (ctrl *Controller) ExportarPropuestaArchivo(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success":     false,
+			"error":       "ID de descarga inválido",
+			"codigo_http": http.StatusBadRequest,
+		})
+		return
+	}
+
+	formato := strings.ToLower(strings.TrimSpace(c.DefaultQuery("formato", "xlsx")))
+	exported, err := ctrl.service.ExportarPropuesta(id, formato)
+	if err != nil {
+		var parseErr *ProposalParseError
+		if errors.As(err, &parseErr) {
+			status := parseErr.HTTPStatus
+			if status == 0 {
+				status = http.StatusUnprocessableEntity
+			}
+			c.JSON(status, gin.H{
+				"success":     false,
+				"codigo":      parseErr.Code,
+				"error":       parseErr.Message,
+				"detalle":     parseErr.Detail,
+				"codigo_http": status,
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success":     false,
+			"error":       "No se pudo generar el archivo de exportación",
+			"detalle":     err.Error(),
+			"codigo_http": http.StatusInternalServerError,
+		})
+		return
+	}
+
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", exported.FileName))
+	c.Header("X-Export-Format", formato)
+	c.Data(http.StatusOK, exported.ContentType, exported.Data)
 }
 
 func (ctrl *Controller) ReintentarDescarga(c *gin.Context) {

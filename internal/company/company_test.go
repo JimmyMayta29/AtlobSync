@@ -3,6 +3,7 @@ package company
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -264,6 +265,42 @@ func TestTestConnection_VerifiesSireGateway(t *testing.T) {
 	emp, _ = repo.GetByRUC("20000000001")
 	if emp.EstadoCredenciales != "VALIDO" {
 		t.Fatalf("se esperaba estado VALIDO, se obtuvo %s", emp.EstadoCredenciales)
+	}
+}
+
+func TestCompanyLimitCheckerBlocksWhenPlanReached(t *testing.T) {
+	db, _, svc := setupTestDB(t)
+	defer db.Close()
+
+	svc.SetCompanyLimitChecker(func(currentCount int) error {
+		if currentCount >= 1 {
+			return errors.New("tu plan actual permite hasta 1 empresa(s)")
+		}
+		return nil
+	})
+
+	_, err := svc.CreateEmpresa(&CreateEmpresaRequest{
+		RUC:          "20000000001",
+		RazonSocial:  "EMPRESA UNO S.A.C.",
+		UsuarioSOL:   "USER1",
+		ClaveSOL:     "Clave123",
+		ClientID:     "cid-1",
+		ClientSecret: "csec-1",
+	})
+	if err != nil {
+		t.Fatalf("la primera empresa debía crearse sin error: %v", err)
+	}
+
+	_, err = svc.CreateEmpresa(&CreateEmpresaRequest{
+		RUC:          "20000000002",
+		RazonSocial:  "EMPRESA DOS S.A.C.",
+		UsuarioSOL:   "USER2",
+		ClaveSOL:     "Clave123",
+		ClientID:     "cid-2",
+		ClientSecret: "csec-2",
+	})
+	if err == nil || !strings.Contains(err.Error(), "1 empresa") {
+		t.Fatalf("la segunda empresa debía bloquearse por límite de plan, obtenido: %v", err)
 	}
 }
 

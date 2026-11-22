@@ -18,7 +18,9 @@ import (
 	"github.com/SwodLore/sire-api/internal/cpe"
 	"github.com/SwodLore/sire-api/internal/crypto"
 	"github.com/SwodLore/sire-api/internal/database"
+	"github.com/SwodLore/sire-api/internal/license"
 	"github.com/SwodLore/sire-api/internal/middleware"
+	"github.com/SwodLore/sire-api/internal/rhe"
 	"github.com/SwodLore/sire-api/internal/sire"
 	"github.com/SwodLore/sire-api/internal/sunat"
 	"github.com/SwodLore/sire-api/internal/system"
@@ -104,19 +106,28 @@ func setupTestRouter(t *testing.T) (*gin.Engine, string) {
 	cpeSvc := cpe.NewService(cpeRepo, companySvc, sireRepo, t.TempDir())
 	cpeCtrl := cpe.NewController(cpeSvc)
 
+	rheRepo := rhe.NewRepository(db)
+	rheSvc := rhe.NewService(rheRepo, companySvc, t.TempDir())
+	rheCtrl := rhe.NewController(rheSvc)
+
 	cfg := &config.Config{Host: "127.0.0.1", Port: "8080", BaseDir: "."}
 	sysCtrl := system.NewController(cfg, tokenMgr, companyRepo, sunatClient, sireWorker)
+	licenseSvc := license.NewService(db, cryptoSvc, license.Config{Enforced: false}, nil)
+	licenseCtrl := license.NewController(licenseSvc)
 
 	web.RegisterRoutes(r)
 
 	apiGroup := r.Group("/api")
 	{
+		licenseCtrl.RegisterRoutes(apiGroup)
+		apiGroup.Use(license.RequireValidLicense(licenseSvc))
 		sysCtrl.RegisterRoutes(apiGroup)
 		companyCtrl.RegisterRoutes(apiGroup)
 
 		empresaMiddleware := middleware.RequireActiveCompany(companyRepo)
 		sireCtrl.RegisterRoutes(apiGroup, empresaMiddleware)
 		cpeCtrl.RegisterRoutes(apiGroup, empresaMiddleware)
+		rheCtrl.RegisterRoutes(apiGroup, empresaMiddleware)
 
 		ventasGroup := apiGroup.Group("/empresas/:ruc/ventas", empresaMiddleware)
 		ventasRoutes.RegisterRoutes(ventasGroup)
@@ -188,9 +199,14 @@ func TestRoutesContract_AllFrontendRoutesExistInBackend(t *testing.T) {
 		{"Consultar Ticket SIRE", "GET", "/api/sire/tickets/:ruc/:ticket"},
 		{"Listar Descargas Global", "GET", "/api/descargas"},
 		{"Descargar Archivo por ID", "GET", "/api/descargas/:id/archivo"},
+		{"Exportar Propuesta (XLSX/TXT/ZIP) por ID", "GET", "/api/descargas/:id/exportar"},
 		{"Analizar Propuesta TXT por ID", "GET", "/api/descargas/:id/propuesta-txt"},
 		{"Info del Sistema", "GET", "/api/sistema/info"},
 		{"Abrir Carpeta", "POST", "/api/sistema/abrir-carpeta"},
+		{"Abrir URL Externa", "POST", "/api/sistema/abrir-url"},
+		{"Estado Licencia", "GET", "/api/licencia/estado"},
+		{"Activar Licencia", "POST", "/api/licencia/activar"},
+		{"Validar Licencia", "POST", "/api/licencia/validar"},
 		{"Estado Worker", "GET", "/api/sistema/estado-worker"},
 		{"Diagnóstico Periodos", "POST", "/api/sistema/diagnostico/:ruc"},
 		{"Salud de la App", "GET", "/api/salud"},
@@ -214,6 +230,9 @@ func TestRoutesContract_AllFrontendRoutesExistInBackend(t *testing.T) {
 		{"Cancelar Lote Descarga Masiva CPE", "DELETE", "/api/empresas/:ruc/cpe/descarga-masiva/:job_id"},
 		{"Descargar ZIP Lote Descarga Masiva CPE", "GET", "/api/empresas/:ruc/cpe/descarga-masiva/:job_id/zip"},
 		{"Exportar Items CSV CPE", "GET", "/api/empresas/:ruc/cpe/exportar-items"},
+		{"Listar RHE Recibidos", "GET", "/api/empresas/:ruc/rhe"},
+		{"Consultar RHE en SUNAT SOL", "POST", "/api/empresas/:ruc/rhe/consultar"},
+		{"Exportar RHE (XLSX/TXT)", "GET", "/api/empresas/:ruc/rhe/exportar"},
 	}
 
 	for _, er := range expectedRoutes {

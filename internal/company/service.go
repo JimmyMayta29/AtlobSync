@@ -22,10 +22,11 @@ type TokenProvider interface {
 type SireAccessVerifier func(ruc string) (statusCode int, body string, err error)
 
 type Service struct {
-	repo         *Repository
-	cryptoSvc    *crypto.CryptoService
-	tokenManager TokenProvider
-	sireVerifier SireAccessVerifier
+	repo                *Repository
+	cryptoSvc           *crypto.CryptoService
+	tokenManager        TokenProvider
+	sireVerifier        SireAccessVerifier
+	companyLimitChecker func(currentCount int) error
 }
 
 func NewService(repo *Repository, cryptoSvc *crypto.CryptoService, tokenMgr TokenProvider) *Service {
@@ -39,6 +40,11 @@ func NewService(repo *Repository, cryptoSvc *crypto.CryptoService, tokenMgr Toke
 // SetSireVerifier inyecta un verificador ligero contra api-sire.sunat.gob.pe para validar permisos reales de SIRE
 func (s *Service) SetSireVerifier(v SireAccessVerifier) {
 	s.sireVerifier = v
+}
+
+// SetCompanyLimitChecker inyecta una validación comercial de límite de empresas por licencia
+func (s *Service) SetCompanyLimitChecker(fn func(currentCount int) error) {
+	s.companyLimitChecker = fn
 }
 
 func (s *Service) ListEmpresas() ([]EmpresaResponse, error) {
@@ -78,6 +84,16 @@ func (s *Service) CreateEmpresa(req *CreateEmpresaRequest) (*EmpresaResponse, er
 	existing, _ := s.repo.GetByRUC(req.RUC)
 	if existing != nil {
 		return nil, fmt.Errorf("ya existe una empresa registrada con el RUC %s", req.RUC)
+	}
+
+	if s.companyLimitChecker != nil {
+		empresas, err := s.repo.GetAll()
+		if err != nil {
+			return nil, fmt.Errorf("error verificando límite de empresas: %w", err)
+		}
+		if err := s.companyLimitChecker(len(empresas)); err != nil {
+			return nil, err
+		}
 	}
 
 	claveEnc, err := s.cryptoSvc.Encrypt(req.ClaveSOL)
