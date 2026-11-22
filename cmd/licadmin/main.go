@@ -124,8 +124,14 @@ func loadAdminEnv() (string, string) {
 			break
 		}
 	}
-	url := strings.TrimSpace(os.Getenv("SUPABASE_URL"))
-	key := strings.TrimSpace(os.Getenv("SUPABASE_SERVICE_ROLE_KEY"))
+	url := strings.TrimSpace(os.Getenv("LICENSE_API_URL"))
+	if url == "" {
+		url = strings.TrimSpace(os.Getenv("SUPABASE_URL"))
+	}
+	key := strings.TrimSpace(os.Getenv("LICENSE_ADMIN_KEY"))
+	if key == "" {
+		key = strings.TrimSpace(os.Getenv("SUPABASE_SERVICE_ROLE_KEY"))
+	}
 	return url, key
 }
 
@@ -133,13 +139,13 @@ func main() {
 	url, serviceKey := loadAdminEnv()
 	if url == "" || serviceKey == "" {
 		fmt.Println("================================================================")
-		fmt.Println("  ATLOB Sync · Administrador de Licencias (Supabase)")
+		fmt.Println("  ATLOB Sync · Administrador de Licencias (Cloudflare / Supabase)")
 		fmt.Println("================================================================")
 		fmt.Println()
 		fmt.Println("[Falta configurar .env.admin]")
 		fmt.Println("1. Copia '.env.admin.example' como '.env.admin' en la carpeta API-SIRE.")
-		fmt.Println("2. Pega tu SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY.")
-		fmt.Println("3. Consulta 'supabase\\GUIA_SUPABASE.md' si aún no creaste tu proyecto.")
+		fmt.Println("2. Pega tu LICENSE_API_URL y LICENSE_ADMIN_KEY (o variables Supabase).")
+		fmt.Println("3. Consulta 'cloudflare\\GUIA_CLOUDFLARE.md' para mas detalles.")
 		fmt.Println()
 		waitEnter()
 		os.Exit(1)
@@ -151,7 +157,7 @@ func main() {
 	for {
 		fmt.Println()
 		fmt.Println("================================================================")
-		fmt.Println("  ATLOB Sync · Gestor Comercial de Licencias (Supabase)")
+		fmt.Println("  ATLOB Sync · Gestor Comercial de Licencias (Cloud)")
 		fmt.Println("================================================================")
 		fmt.Println("  1) Crear DEMO de 7 días (para prospecto)")
 		fmt.Println("  2) Crear Licencia COMERCIAL (Mensual / Anual / Permanente)")

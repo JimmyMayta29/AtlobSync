@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "atlob-sync-licencias",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-21",
+  "observability": {
+    "enabled": true,
+    "traces": {
+      "enabled": true
+    }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "atlob-sync-licencias",
+      "database_id": "d1b03b20-5c15-4b70-85c1-b49db1807dc5"
+    }
+  ]
+}

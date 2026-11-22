@@ -36,13 +36,20 @@ type Config struct {
 }
 
 // LoadConfigFromEnv resuelve la configuración de licenciamiento priorizando variables inyectadas en compilación.
+// Acepta tanto variables de Cloudflare Workers (LICENSE_API_URL / LICENSE_API_KEY) como de Supabase.
 func LoadConfigFromEnv() Config {
 	url := strings.TrimSpace(BuildSupabaseURL)
+	if url == "" {
+		url = strings.TrimSpace(os.Getenv("LICENSE_API_URL"))
+	}
 	if url == "" {
 		url = strings.TrimSpace(os.Getenv("SUPABASE_URL"))
 	}
 
 	anonKey := strings.TrimSpace(BuildSupabaseAnonKey)
+	if anonKey == "" {
+		anonKey = strings.TrimSpace(os.Getenv("LICENSE_API_KEY"))
+	}
 	if anonKey == "" {
 		anonKey = strings.TrimSpace(os.Getenv("SUPABASE_ANON_KEY"))
 	}

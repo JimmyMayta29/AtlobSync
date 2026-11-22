@@ -16,23 +16,38 @@ goto :parse_args
 set "BUILD_DIR=%CD%\build"
 set "PAYLOAD_DIR=%CD%\cmd\installer\payload"
 set "OUT_INSTALLER=%CD%\..\ATLOB_Sync_Instalador.exe"
+set "LICENSE_ENV=%CD%\.env.license"
 set "SUPABASE_ENV=%CD%\.env.supabase"
 
-if "%DEV_NO_LICENSE%"=="0" if exist "%SUPABASE_ENV%" (
-    for /f "usebackq eol=# tokens=1,* delims==" %%A in ("%SUPABASE_ENV%") do (
-        set "K=%%~A"
-        set "V=%%~B"
-        call :assign_supabase_var
+if "%DEV_NO_LICENSE%"=="0" (
+    if exist "%LICENSE_ENV%" (
+        for /f "usebackq eol=# tokens=1,* delims==" %%A in ("%LICENSE_ENV%") do (
+            set "K=%%~A"
+            set "V=%%~B"
+            call :assign_license_var
+        )
+    )
+    if exist "%SUPABASE_ENV%" (
+        for /f "usebackq eol=# tokens=1,* delims==" %%A in ("%SUPABASE_ENV%") do (
+            set "K=%%~A"
+            set "V=%%~B"
+            call :assign_license_var
+        )
     )
 )
+
+set "LIC_FINAL_URL=%LICENSE_API_URL%"
+if "%LIC_FINAL_URL%"=="" set "LIC_FINAL_URL=%SUPABASE_URL%"
+set "LIC_FINAL_KEY=%LICENSE_API_KEY%"
+if "%LIC_FINAL_KEY%"=="" set "LIC_FINAL_KEY=%SUPABASE_ANON_KEY%"
 
 set "LIC_LDFLAGS="
 if "%DEV_NO_LICENSE%"=="1" (
     echo [AVISO] Compilando en modo desarrollo SIN proteccion comercial de licencias ^(--dev-no-license^).
 ) else (
-    if "%SUPABASE_URL%"=="" goto :missing_supabase
-    if "%SUPABASE_ANON_KEY%"=="" goto :missing_supabase
-    set "LIC_LDFLAGS=-X github.com/SwodLore/sire-api/internal/license.BuildSupabaseURL=%SUPABASE_URL% -X github.com/SwodLore/sire-api/internal/license.BuildSupabaseAnonKey=%SUPABASE_ANON_KEY% -X github.com/SwodLore/sire-api/internal/license.BuildRequireLicense=true"
+    if "%LIC_FINAL_URL%"=="" goto :missing_license
+    if "%LIC_FINAL_KEY%"=="" goto :missing_license
+    set "LIC_LDFLAGS=-X github.com/SwodLore/sire-api/internal/license.BuildSupabaseURL=%LIC_FINAL_URL% -X github.com/SwodLore/sire-api/internal/license.BuildSupabaseAnonKey=%LIC_FINAL_KEY% -X github.com/SwodLore/sire-api/internal/license.BuildRequireLicense=true"
 )
 
 echo ==============================================================
@@ -40,7 +55,7 @@ echo   Compilando ATLOB Sync - SUNAT (ATLOB Consultores) v2.0
 if "%DEV_NO_LICENSE%"=="1" (
     echo   Modo: Desarrollo Local ^(Sin Licenciamiento^)
 ) else (
-    echo   Modo: Comercial con Licenciamiento Supabase + Instalador
+    echo   Modo: Comercial con Licenciamiento Cloud + Instalador
 )
 echo ==============================================================
 
@@ -85,22 +100,24 @@ echo.
 echo ==============================================================
 echo   [EXITO] Instalador principal generado en la carpeta raiz:
 echo   %OUT_INSTALLER%
-echo   Haga doble clic para instalar ATLOB Sync en modo local.
+echo   Haga doble clic para instalar ATLOB Sync en modo comercial.
 echo ==============================================================
 if "%NO_PAUSE%"=="0" pause
 exit /b 0
 
-:assign_supabase_var
+:assign_license_var
+if /I "%K%"=="LICENSE_API_URL" if "%LICENSE_API_URL%"=="" set "LICENSE_API_URL=%V%"
+if /I "%K%"=="LICENSE_API_KEY" if "%LICENSE_API_KEY%"=="" set "LICENSE_API_KEY=%V%"
 if /I "%K%"=="SUPABASE_URL" if "%SUPABASE_URL%"=="" set "SUPABASE_URL=%V%"
 if /I "%K%"=="SUPABASE_ANON_KEY" if "%SUPABASE_ANON_KEY%"=="" set "SUPABASE_ANON_KEY=%V%"
 exit /b 0
 
-:missing_supabase
+:missing_license
 echo.
-echo [CONFIGURACION PENDIENTE] No se encontro SUPABASE_URL o SUPABASE_ANON_KEY.
+echo [CONFIGURACION PENDIENTE] No se encontro LICENSE_API_URL / LICENSE_API_KEY ^(ni SUPABASE_*^).
 echo Para compilar el instalador comercial con licencias de 7 dias / pago:
-echo   1. Sigue los pasos de supabase\GUIA_SUPABASE.md
-echo   2. Copia .env.supabase.example como .env.supabase y completa tus datos.
+echo   1. Configura .env.license ^(Cloudflare Workers^) o .env.supabase ^(Supabase^)
+echo   2. Revisa cloudflare\GUIA_CLOUDFLARE.md o supabase\GUIA_SUPABASE.md.
 echo.
 echo Si solo deseas compilar internamente sin licencias, ejecuta:
 echo   compilar.bat --dev-no-license

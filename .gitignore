@@ -3,6 +3,7 @@
 .env.local
 .env.*.local
 .env.supabase
+.env.license
 .env.admin
 
 # Base de datos y almacenamiento local
